@@ -1,0 +1,88 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+<div class="container my-5 detail-page">
+
+  <header class="mb-4">
+    <h1 class="display-6 fw-bold"> {{ rsk.risk }} </h1>
+  </header>
+
+  <!-- Карточка обзора -->
+  <div class="card shadow-sm position-relative" style="background-color: #fff;">
+    <!-- Блок иконок (без изменений) -->
+    <div class="action-icons position-absolute top-0 end-0 m-3 d-flex align-items-center gap-3">
+      {% if user.is_authenticated %}
+        <a href="{% url 'risk:risk_update' rsk.pk %}" class="action-link" title="Редактировать">
+          <img src="{% static 'images/edit.svg' %}" alt="Редактировать" class="action-icon">
+        </a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModal" class="action-link" title="Удалить">
+          <img src="{% static 'images/delete.svg' %}" alt="Удалить" class="action-icon">
+        </a>
+      {% endif %}
+      <a onClick="javascript:printDiv('content_text');" class="btn btn-secondary" title="Распечатать проект">Печать</a>
+      <a href="{% url 'risk:risk_main' %}" class="action-link" title="Закрыть">
+        <img src="{% static 'images/close.svg' %}" alt="Закрыть" class="action-icon">
+      </a>
+    </div>
+
+    <!-- Содержимое карточки -->
+    <div class="card-body" id="content_text">
+      <!-- Верхняя строка: рубрики, дата создания и категория -->
+      <p><b>Направление деятельности Банка, свойственное риску: </b>{{ rsk.direction }}</p>
+      <p><b>Вид правовой экспертизы: </b>{{ rsk.kind }}</p>
+      <p><b>Предмет правового анализа: </b>{{ rsk.subject }}</p>
+      <p><b>Риск: </b>{{ rsk.risk }}</p>
+      <p><b>Риск-факторы: </b>{{ rsk.risk_factor|safe }}</p>
+      <p><b>Правовое обоснование: </b>{{ rsk.legal_basis|safe }}</p>
+      <p><b>Негативные последствия: </b>{{ rsk.negative_consequences|safe }}</p>
+      <p><b>Меры минимизации: </b>{{ rsk.minimization_measures|safe }}</p>
+      <p><b>Связанные риски: </b>{{ rsk.associated_risks }}</p>
+      <p><b>Информация о реализации риска: </b>{{ rsk.info_about_risk_realization }}</p>
+    </div>
+  </div>
+
+  <!-- Модальное окно подтверждения удаления (без изменений) -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="deleteModalLabel">Удалить риск</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <p>Вы уверены, что хотите удалить "{{ rsk.risk }}"?</p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <form method="post" action="{% url 'risk:risk_delete' rsk.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Удалить</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Ищем сам контейнер
+  var statusGroup = document.querySelector('.btn-status-group');
+  if (!statusGroup) return; // Если вдруг элемента нет, выходим
+
+  // Ищем элементы, в которых отображаются статус и дата
+  var statusText = statusGroup.querySelector('.status-text');
+  var statusDate = statusGroup.querySelector('.status-date');
+
+  // Считываем текстовое содержимое, убирая пробелы по краям
+  var powersVal = statusText ? statusText.textContent.trim() : '';
+  var dateVal = statusDate ? statusDate.textContent.trim() : '';
+
+  // Если и статус, и дата пустые, скрываем блок
+  if (!powersVal && !dateVal) {
+    statusGroup.style.display = 'none';
+  }
+});
+</script>
+
+{% endblock %}

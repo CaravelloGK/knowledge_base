@@ -1,0 +1,50 @@
+{% extends 'index.html' %}
+{% load static %}
+<head>
+    {% block extra_head %}
+            <link rel="stylesheet" href="{% static 'reviews/css/main.css' %}">
+    {% endblock %}
+</head>
+
+{% block content %}
+<div class="container mt-4 mail-page">
+  <h2 class="mb-4">Рекомендовать обзор: {{ review.title }}</h2>
+  <div class="row">
+    <!-- Основная колонка с формой -->
+    <div class="col-md-12">
+      <form method="post" class="needs-validation" novalidate id="send-form">
+        {% csrf_token %}
+
+        <!-- Поле Email -->
+        <div class="form-group mb-3">
+          <label for="{{ form.recipient_email.id_for_label }}">Email получателя</label>
+          {{ form.email }}
+          <div class="invalid-feedback">
+            Пожалуйста, введите корректный email.
+          </div>
+        </div>
+
+        <!-- Поле Комментарий -->
+        <div class="form-group mb-3">
+          <label for="{{ form.comment.id_for_label }}">Комментарий</label>
+          {{ form.comment }}
+          <div class="invalid-feedback">
+            Пожалуйста, введите комментарий.
+          </div>
+        </div>
+
+        <!-- Кнопки Отправить / Отмена -->
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn-apply">Отправить</button>
+          <a href="{% url 'reviews:review_detal' review.pk %}" class="btn-clear">Отмена</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+<!-- Блок cкриптов -->
+{% block scripts %}
+    <script src="{% static 'reviews/js/main.js' %}"></script>
+{% endblock %}

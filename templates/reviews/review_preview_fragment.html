@@ -1,0 +1,20 @@
+{% load static %}
+<head>
+    {% block extra_head %}
+            <link rel="stylesheet" href="{% static 'reviews/css/main.css' %}">
+    {% endblock %}
+</head>
+
+<h6 class="fw-bold">{{ review.title }}</h6>
+<small class="text-muted">
+  {% if review.power_date %}
+    Статус: {{ review.get_powers_display }}<br>
+    Дата статуса: {{ review.power_date|date:"d.m.Y" }}
+  {% else %}
+    Статус: {{ review.get_powers_display }}
+  {% endif %}
+</small>
+<hr>
+<p style="font-size: 0.9rem;">
+  {{ review.description|safe|truncatechars:200 }}
+</p>

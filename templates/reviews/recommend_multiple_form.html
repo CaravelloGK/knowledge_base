@@ -1,0 +1,76 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'reviews/css/main.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 multiple-page">
+  <div class="row">
+    <!-- Левая панель: фильтры -->
+    <div class="col-md-4">
+      {% include 'reviews/addons/filter_block.html' %}
+    </div>
+
+    <!-- Правая панель: множественный выбор обзоров -->
+    <div class="col-md-8">
+      <form method="post" class="needs-validation mt-3" id="send-form">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-1"></div>
+          <!-- Поиск и список чек-боксов -->
+          <div class="col-md-10">
+            <div class="d-flex align-items-center mb-2" style="gap: 0.5rem;">
+              <input type="checkbox" id="select-all-box" class="form-check-input-reviews">
+              <span class="fw-bold">Выберите обзоры</span>
+              <div class="rubric-search-container flex-grow-1">
+                {% include 'reviews/addons/search_form.html' %}
+              </div>
+            </div>
+
+            <div class="form-group mb-3" id="reviewFormGroup">
+              <div class="invalid-feedback">Пожалуйста, выберите обзоры.</div>
+              <div class="scrollable" id="reviewContainerCreate" style="max-height: 68.8vh; overflow-y: auto;">
+                {% for review in reviews_list %}
+                  <div class="form-check mb-2 preview-item rubric-item-create"
+                       data-category="{{ review.category.name }}"
+                       data-rubrics='[{% for r in review.rubric.all %}"{{ r.name|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}]'
+                       data-direct="{{ review.direct }}"
+                       data-subject="{{ review.subject }}"
+                       data-kind="{{ review.kind }}"
+                       data-publish-date="{{ review.current_date|date:'Y-m-d' }}"
+                  >
+                    <input type = "checkbox"
+                           name = "reviews"
+                           value = "{{ review.pk }}"
+                           id = "review{{ review.pk }}">
+                    <label class = "form-check-label" for="review{{ review.pk }}" style="display: unset;">
+                        <span class="review-multiple-date"> {{ review.current_date|date:'d.m.Y' }} </span> | {{ review.title }}
+                    </label>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопки отправки -->
+          <div class="col-md-1"></div>
+          <div class="col-md-1"></div> 
+          <div class="col-md-10">
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn-apply">Сформировать</button>
+              <a href="{% url 'reviews:reviews_main' %}" class="btn-clear">На главную</a>
+            </div>
+          </div>
+          
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'reviews/js/main.js' %}"></script>
+{% endblock %}

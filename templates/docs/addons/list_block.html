@@ -1,0 +1,40 @@
+<div class="row g-3">
+    {% for document in documents %}
+    <div class="col-md-6">
+        <div class="card mb-3 shadow-sm position-relative news-item"
+             data-direct="{{ document.category.name }}"
+             data-subject="{{ document.subcategory.name }}">
+            <div class="card-body">
+                <div class="status-line mb-2">
+                  <small class="text-muted">
+                    <span class="rubric">
+                      {% if document.category %}
+                        <span class="badge rounded-pill bg-secondary">{{ document.category }}</span>
+                      {% endif %}
+                    </span>
+                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
+                    {% if document.created_at %}
+                      <span class="created-date">| {{ document.created_at|date:"d.m.Y" }}</span>
+                    {% endif %}
+                    {% if document.subcategory %}
+                      <span class="ms-2 badge rounded-pill" style="background-color: #28a745;">{{ document.subcategory }}</span>
+                    {% endif %}
+                  </small>
+                </div>
+                <h5 class="card-title fw-bold">{{ document.title|truncatechars:100 }}</h5>
+                {% if document.description %}
+                  <p class="card-text">{{ document.description|safe }}</p>
+                {% endif %}
+                <p class="text-muted small mb-1">
+                    {% if document.subcategory %}
+                        <strong>Тип:</strong> {{ document.subcategory }}
+                    {% endif %}
+                </p>
+                <a href="{% url 'docs:document_detail' document.id %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">Нет документов.</p>
+    {% endfor %}
+</div>

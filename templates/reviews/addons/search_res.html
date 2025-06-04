@@ -1,0 +1,45 @@
+<h2>Результаты поиска для '{{ query }}'</h2>
+                    {% with result.count as total_result %}
+                    Найдено результатов: {{ total_result }}.
+                    {% endwith %}
+
+                    {% for res in result %}
+                    <div class="card mb-3 shadow-sm position-relative">
+                        <div class="card-body">
+                            <div class="status-line mb-2">
+                              <small class="text-muted">
+                                <span class="rubric">
+                                  {% for rubric in res.rubric.all %}
+                                    <span class="badge rounded-pill bg-secondary">{{ rubric.name }}</span>
+                                  {% endfor %}
+                                </span>
+                                <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
+                                <span class="created-date">| {{ res.current_date|date:"d.m.Y" }}</span>
+                                <span class="ms-2 badge rounded-pill"
+                                      style="background-color: {% if res.category.name == 'Принятые изменения' %}
+                                                            #28a745
+                                                          {% elif res.category.name == 'Проекты НПА' %}
+                                                            #ffa500
+                                                          {% else %}
+                                                            #6c757d
+                                                          {% endif %};">
+                                  {{ res.category }}
+                                </span>
+                              </small>
+                            </div>
+                            <h5 class="card-title fw-bold">{{ res.title|truncatechars:100 }}</h5>
+                            <p class="card-text">{{ res.description|safe }}</p>
+                            <p class="text-muted small mb-1">
+                                {% if res.power_date %}
+                                    <strong>Статус:</strong> {{ res.powers }}
+                                    {{ res.power_date }}
+                                {% else %}
+                                    <strong>Статус:</strong> {{ res.powers }}
+                                {% endif %}
+                            </p>
+                            <a href="{{ res.get_absolute_url }}" class="stretched-link"> </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">Нет доступных обзоров.</p>
+                    {% endfor %}

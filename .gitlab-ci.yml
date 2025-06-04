@@ -1,0 +1,22 @@
+stages:
+  - merge
+
+auto_merge_front_to_main:
+  stage: merge
+  only:
+    - front
+  script:
+    - git checkout main
+    - git merge --no-ff front
+    - git push origin main
+  when: manual  # или "on_success" для автоматического
+
+auto_merge_back_to_main:
+  stage: merge
+  only:
+    - back
+  script:
+    - git checkout main
+    - git merge --no-ff back
+    - git push origin main
+  when: manual

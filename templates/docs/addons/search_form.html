@@ -1,0 +1,9 @@
+<div class="flex-grow-1" style="min-width: 0;">
+  <form method="POST" class="mb-3" action="{% url 'docs:search' %}">
+    <div class="input-group search-group">
+        {% csrf_token %}
+        {% for field in search_form.hidden_fields %}{{ field }}{% endfor %}
+        {{ search_form.query }}
+    </div>
+  </form>
+</div>

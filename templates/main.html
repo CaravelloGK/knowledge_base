@@ -1,0 +1,74 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load django_bootstrap5 %}
+{% block body_class %}
+    main-page
+{% endblock %}
+{% block content %}
+  <!-- Секция mainpage -->
+  <section id="mainpage" class="mainpage section dark-background">
+    <div class="container">
+
+      <!-- Заголовок -->
+      <div class="row justify-content-center text-center">
+        <div class="col-xl-10 col-lg-12 mb-5">
+          <h1>Портал Юридического департамента <span class="big-accent-dot">.</span></h1>
+        </div>
+      </div>
+
+      <!-- Глобальное поле поиска -->
+      <div class="row justify-content-center">
+        <div class="col-xl-6 col-lg-8">
+          <div class="global-search-box">
+            <form class="global-search-box" role="search">
+              <label for="global-search">Поиск по порталу</label>
+              <input type="search" id="global-search" name="q" placeholder="Искать на портале..." required />
+              <button type="submit">Поиск</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Пять иконок (направления бизнеса) -->
+      <div class="row gy-4 mt-5 justify-content-center">
+        
+        <div class="col-xl-2 col-md-4">
+          <div class="icon-box">
+            <img src="{% static 'img/UPOKK.svg' %}" alt="Корпоративный бизнес">
+            <h5><a href="{% url 'docs:kb_home' %}">Корпоративный бизнес</a></h5>
+          </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4">
+          <div class="icon-box">
+            <img src="{% static 'img/UPORB.svg' %}" alt="Розничный бизнес">
+            <h5><a href="{% url 'docs:rb_home' %}">Розничный бизнес</a></h5>
+          </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4">
+          <div class="icon-box">
+            <img src="{% static 'img/UPOBD.svg' %}" alt="Административно-хозяйственная деятельность">
+            <h5><a href="{% url 'docs:ahd_home' %}">Административная деятельность</a></h5>
+          </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4">
+          <div class="icon-box">
+            <img src="{% static 'img/OPOMO.svg' %}" alt="Инвестиционный и международный бизнес">
+            <h5><a href="#">Международный бизнес</a></h5>
+          </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4">
+          <div class="icon-box">
+            <img src="{% static 'img/KURI.svg' %}" alt="Корпоративное управление и раскрытие информации">
+            <h5><a href="#">Корпоративное управление</a></h5>
+          </div>
+        </div>
+
+      </div> <!-- /row -->
+
+    </div> <!-- /container -->
+  </section> <!-- /mainpage -->
+{% endblock %}

@@ -1,0 +1,10 @@
+<div class="flex-grow-1" style="min-width: 0;">
+  <form method="GET" class="mb-3" action="{% url 'reviews:search' %}">
+    <div class="input-group search-group">
+      <span class="input-group-text search-addon">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" name="query" class="form-control search-field" placeholder="Поиск" aria-label="Поиск">
+    </div>
+  </form>
+</div>

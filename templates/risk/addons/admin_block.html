@@ -1,0 +1,19 @@
+{% load static %}
+{% if user.is_authenticated %}
+<div class="ms-2 flex-shrink-0">
+  <div class="d-flex align-items-center gap-2" style="align-items: unset !important">
+      <a href="{% url 'risk:risk_create' %}" class="action-link" title="Добавить риск">
+          <img src="{% static 'images/create.svg' %}" alt="Добавить риск" class="action-icon" style="width:24px; height:24px; margin-top: 0.4rem;">
+      </a>
+      <a href="{% url 'risk:upload_excel' %}" class="action-link" title="Загрузить Excel">
+          <img src="{% static 'images/excel_upload.svg' %}" alt="Загрузить Excel" class="action-icon" style="width:32px; height:32px;">
+      </a>
+      <a href="{% url 'risk:load_excel' %}" class="action-link" title="Выгрузить Excel">
+          <img src="{% static 'images/excel_download.svg' %}" alt="Выгрузить Excel" class="action-icon" style="width:32px; height:32px;">
+      </a>
+      <a href="{% url 'risk:load_excel_filter' %}" class="action-link" title="Выгрузить с фильтрами">
+          <img src="{% static 'images/excel_filter_download.svg' %}" alt="Выгрузить с фильтрами" class="action-icon" style="width:32px; height:32px;">
+      </a>
+  </div>
+</div>
+{% endif %}

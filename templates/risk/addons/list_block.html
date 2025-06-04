@@ -1,0 +1,101 @@
+ <div id="news-container">
+    {% for rsk in risks %}
+    <div class="card mb-3 shadow-sm position-relative news-item" 
+         data-direct="{{ rsk.direction.id }}" 
+         data-subject="{{ rsk.subject.id }}" 
+         data-kind="{{ rsk.kind.id }}">
+        <div class="card-body">
+            <div class="other">
+                <div class="status-line mb-2">
+                    <h5>Направление деятельности Банка, свойственное риску:</h5>
+                    <p>{{ rsk.direction }}</p>
+                    <h5>Вид правовой экспертизы:</h5>
+                    <p>{{ rsk.kind }}</p>
+                    <h5>Предмет правового анализа:</h5>
+                    <p>{{ rsk.subject }}</p>
+                </div>
+                <h5>Риск:</h5>
+                <p>{{ rsk.risk }}</p>
+                <h5>Риск-факторы:</h5>
+                <p>{{ risk.get_absolute_url }}</p>
+                <p class="card-text">{{ rsk.risk_factor|safe }}</p>
+                <a href="{{ rsk.get_absolute_url }}" class="stretched-link"> </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">Нет рисков.</p>
+    {% endfor %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Элементы DOM
+    const newsContainer = document.getElementById('news-container');
+    const newsItems = document.querySelectorAll('.news-item');
+    const directCheckboxes = document.querySelectorAll('.direct-checkbox');
+    const subjectCheckboxes = document.querySelectorAll('.subject-checkbox');
+    const kindRadios = document.querySelectorAll('.kind-radio');
+    const resetButton = document.getElementById('reset-filters');
+    
+    // Функция фильтрации новостей
+    function filterNews() {
+        // Получаем выбранные рубрики
+
+        
+        // Получаем выбранную категорию
+        const selectedKind = document.querySelector('input[name="kind"]:checked').value;
+        console.log('Получаем выбранную категорию', selectedKind)
+
+        
+        newsItems.forEach(item => {
+            const itemDirect = item.getAttribute('data-direct');
+            const itemSubject = item.getAttribute('data-subject');
+            
+            const itemKind = item.getAttribute('data-kind');
+            console.log('Получаем выбранную категорию новости', itemKind)
+            
+            // Проверка соответствия фильтрам
+            const categoryDirect = !selectedDirect || itemDirect == selectedDirect;
+            
+            const categorySubject = !selectedSubject || itemSubject == selectedSubject;
+            
+            const categoryKind = !selectedKind || itemKind == selectedKind;
+            console.log('Проверка соответствия фильтрам', categoryKind)
+            
+            // Показываем/скрываем элемент
+            item.style.display = (categoryDirect && categorySubject && categoryKind) ? 'block' : 'none';
+        });
+    }
+    
+    // Обработчики изменений фильтров   
+    directRadios.forEach(radio => {
+        radio.addEventListener('change', filterNews);
+    });
+	
+	subjectRadios.forEach(radio => {
+        radio.addEventListener('change', filterNews);
+    });
+	
+	kindRadios.forEach(radio => {
+        radio.addEventListener('change', filterNews);
+    });
+    
+    // Обработчик сброса фильтров
+    resetButton.addEventListener('click', function() {
+        // Сбрасываем чекбоксы рубрик
+        
+        // Сбрасываем радио кнопки категорий (выбираем "Все категории")
+        document.getElementById('direct-all').checked = true;
+
+        // Сбрасываем радио кнопки категорий (выбираем "Все категории")
+        document.getElementById('subject-all').checked = true;
+
+        // Сбрасываем радио кнопки категорий (выбираем "Все категории")
+        document.getElementById('kind-all').checked = true;		
+        
+        // Применяем фильтрацию
+        filterNews();
+    });
+});
+</script>

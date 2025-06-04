@@ -1,0 +1,23 @@
+<h6 class="fw-bold">{{ review.title|safe|truncatechars:100 }}</h6>
+
+<small class="text-muted">
+  {% if review.power_date %}
+    Статус: {{ review.get_powers_display }}<br>
+    Дата статуса: {{ review.power_date|date:"d.m.Y" }}
+  {% else %}
+    Статус: {{ review.get_powers_display }}
+  {% endif %}
+</small>
+
+<hr>
+
+<p style="font-size: .9rem;">
+  {{ review.description|safe|truncatechars:250 }}
+</p>
+
+<a href="{% url 'reviews:review_detal' review.pk %}"
+   class="btn-apply mt-2"
+   target="_blank" rel="noopener"
+>
+  Читать далее →
+</a>

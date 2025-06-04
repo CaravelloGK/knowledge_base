@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+{% load static %}
+{% load django_bootstrap5 %}
+{#{% load keycloak_tags %}#}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Портал ЮД</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <script src="{% static 'js/main.js' %}"></script>
+    <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>  <!-- Bootstrap JS + Popper -->
+    <script src="https://cdn.ckeditor.com/4.16.2/standart/ckeditor.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+
+    <!-- Скрывание body для моментальной работы темной темы -->
+    <style>
+        body {
+            visibility: hidden;
+        }
+    </style>
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+<!-- Скрипт для темной темы -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Если не main-page, проверяем localStorage
+    if (!document.body.classList.contains('main-page')) {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-theme');
+      }
+    } else {
+      // main-page -> отключаем dark-theme
+      document.body.classList.remove('dark-theme');
+    }
+    document.body.style.visibility = 'visible';
+  });
+</script>
+
+<hr class="gradient-line">
+<header class="p-3 text-bg-white" style="box-shadow: 0 .3rem 1rem 0 rgba(44,51,73,.1);">
+  <div class="container-fluid">
+    <!-- Основной Flex-контейнер -->
+    <div class="d-flex align-items-center justify-content-between">
+
+      <!-- Левая часть (Логотип + Меню) -->
+      <div class="d-flex align-items-center gap-3">
+        <!-- Блок логотипа -->
+        <div class="header-logo">
+          <a href="{% url 'index' %}">
+            <img src="{% static 'img/logo_legal.png' %}" class="bi me-2" width="300" height="50" role="img" aria-label="Bootstrap">
+          </a>
+        </div>
+
+        <!-- Блок меню -->
+        <nav class="nav-menu d-flex align-items-center">
+          <!-- Выпадающее меню «Направления бизнеса»-->
+          <div class="nav-item dropdown dropdown-hover">
+            <a class="nav-link dropdown-toggle" href="#"
+               role="button" aria-expanded="false">
+              Направления бизнеса
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{% url 'docs:kb_home' %}">Корпоративный бизнес</a></li>
+              <li><a class="dropdown-item" href="{% url 'docs:rb_home' %}">Розничный бизнес</a></li>
+              <li><a class="dropdown-item" href="{% url 'docs:ahd_home' %}">Административно-хозяйственная деятельность</a></li>
+              <li><a class="dropdown-item" href="{% url 'docs:mb_home' %}">Инвестиционный и международный бизнес</a></li>
+              <li><a class="dropdown-item" href="{% url 'docs:kuri_home' %}">Корпоративное управление и раскрытие информации</a></li>
+            </ul>
+          </div>
+
+          <!-- Выпадающее меню «Проверка правоспособности»-->
+          <div class="nav-item dropdown dropdown-hover">
+            <a class="nav-link dropdown-toggle" href="#"
+               role="button" aria-expanded="false">
+              Проверка правоспособности
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{% url 'legal_opin:legal_entity_list' %}">Реестр юридических лиц</a></li>
+              <li><a class="dropdown-item" href="#">Реестр сделок</a></li>
+              <li><a class="dropdown-item" href="#">Реестр залогового имущества</a></li>
+            </ul>
+          </div>
+
+          <!-- Обычные ссылки -->
+          <a class="nav-link" href="{% url 'reviews:reviews_main' %}">Правовые обзоры</a>
+          <a class="nav-link" href="{% url 'risk:risk_main' %}">Правовые риски</a>
+          <a class="nav-link" href="#">О нас</a>
+        </nav>
+      </div>
+
+      <!-- Правая часть (Переключатель темы + Логин/Логаут) -->
+      <div class="d-flex align-items-center gap-3">
+        <!-- Блок переключения темы -->
+        <div class="theme-switcher">
+          <button id="theme-toggle" class="btn btn-outline-secondary"
+                  style="height: 2.8rem; border-color:rgb(255,255,255);"
+                  title="Переключить тему">
+            <i class="bi bi-moon-stars" id="theme-icon"></i>
+          </button>
+        </div>
+      
+        <div class="auth-menu dropdown">
+          <!-- Кнопка, открывающая dropdown по клику -->
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                  id="dropdownMenuAuth" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="{% static 'img/user.png' %}" alt="mdo" width="32" height="32" class="rounded-circle">
+            {% if user.is_authenticated %}
+              {{ user.first_name }}
+            {% else %}
+              Гость
+            {% endif %}
+          </button>
+          <!-- Содержимое dropdown -->
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuAuth">
+            {% if user.is_authenticated %}
+              <li>
+                <a href="{% url 'logout' %}" class="btn btn-danger">Выйти</a>
+              </li>
+            {% else %}
+              <li>
+                <!-- Кнопка входа (открывает модальное окно) -->
+                <a href="{% url 'login' %}">Войти</a>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<hr style="color: #f8f9fa; opacity: 1; margin: 0;">
+
+
+
+<!-- Блок для подгрузки локальных CSS -->
+{% block extra_head %}
+{% endblock %}
+
+<!-- Основной блок контента -->
+{% block content %}
+{% endblock %}
+
+<!-- Блок для подгрузки локальных JS -->
+{% block scripts %}
+{% endblock %}
+
+<!-- Flatpickr + локализация -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const toggleBtn = document.getElementById('theme-toggle');
+  const iconEl = document.getElementById('theme-icon');
+
+  // При загрузке проверяем, не dark ли сейчас
+  // и выставляем соответствующую иконку
+  const isDarkNow = document.body.classList.contains('dark-theme');
+  setThemeIcon(isDarkNow);
+
+  toggleBtn.addEventListener('click', function () {
+    // 1) Убираем любые transition
+    document.body.classList.add('no-transitions');
+
+    // 2) Переключаем класс dark-theme
+    const willBeDark = !document.body.classList.contains('dark-theme');
+    document.body.classList.toggle('dark-theme', willBeDark);
+
+    // 3) Сохраняем в localStorage
+    localStorage.setItem('theme', willBeDark ? 'dark' : 'light');
+
+    // 4) Меняем иконку
+    setThemeIcon(willBeDark);
+
+    // 5) Принудительный Reflow
+    document.body.offsetHeight;
+    // 6) Возвращаем переходы
+    setTimeout(() => {
+      document.body.classList.remove('no-transitions');
+    }, 0);
+  });
+
+  function setThemeIcon(dark) {
+    if (dark) {
+      iconEl.classList.remove('bi-moon-stars');
+      iconEl.classList.add('bi-sun');
+    } else {
+      iconEl.classList.remove('bi-sun');
+      iconEl.classList.add('bi-moon-stars');
+    }
+  }
+});
+</script>
+
+</body>
+</html>

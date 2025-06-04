@@ -1,0 +1,26 @@
+                    <h2>Результаты поиска для '{{ query }}'</h2>
+                    {% with result.count as total_result %}
+                    Найдено результатов: {{ total_result }}.
+                    {% endwith %}
+
+                    {% for res in result %}
+                        <div class="card mb-3 shadow-sm position-relative news-item" 
+                             data-direct="{{ res.category.id }}" 
+                             data-subject="{{ res.subcategory.id }}" >
+                            <div class="card-body">
+                                <div class="other">
+                                    <div class="status-line mb-2">
+                                        <h5>Наименование документа</h5>
+                                        <p>{{ res.title }}</p>
+                                        <h5>Категория:</h5>
+                                        <p>{{ res.category }}</p>
+                                        <h5>Тип документа:</h5>
+                                        <p>{{ res.subcategory }}</p>
+                                    </div>
+                                    <a href="{% url 'docs:document_detail' res.id %}" class="stretched-link"> </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                    <p class="text-muted">Нет доступных документов.</p>
+                    {% endfor %}

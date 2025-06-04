@@ -1,0 +1,152 @@
+{% extends 'index.html' %}
+{% load static %}
+<head>
+    {% block extra_head %}
+            <link rel="stylesheet" href="{% static 'reviews/css/main.css' %}">
+    {% endblock %}
+</head>
+
+{{ form.media }}
+<!--подключаем основной шаблон-->
+{% block content %}
+<div class="review-form-page">
+ <div class="container mt-5" style="max-width: 1550px;">
+  <h2 class="mb-4">{{ view.get_context_data.title }}</h2>
+  <form method="post" class="needs-validation" novalidate>
+      {% csrf_token %}
+      {{ form.media }}
+   <div class="row ms-5">
+     <div class="col-md-6 mr-3" style="width: 54%;">
+       <!-- Поле: Заголовок -->
+       <div class="form-group mb-3">
+           <h6 class="fw-bold" style="display: inline;">Заголовок</h6>
+           <span style="color: red;">&#42;</span>
+           {{ form.title }}
+           <div class="invalid-feedback">
+           Пожалуйста, укажи заголовок
+           </div>
+       </div>
+
+       <!-- Поле: Название -->
+       <div class="form-group mb-3">
+           <h6 class="fw-bold" style="display: inline;">Название</h6>
+           <span style="color: red;">&#42;</span>
+           {{ form.name }}
+           <div class="invalid-feedback">
+           Пожалуйста, укажи название
+           </div>
+       </div>
+
+       <!-- Поле: Краткое описание -->
+       <div class="form-group mb-3">
+           <h6 class="fw-bold" style="display: inline;">Краткое описание</h6>
+           <span style="color: red;">&#42;</span>
+           {{ form.description }}
+       </div>
+    </div>
+    <div class="col-md-1" style="width:1% !important"> </div>
+    <div class="col-md-5">
+      <div class="row">
+       <div class="col-md-6 form-group mb-3" id="rubricFormGroup">
+         <h6 class="fw-bold" style="display: inline;">Рубрика</h6>
+         <span style="color: red;">&#42;</span>
+         <!-- Строка заголовка "Рубрика" и поле поиска -->
+         <div class="d-flex align-items-center mb-2">
+           <div class="rubric-search-container w-100">
+             <div class="input-group search-group">
+               <span class="input-group-text search-addon">
+                 <i class="bi bi-search"></i>
+               </span>
+               <input
+                 type="text"
+                 id="rubricSearchInputCreate"
+                 class="form-control search-field ignore-validation"
+                 placeholder=""
+                 aria-label=""
+               >
+             </div>
+           </div>
+         </div>
+
+         <!-- Прокручиваемый список чекбоксов -->
+         <div class="invalid-feedback text-nowrap">
+                 Пожалуйста, укажи рубрику
+         </div>
+         <div class="rubrics-scrollable scrollable" id="rubricContainerCreate">
+           {% for rub in form.rubric %}
+             <div class="form-check rubric-item-create">
+               {{ rub.tag }}  <!-- здесь чекбокс -->
+               <label class="form-check-label" for="{{ rub.id_for_label }}">
+                 {{ rub.choice_label }}
+               </label>
+             </div>
+           {% endfor %}
+         </div>
+
+       </div>
+       <div class="col-md-1" style="width:0.5% !important"> </div>
+       <div class="col-md-5 form-group mb-3">
+               <h6 class="fw-bold" style="display: inline;">Категория</h6>
+               <span style="color: red;">&#42;</span>
+               {{ form.category }}
+               <div class="invalid-feedback">
+               Пожалуйста, укажи категорию
+               </div>
+           <!-- Поле: Ссылка -->
+       <div class="form-group my-3">
+           <h6 class="fw-bold" style="display: inline;">Ссылка</h6>
+           <span style="color: red;">&#42;</span>
+           {{ form.link }}
+           <div class="invalid-feedback">
+           Пожалуйста, укажи ссылку
+           </div>
+       </div>
+                  <!-- Поле: Дата публикации -->
+       <div class="form-group mb-3">
+           <h6 class="fw-bold" style="display: inline;">Дата публикации</h6>
+           <span style="color: red;">&#42;</span>
+           {{ form.publication_date }}
+           <div class="invalid-feedback">
+           Пожалуйста, укажи дату
+           </div>
+       </div>
+
+       </div>
+      </div>
+    
+       <!-- Поле: Статус, Дата статуса и Дата публикации в одной строке -->
+       <div class="row">
+         <div class="col-md-6 form-group mb-3">
+           <h6 class="fw-bold">Статус</h6>
+           {{ form.powers }}
+         </div>
+<div class="col-md-1" style="width:0.5% !important"> </div>
+         <div class="col-md-5 form-group mb-3" id="powerDateGroup">
+           <h6 class="fw-bold">Дата статуса</h6>
+           {{ form.power_date }}
+           <div class="invalid-feedback">
+           Пожалуйста, укажи дату
+           </div>
+         </div>
+       </div>
+    
+       <!-- Кнопка отправки формы -->
+       <div class="d-flex gap-2">
+         <button type="submit" class="btn-apply">Опубликовать</button>
+         {% if back %}
+             <a href="{% url 'reviews:review_detal' review.pk %}" class="btn btn-primary">Отмена</a>
+         {% else %}
+             <a href="{% url 'reviews:reviews_main' %}" class="btn-clear">Отмена</a>
+         {% endif %}
+       </div>
+    </div>
+   </div>
+  </form>
+ </div>
+</div>
+{% endblock %}
+
+<!-- Блок cкриптов -->
+{% block scripts %}
+    <script src="{% static 'reviews/js/main.js' %}"></script>
+{% endblock %}

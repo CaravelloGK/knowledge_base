@@ -1,0 +1,99 @@
+{% load static %}
+<div class="docs-filter-page">
+    <h6 class="fw-bold" style="margin-top: 1rem;">Раздел</h6>
+        <div class="rubrics-scrollable scrollable">
+            {% for elem_1 in categories %}
+            <div class="form-check">
+                <input class="form-check-input direct-radio" type="radio"
+                       name="direct"
+                       id="direct-{{ elem_1.id }}"
+                       value="{{ elem_1.id }}">
+                <label class="form-check-label" for="direct-{{ elem_1.id }}">
+                    {{ elem_1.name }}
+                </label>
+            </div>
+            {% endfor %}
+            <div class="form-check">
+                <input class="form-check-input direct-radio" type="radio"
+                       name="direct"
+                       id="direct-all"
+                       value="" checked>
+                <label class="form-check-label" for="direct-all">
+                    Все разделы
+                </label>
+            </div>
+        </div>
+			
+    <h6 class="fw-bold" style="margin-top: 1rem;">Тип</h6>
+        <div class="type-filters">
+            {% for elem_3 in subcategories %}
+            <input class="btn-check category-toggle" 
+                   type="radio"
+                   name="subject"
+                   id="subject-{{ elem_3.id }}"
+                   value="{{ elem_3.id }}">
+            <label class="btn btn-toggle" for="subject-{{ elem_3.id }}">
+                {% if elem_3.name == "Внутренние нормативные документы" %}
+                    <img src="{% static 'img/vnd-type.svg' %}" class="chip-icon" alt="">
+                {% elif elem_3.name == "Типовые формы / Шаблоны" %}
+                    <img src="{% static 'img/template-type.svg' %}" class="chip-icon" alt="">
+                {% elif elem_3.name == "Инструкции / Памятки / Ответы" %}
+                    <img src="{% static 'img/faq-type.svg' %}" class="chip-icon" alt="">
+                {% elif elem_3.name == "Служебные записки" %}
+                    <img src="{% static 'img/zapiska-type.svg' %}" class="chip-icon" alt="">
+                {% elif elem_3.name == "Нормативно-правовые акты (законы)" %}
+                    <img src="{% static 'img/npa-type.svg' %}" class="chip-icon" alt="">
+                {% elif elem_3.name == "Информационные материалы" %}
+                    <img src="{% static 'img/info-type.svg' %}" class="chip-icon" alt="">
+                {% endif %}
+                {{ elem_3.name }}
+            </label>
+            {% endfor %}
+            <input class="btn-check category-toggle"
+                   type="radio"
+                   name="subject"
+                   id="subject-all"
+                   value="" checked>
+            <label class="btn btn-toggle" for="subject-all">
+                Все типы
+            </label>
+        </div>
+
+            <button id="reset-filters" class="btn btn-secondary mt-3">Сбросить фильтры</button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const newsItems = document.querySelectorAll('.news-item');
+    
+    const directRadios = document.querySelectorAll('input[name="direct"]');
+    const subjectRadios = document.querySelectorAll('input[name="subject"]');
+    const resetButton = document.getElementById('reset-filters');
+
+    function filterNews() {
+        const selectedDirect = document.querySelector('input[name="direct"]:checked')?.value;
+        const selectedSubject = document.querySelector('input[name="subject"]:checked')?.value;
+
+        newsItems.forEach(item => {
+            const itemDirect = item.dataset.direct;
+            const itemSubject = item.dataset.subject;
+            
+            const directMatch = !selectedDirect || itemDirect === selectedDirect;
+            const subjectMatch = !selectedSubject || itemSubject === selectedSubject;
+
+            item.style.display = directMatch && subjectMatch ? 'block' : 'none';
+        });
+    }
+
+    directRadios.forEach(radio => radio.addEventListener('change', filterNews));
+    subjectRadios.forEach(radio => radio.addEventListener('change', filterNews));
+
+    resetButton.addEventListener('click', function() {
+        directRadios.forEach(radio => radio.checked = false);
+        subjectRadios.forEach(radio => radio.checked = false);
+        filterNews();
+    });
+
+    filterNews();
+});
+</script>

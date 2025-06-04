@@ -1,0 +1,105 @@
+{% extends 'index.html' %}
+{% load static %}
+
+<head>
+    {% block extra_head %}
+            <link rel="stylesheet" href="{% static 'reviews/css/main.css' %}">
+    {% endblock %}
+</head>
+
+
+{% block content %}
+<div class="container my-5 detail-page">
+  <header style="z-index: 1 !important;" class="mb-4">
+    <h1 class="display-6 fw-bold"> {{ review.title }} </h1>
+  </header>
+
+  <!-- Карточка обзора -->
+  <div class="card shadow-sm position-relative" style="background-color: #fff;">
+    <!-- Блок иконок (без изменений) -->
+    <div class="action-icons position-absolute top-0 end-0 m-3 d-flex align-items-center gap-3">
+{#      {% if user.is_authenticated %}#}
+        <a href="{% url 'reviews:review_update' review.pk %}" class="action-link" title="Редактировать">
+          <img src="{% static 'img/edit.svg' %}" alt="Редактировать" class="action-icon">
+        </a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModal" class="action-link" title="Удалить">
+          <img src="{% static 'img/delete.svg' %}" alt="Удалить" class="action-icon">
+        </a>
+{#        <a href="{% url 'reviews:recommend_review' review.pk %}" class="action-link" title="Рекомендовать">#}
+{#          <img src="{% static 'img/share.svg' %}" alt="Рекомендовать" class="action-icon">#}
+{#        </a>#}
+{#      {% endif %}#}
+      <a href="{% url 'reviews:reviews_main' %}" class="action-link" title="Закрыть">
+        <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+      </a>
+    </div>
+
+    <!-- Содержимое карточки -->
+    <div class="card-body">
+      <!-- Верхняя строка: рубрики, дата создания и категория -->
+      <div class="status-line mb-4">
+        <small class="text-muted">
+          <span class="rubric">
+            {% for rubric in review.rubric.all %}
+              <span class="badge rounded-pill bg-secondary">{{ rubric.name }}</span>
+            {% endfor %}
+          <span class="status-divider mx-1">|</span>
+          <span class="created-date">{{ review.current_date|date:"d.m.Y" }}</span>
+          <span class="ms-2 badge rounded-pill"
+                style="background-color: {% if review.category.name == 'Принятые изменения' %}
+                                      #28a745
+                                    {% elif review.category.name == 'Проекты НПА' %}
+                                      #ffa500
+                                    {% else %}
+                                      #6c757d
+                                    {% endif %};">
+            {{ review.category }}
+          </span>
+        </small>
+      </div>
+
+      <h5 class="card-title">{{ review.name }}</h5>
+      <p class="card-text mb-4">{{ review.description|safe }}</p>
+    </div>
+
+    <!-- Нижняя строка: объединённый блок статус/дата и кнопка "Источник" -->
+    <div class="card-footer bg-white border-0 d-flex align-items-center gap-3 pb-3">
+      {% if review.get_powers_display %}
+      <div class="custom-status-box d-inline-flex align-intems-center gap-2">
+        <span class="status-text fw-bold">{{ review.get_powers_display }}</span>
+        <span class="status-date">{{ review.power_date|date:"d.m.Y" }}</span>
+      </div>
+      {% endif %}
+      <a href="{{ review.link }}" target="_blank" class="btn btn-source" title="Источник">Источник</a>
+    </div>
+  </div>
+
+  <!-- Модальное окно подтверждения удаления (без изменений) -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="deleteModalLabel">Удалить обзор</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <p>Вы уверены, что хотите удалить "{{ review.title }}"?</p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <form method="post" action="{% url 'reviews:review_delete' review.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Удалить</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+<!-- Блок cкриптов -->
+{% block scripts %}
+    <script src="{% static 'reviews/js/main.js' %}"></script>
+{% endblock %}

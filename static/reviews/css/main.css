@@ -1,0 +1,396 @@
+/* <editor-fold> desc="===== Темная тема =====" */
+    body.dark-theme .card {
+        background-color: #1d1d1d !important;
+        color: #fff !important;
+        border: 1px solid #444 !important;
+    }
+
+    body.dark-theme .card-footer,
+    body.dark-theme .created-date,
+    body.dark-theme .status-divider,
+    body.dark-theme .review-copy-block {
+        background-color: #1d1d1d !important;
+        color: #fff !important;
+    }
+
+    body.dark-theme .custom-status-box {
+        background-color: transparent;
+        border: 1px solid rgba(255, 255, 255);
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    body.dark-theme .modal-content {
+        background-color: #ffffff;
+        border: 1px solid rgba(255, 255, 255);
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        color: #000000 !important;
+    }
+
+    body.dark-theme .custom-status-box,
+    body.dark-theme .status-date,
+    body.dark-theme .card .card-body p,
+    body.dark-theme .card .card-body h5,
+    body.dark-theme .review-copy-rubric,
+    body.dark-theme .review-copy-link {
+        color: #ffffff !important;
+    }
+
+    body.dark-theme .form-check:hover,
+    body.dark-theme .dropdown-menu.show {
+        background-color: #333333 !important;
+    }
+
+    body.dark-theme .card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+        border: 1px solid rgb(255, 255, 255, 0.5) !important;
+    }
+
+    body.dark-theme .multiple-page .card:hover,
+    body.dark-theme .detail-page .card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+        border: 1px solid #444 !important;
+    }
+
+    body.dark-theme .btn-clear-review-main {
+        color: #FFFFFF !important;
+    }
+
+
+    body.dark-theme #id_title,
+    body.dark-theme #id_name,
+    body.dark-theme #id_link,
+    body.dark-theme #id_recipient_email,
+    body.dark-theme #id_email,
+    body.dark-theme #id_comment,
+    body.dark-theme #id_powers,
+    body.dark-theme #id_category,
+    body.dark-theme #id_power_date,
+    body.dark-theme #id_publication_date {
+        background-color: #E9ECEF !important;
+        color: #495057 !important;
+    }
+
+    body.dark-theme input#id_title:focus,
+    body.dark-theme input#id_name:focus,
+    body.dark-theme input#id_link:focus,
+    body.dark-theme input#id_powers:focus,
+    body.dark-theme input#id_category:focus,
+    body.dark-theme input#id_power_date:focus,
+    body.dark-theme input#id_publication_date:focus {
+        background: #E9ECEF !important;
+    }
+
+    body.dark-theme .ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline.ck-focused,
+    body.dark-theme .ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline.ck-blurred {
+        background: #E9ECEF !important;
+        color: #495057;
+    }
+
+    body.dark-theme .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+        background: #E9ECEF !important;
+    }
+
+/* </editor-fold> */
+
+/* <editor-fold> desc="===== Поля форм =====" */
+
+    /* <editor-fold> desc="===== Скроллбары =====" */
+    #id_name::-webkit-scrollbar {
+        width: 7px;
+    }
+    #id_name::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 5px;
+    }
+    #id_name::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+    }
+    #id_name::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    /* </editor-fold> */
+
+    /* <editor-fold> desc="===== Валидация полей =====" */
+    .was-validated .form-control:invalid,
+    .form-control.is-invalid {
+        border-color: rgb(221, 10, 52) !important;  /* Красная рамка */
+        box-shadow: 0 0 0 0.2rem rgba(221, 10, 52, 0.25) !important; /* Лёгкое свечение */
+    }
+
+    /* Когда #rubricFormGroup имеет класс .is-invalid, показываем .invalid-feedback */
+    #rubricFormGroup.is-invalid .invalid-feedback {
+        display: block !important;
+        color: #dc3545; /* красный цвет, как в Bootstrap */
+        margin-bottom: .5rem;
+    }
+
+    #rubricFormGroup .invalid-feedback {
+        display: none; /* по умолчанию скрыто */
+    }
+
+    .form-control:focus {
+        border-color: #e9ecef !important;
+    }
+
+    .form-control.is-valid, .was-validated .form-control:valid {
+        background-image:unset !important;
+        border-color: #d2d5da !important;
+    }
+    /* </editor-fold> */
+
+    .review-form-page .row .col-md-3 {
+        background-color: unset;
+        margin-top: unset;
+        margin-bottom: unset;
+        box-shadow: unset;
+    }
+
+    select {
+        background-color: #fff !important;
+    }
+
+    #id_title,
+    #id_name,
+    #id_link,
+    #id_recipient_email,
+    #id_email,
+    #id_comment {
+        background-color: #ffffff !important; /* Белый фон */
+        color: #495057 !important;           /* Тёмный текст */
+        border-radius: 0.5rem !important;    /* Скруглённые углы */
+        padding: 0.5rem 1rem !important;     /* Отступы для визуальной аккуратности */
+        box-shadow: none !important;         /* Отключаем тень */
+        width: 100%;                         /* Растягиваем на всю ширину родителя */
+        min-height: 42px;
+    }
+
+    #id_powers,
+    #id_category {
+        background-color: #ffffff !important;
+        color: #495057 !important;
+        border-radius: 0.5rem !important;
+        padding: 0.5rem 1rem !important;
+        box-shadow: none !important;
+        width: 100%;
+
+        /* Скрываем стандартную стрелку браузера */
+        -webkit-appearance: none;
+           -moz-appearance: none;
+             appearance: none;
+        background-image: url("/static/images/arrow-down.svg"); /* Укажите реальный путь к SVG */
+        background-repeat: no-repeat;
+        background-position: calc(100% - 0.75rem) center; /* Стрелка правее */
+        background-size: 1rem; /* Размер стрелки */
+    }
+
+    /* Курсор при наведении на поля Категория и Статус */
+    #id_powers:hover,
+    #id_category:hover {
+        cursor: pointer
+    }
+
+    /* Поля дат */
+    #id_power_date,
+    #id_publication_date,
+    .flatpickr-input {
+        background-color: #ffffff !important;
+        color: #495057 !important;
+        border-radius: 0.5rem !important;
+        padding: 0.5rem 1rem !important;
+        box-shadow: none !important;
+        width: 100%;
+    }
+
+    /* Подсветка при фокусе */
+    #id_power_date:focus,
+    #id_publication_date:focus,
+    #id_title:focus,
+    #id_name:focus,
+    #id_link:focus,
+    #id_powers:focus,
+    #id_category:focus,
+    #id_recipient_email:focus,
+    #id_email:focus,
+    #id_comment:focus,
+    .flatpickr-input:focus {
+        background-color: #f7f7f7 !important;
+    }
+
+    /* Контейнер для списка рубрик в формах */
+    .review-form-page .scrollable {
+        max-height: 56.5vh;
+    }
+
+    /* Контейнер для списка рубрик в формах */
+    .multiple-page .scrollable {
+        padding-left: 0rem;
+        max-height: 460px;
+    }
+
+    select {
+        background-color: #fff !important;  /* Фон белый */
+    }
+
+    .arrow-up {
+        background-image: url("/static/img/arrow-up.svg") !important;
+    }
+
+    /* Стили для кнопки "Отправить"/"Опубликовать" */
+    .btn-apply {
+        background-color: #DD0A34;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s ease;
+        text-decoration: none !important;
+    }
+
+    .btn-apply:hover {
+        background-color: #b50e2c;
+    }
+
+    /* Стили для кнопки "Отмена" */
+    .btn-clear {
+        background-color: #E3E3E8;
+        color: #000;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+    }
+
+    /* Стили для кнопки "Сбросить фильтры" */
+    .btn-clear-review-main {
+        background-color: rgb(255, 255, 255, 0);
+        color: #dd0a34;
+        border: 1px solid #dd0a34;
+        border-color: #dd0a34;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .btn-clear:hover {
+        background-color: #d0d0d4;
+    }
+
+    .btn-clear-review-main:hover {
+        background-color: #dd0a34;
+        color: #FFFFFF;
+    }
+
+/* </editor-fold> */
+
+/* <editor-fold> desc="===== DETAIL =====" */
+
+    /* Заголовок (Title) */
+    .detail-page header h1 {
+        text-align: left;
+    }
+
+    /* Название (Name) */
+    .detail-page .card-title {
+        color: #333333;
+    }
+
+    .custom-status-box {
+        background-color: transparent;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Текст даты статуса */
+    .status-date {
+        color: #6c757d !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Стили для кнопки "Источник" */
+    .btn-source {
+        background-color: #e9ecef !important;
+        color: #495057 !important;
+        border: none !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 0.5rem !important;
+    }
+
+    /* При наведении на кнопку "Источник" */
+    .btn-source:hover {
+        background-color: rgba(221,10,52,1) !important;
+        color: #fff !important;
+    }
+
+/* </editor-fold> */
+
+.multiple-page .btn {
+    font-size: 0.9rem;
+}
+
+.popover{
+  max-width: 360px;
+  border-radius: .5rem;
+}
+.popover-header{
+  padding: .75rem 1rem;
+  font-weight: 600;
+  background:#f8f9fa;
+}
+.popover-body{
+  padding: .75rem 1rem;
+  font-size: .9rem;
+  line-height: 1.4;
+}
+
+.popover .popover-arrow {
+    display: none !important;
+}
+
+.review-multiple-date {
+    color: #007bff;
+    font-weight: initial;
+}
+
+/* ===== ПРОГРЕССИВНАЯ ЗАГРУЗКА ===== */
+#loading-indicator {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    margin: 20px 0;
+    border: 1px solid #e3e6ea;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#loading-indicator .spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+#loading-indicator p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Плавное появление новых элементов */
+.news-item {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

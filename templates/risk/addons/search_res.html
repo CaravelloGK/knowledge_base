@@ -1,0 +1,31 @@
+                    <h2>Результаты поиска для '{{ query }}'</h2>
+                    {% with result.count as total_result %}
+                    Найдено результатов: {{ total_result }}.
+                    {% endwith %}
+
+                     <div id="news-container">
+                        {% for rsk in result %}
+                        <div class="card mb-3 shadow-sm position-relative news-item" data-direct="{{ rsk.direction.id }}" data-subject="{{ rsk.subject.id }}" data-kind="{{ rsk.kind.id }}">
+                            <div class="card-body">
+                                <div class="other">
+                                    <div class="status-line mb-2">
+                                        <h5>Направление деятельности Банка, свойственное риску:</h5>
+                                        <p>{{ rsk.direction }}</p>
+                                        <h5>Вид правовой экспертизы:</h5>
+                                        <p>{{ rsk.kind }}</p>
+                                        <h5>Предмет правового анализа:</h5>
+                                        <p>{{ rsk.subject }}</p>
+                                    </div>
+                                    <h5>Риск:</h5>
+                                    <p>{{ rsk.risk }}</p>
+                                    <h5>Риск-факторы:</h5>
+                                    <p>{{ risk.get_absolute_url }}</p>
+                                    <p class="card-text">{{ rsk.risk_factor|safe }}</p>
+                                    <a href="{{ rsk.get_absolute_url }}" class="stretched-link"> </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">Нет рисков.</p>
+                        {% endfor %}
+                    </div>

@@ -1,0 +1,436 @@
+.wizard-align {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  .wizard-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 30px #eee;
+    position: relative;
+    height: 70vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    position: relative;
+    align-items: flex-end;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+  .wizard-progress-step {
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+    color: #bbb;
+    position: relative;
+    font-size: 1.3rem;
+    z-index: 1;
+    padding: 0.5rem 0;
+    background: transparent;
+  }
+  .wizard-progress-step.active { color: #DD0A34; }
+  .wizard-progress-bar {
+    position: absolute;
+    height: 0.25rem;
+    background: #DD0A34;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    right: 0;
+    z-index: 0;
+    transition: width 0.3s;
+  }
+  .wizard-step {
+    width: 100%;
+    min-width: 100%;
+    box-sizing: border-box;
+    padding: 1rem;
+    display: none;
+  }
+  .wizard-step.active {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+  }
+  .wizard-step.backward {
+    display: none;
+  }
+  .choose-cards-row {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+  }
+  .choose-card {
+    cursor: pointer;
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    padding: 2rem;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-size: 1.3rem;
+    background: #fff;
+    min-width: 12rem;
+    box-shadow: 0 2px 10px #f7f7f7;
+    user-select: none;
+    flex: 1;
+    max-width: 20rem;
+  }
+  .choose-card:hover, .choose-card.chosen {
+    box-shadow: 0 0 20px #ececec;
+    border-color: #DD0A34;
+    background: #faf0f4;
+    transform: translateY(-2px);
+  }
+  .hidden { display: none !important; }
+  .wizard-btns {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2rem auto 0 auto;
+    width: 90%;
+    max-width: 1200px;
+    padding: 0 2rem 2rem 2rem;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .ck-editor__editable {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+    min-height: 200px !important;
+  }
+  .custom-file-upload {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .file-btn {
+    background: #f7f7f7;
+    border: 1.5px solid #DD0A34;
+    color: #DD0A34;
+    border-radius: 1.2em;
+    padding: 0.4em 1.2em;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+  }
+  .file-btn:hover {
+    background: #DD0A34;
+    color: #fff;
+  }
+  .file-info {
+    color: #333;
+    font-size: 1em;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .file-badge {
+    display: inline-block;
+    background: #222;
+    color: #fff;
+    border-radius: 1em;
+    padding: 0.2em 0.8em;
+    font-size: 0.9em;
+    margin-left: 0.5em;
+  }
+  .file-size {
+    color: #888;
+    font-size: 0.95em;
+    margin-left: 0.5em;
+  }
+  .file-download {
+    color: #DD0A34;
+    font-size: 0.95em;
+    margin-left: 0.5em;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  @media (max-width: 768px) {
+    .wizard-align, .wizard-container, .wizard-btns {
+      width: 98%;
+      padding: 0 0.5rem;
+    }
+    .choose-cards-row {
+      gap: 1rem;
+    }
+    .choose-card {
+      min-width: 8rem;
+      padding: 1rem;
+    }
+    .wizard-step {
+      padding: 0.5rem;
+    }
+  }
+  
+      #id_title {
+          background-color: #ffffff !important; /* Белый фон */
+          color: #495057 !important;           /* Тёмный текст */
+          border-radius: 0.5rem !important;    /* Скруглённые углы */
+          padding: 0.5rem 1rem !important;     /* Отступы для визуальной аккуратности */
+          box-shadow: none !important;         /* Отключаем тень */
+          width: 100%;                         /* Растягиваем на всю ширину родителя */
+          min-height: 42px;
+      }
+  
+      #id_global_section,
+      #id_category,
+      #id_status,
+      #id_section,
+      #id_subcategory {
+          background-color: #ffffff !important;
+          color: #495057 !important;
+          border-radius: 0.5rem !important;
+          padding: 0.5rem 1rem !important;
+          box-shadow: none !important;
+          width: 100%;
+  
+          /* Скрываем стандартную стрелку браузера */
+          -webkit-appearance: none;
+             -moz-appearance: none;
+               appearance: none;
+          background-image: url("/static/images/arrow-down.svg"); /* Укажите реальный путь к SVG */
+          background-repeat: no-repeat;
+          background-position: calc(100% - 0.75rem) center; /* Стрелка правее */
+          background-size: 1rem; /* Размер стрелки */
+      }
+  
+      /* Курсор при наведении на поля Категория и Статус */
+      #id_global_section,
+      #id_category,
+      #id_status,
+      #id_section,
+      #id_subcategory {
+          cursor: pointer
+      }
+  
+      /* Подсветка при фокусе */
+      #id_title:focus,
+      #id_global_section:focus,
+      #id_category:focus,
+      #id_status:focus,
+      #id_section:focus,
+      #id_subcategory:focus {
+          background-color: #f7f7f7 !important;
+      }
+  
+      select {
+          background-color: #fff !important;  /* Фон белый */
+      }
+  
+      .arrow-up {
+          background-image: url("/static/img/arrow-up.svg") !important;
+      }
+  
+      /* Стили для кнопки "Вперед" */
+      .wizard-next {
+          background-color: #DD0A34;
+          color: #fff;
+          border: none;
+          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+          border-radius: 0.5rem;
+          transition: background-color 0.3s ease;
+          text-decoration: none !important;
+      }
+  
+      .wizard-next:hover {
+          background-color: #b50e2c;
+      }
+  
+      /* Стили для кнопки "Назад" */
+      .wizard-prev {
+          background-color: #E3E3E8;
+          color: #000;
+          border: none;
+          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+          border-radius: 0.5rem;
+          transition: background-color 0.3s ease;
+          text-decoration: none;
+      }
+  
+      /* Стили для кнопки "Готово" */
+      .wizard-submit {
+          background-color: rgb(255, 255, 255, 0);
+          color: #dd0a34;
+          border: 1px solid #dd0a34;
+          border-color: #dd0a34;
+          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+          border-radius: 0.5rem;
+          transition: background-color 0.3s ease;
+          text-decoration: none;
+          box-shadow: none !important;
+          outline: none !important;
+      }
+  
+      .wizard-prev:hover {
+          background-color: #d0d0d4;
+      }
+  
+      .wizard-submit:hover {
+          background-color: #dd0a34;
+          color: #FFFFFF;
+      }
+  
+  /* <editor-fold> desc="===== Валидация полей =====" */
+      .was-validated .form-control:invalid,
+      .form-control.is-invalid {
+          border-color: rgb(221, 10, 52) !important;  /* Красная рамка */
+          box-shadow: 0 0 0 0.2rem rgba(221, 10, 52, 0.25) !important; /* Лёгкое свечение */
+      }
+  
+      /* Когда #rubricFormGroup имеет класс .is-invalid, показываем .invalid-feedback */
+      #rubricFormGroup.is-invalid .invalid-feedback {
+          display: block !important;
+          color: #dc3545; /* красный цвет, как в Bootstrap */
+          margin-bottom: .5rem;
+      }
+  
+      #rubricFormGroup .invalid-feedback {
+          display: none; /* по умолчанию скрыто */
+      }
+  
+      .form-control:focus {
+          border-color: #e9ecef !important;
+      }
+  
+      .form-control.is-valid, .was-validated .form-control:valid {
+          background-image:unset !important;
+          border-color: #d2d5da !important;
+      }
+      /* </editor-fold> */
+  
+  /* <editor-fold> desc="===== Скроллбары =====" */
+      .wizard-container::-webkit-scrollbar {
+          width: 7px;
+      }
+      .wizard-container::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 5px;
+      }
+      .wizard-container::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 5px;
+      }
+      .wizard-container::-webkit-scrollbar-thumb:hover {
+          background: #555;
+      }
+      /* </editor-fold> */
+
+/* ===== iOS-style Toggle Switch for is_template ===== */
+.toggle-switch-wrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5em;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+}
+.switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #bbb;
+  border-radius: 34px;
+  transition: background 0.3s;
+  box-shadow: 0 2px 8px #0001;
+}
+.switch input:checked + .slider {
+  background: #4caf50;
+}
+.switch input:disabled + .slider {
+  background: #e3e3e8;
+  cursor: not-allowed;
+}
+.slider:before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 6px #0002;
+}
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+.switch input:disabled + .slider:before {
+  background: #f5f5f5;
+}
+/* Remove any label styles for .switch-label */
+.slider .switch-label, .toggle-label { display: none !important; }
+
+/* ===== Toggle Switch Cursor Fix ==== */
+.switch .slider,
+.switch .slider * {
+  cursor: pointer !important;
+}
+.switch input:disabled + .slider,
+.switch input:disabled + .slider * {
+  cursor: default !important;
+}
+
+/* Search field styles */
+.search-field {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.5rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.search-field:focus {
+    color: #495057;
+    background-color: #fff;
+    border-color: #DD0A34;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(221, 10, 52, 0.25);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .search-field {
+        background-color: #2b2b2b;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+    
+    .search-field:focus {
+        background-color: #2b2b2b;
+        border-color: #DD0A34;
+        color: #e0e0e0;
+    }
+}

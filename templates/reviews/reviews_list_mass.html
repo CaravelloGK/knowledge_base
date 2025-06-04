@@ -1,0 +1,71 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'reviews/css/main.css' %}">
+  <style>
+    .review-copy-wrapper{
+        max-width: 960px;     
+        margin: 1.5rem auto;
+    }
+    .review-copy-block{
+        position: relative;              
+        background:#f8f9fa;
+        border:1px solid #dee2e6;
+        border-radius:.5rem;
+        padding:1.25rem;
+        font-size:.95rem;
+        line-height:1.5;
+        margin-bottom:1.5rem;
+    }
+    .review-copy-title{font-weight:600;font-size:1.05rem;margin-bottom:.5rem;}
+    .review-copy-rubric,
+    .review-copy-link{color:#6c757d;font-size:.85rem;margin-bottom:.5rem;}
+    .review-copy-link a{color:#0d6efd;text-decoration:underline;}
+    .review-copy-desc{margin-top:.75rem;}
+
+    /* кнопка копирования */
+    .copy-btn{
+        position:absolute;
+        top:.75rem;
+        right:.75rem;
+        background:#e9ecef;
+        border:none;
+        border-radius:.25rem;
+        padding:0 .5rem;
+        font-size:.8rem;
+        cursor:pointer;
+        transition:background .2s;
+    }
+    .copy-btn:hover{background:#d3d9df;}
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="review-copy-wrapper">
+  {% for review in reviews %}
+    <div class="review-copy-block">
+
+      <div class="review-copy-title">{{ review.title }}</div>
+
+      <div class="review-copy-rubric">
+        Рубрики:
+        {% for rubric in review.rubric.all %}
+          {{ rubric.name }}{% if not forloop.last %}; {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="review-copy-link">
+        Ссылка:
+        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'reviews:review_detal' review.pk %}">
+          {{ request.scheme }}://{{ request.get_host }}{% url 'reviews:review_detal' review.pk %}
+        </a>
+      </div>
+
+      <div class="review-copy-desc">
+        {{ review.description|safe }}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

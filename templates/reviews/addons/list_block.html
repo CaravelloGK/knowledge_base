@@ -1,0 +1,63 @@
+<div class="scrollable" style="height: 77vh; overflow-y: auto;">
+    <!-- Индикатор загрузки -->
+    <div id="loading-indicator" class="text-center py-3" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+        <p class="text-muted mt-2">Загружаем дополнительные данные...</p>
+    </div>
+    
+    <!-- Контейнер для новостей -->
+    <div id="news-container">
+        {% for review in reviews %}
+        <div class="card mb-3 shadow-sm position-relative news-item"
+             data-category="{{ review.category.name }}" 
+             data-rubrics='[{% for r in review.rubric.all %}"{{ r.name|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}]' 
+             data-publish-date="{{ review.current_date|date:'Y-m-d' }}">
+            <div class="card-body">
+                <div class="status-line mb-2">
+                  <small class="text-muted">
+                    <span class="rubric">
+                      {% for rubric in review.rubric.all %}
+                        <span class="badge rounded-pill bg-secondary">{{ rubric.name }}</span>
+                      {% endfor %}
+                    </span>
+                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
+                    <span class="created-date">| {{ review.current_date|date:"d.m.Y" }}</span>
+                    <span class="ms-2 badge rounded-pill"
+                          style="background-color: {% if review.category.name == 'Принятые изменения' %}
+                                                #28a745
+                                              {% elif review.category.name == 'Проекты НПА' %}
+                                                #ffa500
+                                              {% else %}
+                                                #6c757d
+                                              {% endif %};">
+                      {{ review.category }}
+                    </span>
+                  </small>
+                </div>
+                <h5 class="card-title fw-bold">{{ review.title|truncatechars:100 }}</h5>
+                <p class="card-text">{{ review.description|safe }}</p>
+                <p class="text-muted small mb-1">
+                    {% if review.power_date %}
+                        <strong>Статус:</strong> {{ review.powers }}
+                        {{ review.power_date }}
+                    {% endif %}
+                </p>
+                <a href="{{ review.get_absolute_url }}" class="stretched-link"></a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">Нет доступных обзоров.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// Данные для прогрессивной загрузки
+window.reviewsData = {
+    totalCount: {{ total_count|default:0 }},
+    loadedCount: {{ loaded_count|default:0 }},
+    hasMore: {% if has_more %}true{% else %}false{% endif %}
+};
+</script>
