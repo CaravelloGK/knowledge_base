@@ -16,9 +16,10 @@
 <body>
     <!-- Блок контента -->
     {% block content %}
-    <div class="container-fluid mt-3 list-page">
-        <!-- Фильтры и контент -->
-        <div class="row">
+    <div class="overflow-out" style="overflow: hidden;">  
+        <div class="container-fluid mt-3 list-page">
+            <!-- Фильтры и контент -->
+            <div class="row">
             <!-- Левая панель (Фильтры)  -->
             <div class="col-md-3">
                 <!-- Блок фильтров для каждого приложения -->
@@ -70,7 +71,7 @@
                         <!-- Конец Блока Поиск + Админ -->
 
                         <!-- Блок Списка для каждого приложения -->
-                        <div class="scrollable" style="height: 77vh; overflow-y: auto;">
+                        <div class="scrollable" style="height: 84vh; overflow-y: auto;">
 
                         {% if query %}
                             {% if id_app == 'reviews' %}

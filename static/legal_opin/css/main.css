@@ -1,161 +1,162 @@
-    /* Remove global background */
-    body {
+/* <editor-fold> desc="===== Базовые стили и фон =====" */
+    /* Remove global background только для legal_opin */
+    .list-page body {
         background: #f7f9fb;
     }
-    /* Card background transparent */
-    .card, .container-fluid {
+
+    /* Card background transparent только для legal_opin */
+    .list-page .card, 
+    .list-page .container-fluid {
         background: transparent !important;
         box-shadow: none !important;
     }
-    
+
+    .list-page .container-fluid {
+        overflow: hidden;
+    }
+/* </editor-fold> */
+
+/* <editor-fold> desc="===== Layout контейнеры =====" */
     /* Legal opinion specific layout */
     .legal-opin-content {
         height: 100%;
         width: 100%;
         padding: 0 15px;
     }
-    
-    .table-container {
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #e3e6ea;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
+    .legal-opin-fullwidth {
+        max-width: 100% !important;
+        width: 100% !important;
     }
-    
-    /* Sidebar navigation styles */
-    .sidebar-nav {
-        padding: 15px;
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #e3e6ea;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        height: calc(100vh - 140px);
-        display: flex;
-        flex-direction: column;
+
+    .legal-opin-content .scrollable {
+        height: 83vh !important;
+        overflow-y: auto !important;
+        overflow-x: auto !important;
     }
-    
-    .nav-item {
+
+    .legal-opin-content .mx-auto {
+        overflow: hidden;
+    }
+/* </editor-fold> */
+
+/* <editor-fold> desc="===== Левая панель навигации =====" */
+    /* Фиксированная высота для левого блока только в legal_opin */
+    .list-page .filter-panel {
+        height: 100vh;
+        max-height: 100vh;
+        overflow: hidden;
+    }
+
+    .list-page .nav-item {
         padding: 12px 16px;
         margin-bottom: 8px;
         border-radius: 8px;
         cursor: pointer;
         transition: background-color 0.2s ease;
         background: transparent;
+        display: block;
+        color: #000000;
     }
-    
-    .nav-item:hover {
-        background: #e6f3ff;
-        color: #1976ed;
+
+    .list-page .nav-item:hover {
+        background: #E9ECEF;
+        color: #000000;
     }
-    
-    .nav-item:hover:not(.active) {
-        background: #f8f9fa;
+
+/* <editor-fold> desc="===== Таблица данных =====" */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e3e6ea;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
-    
-    .nav-text {
-        font-weight: 500;
-        font-size: 0.95rem;
-    }
-    
-    .nav-item.active .nav-text {
-        color: #1976ed;
-        font-weight: 600;
-    }
-    
-    /* Search form styles */
-    .search-group {
-        border-radius: 8px;
+
+    .legal-opin-content .table {
+        border-radius: 12px;
         overflow: hidden;
+        margin-bottom: 0;
     }
-    
-    .search-addon {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-right: none;
-    }
-    
-    .search-field {
-        border: 1px solid #dee2e6;
-        border-left: none;
-    }
-    
-    .search-field:focus {
-        box-shadow: none;
-        border-color: #1976ed;
-    }
-    
-    .table thead th {
+
+    .legal-opin-content .table thead th {
         border: none;
         font-size: 1rem;
         color: #222;
         background: #f7f9fb !important;
     }
-    .table tbody tr:hover {
+
+    .legal-opin-content .table tbody tr:hover {
         background: #f3f6fa;
         transition: background 0.2s;
     }
-    .table td, .table th {
+
+    .legal-opin-content .table td, 
+    .legal-opin-content .table th {
         vertical-align: middle;
         border: none;
     }
+/* </editor-fold> */
+
+/* <editor-fold> desc="===== Формы и поля ввода =====" */
+    .search-group {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .search-addon {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-right: none;
+    }
+
+    .search-field {
+        border: 1px solid #dee2e6;
+        border-left: none;
+    }
+
+    .search-field:focus {
+        box-shadow: none;
+        border-color: #1976ed;
+    }
+
     .input-group .form-control:focus {
         box-shadow: none;
         border-color: #d1e3fa;
     }
-    .btn-primary {
-        background: #1976ed;
-        border: none;
-        border-radius: 8px;
-    }
-    .btn-primary:hover {
-        background: #155ab6;
-    }
-    .btn-outline-secondary, .btn-light {
-        border-radius: 8px;
-    }
-    .table {
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 0;
-    }
-    .legal-opin-fullwidth {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
-    
+
     /* Form check styles for filters */
     .form-check {
         margin-bottom: 8px;
     }
-    
+
     .form-check-input:checked {
         background-color: #1976ed;
         border-color: #1976ed;
     }
-    
+
     .period-field {
         border-radius: 6px;
     }
-    
+
     .period-divider {
         background: transparent;
         border: none;
         width: 10px;
     }
-    
-    .scrollable {
-        height: 83vh !important;
-        overflow-y: auto !important;
-        overflow-x: auto !important;
+/* </editor-fold> */
+
+/* <editor-fold> desc="===== Кнопки =====" */
+    .btn-primary {
+        background: #1976ed;
+        border: none;
+        border-radius: 8px;
     }
 
-    /* Фиксированная высота только для левого блока в legal_opin */
-    .filter-panel {
-        height: 100vh;
-        max-height: 100vh;
-        overflow: hidden;
+    .btn-primary:hover {
+        background: #155ab6;
     }
 
-    .container-fluid {
-        overflow: hidden;
+    .btn-outline-secondary, .btn-light {
+        border-radius: 8px;
     }
+/* </editor-fold> */

@@ -1,10 +1,11 @@
 from django.db import models
 from django.core.validators import RegexValidator
+from django.urls import reverse
 
 
 class LegalEntity(models.Model):
     # Модель Юридические лица
-    name = models.TextField(verbose_name='Название')
+    name = models.CharField(max_length=255, verbose_name="Название")
     inn = models.CharField(
         max_length=12,
         verbose_name='ИНН',
@@ -46,15 +47,19 @@ class LegalEntity(models.Model):
     )
 
     # Поля дат
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     def __str__(self):
         return f"{self.name} (ИНН: {self.inn})"
 
+    def get_absolute_url(self):
+        return reverse('legal_opin:legal_entity_detail', kwargs={'pk': self.pk})
+
     class Meta:
-        verbose_name = 'Юридическое лицо'
-        verbose_name_plural = 'Юридические лица'
+        ordering = ['-updated_at']
+        verbose_name = "Юридическое лицо"
+        verbose_name_plural = "Юридические лица"
 
 
 class ExecutiveBody(models.Model):
