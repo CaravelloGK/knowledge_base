@@ -434,3 +434,355 @@
         color: #e0e0e0;
     }
 }
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+/* Стили для кнопки "Сбросить фильтры" */
+.btn-clear-review-main {
+    background-color: rgb(255, 255, 255, 0);
+    color: #dd0a34;
+    border: 1px solid #dd0a34;
+    border-color: #dd0a34;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.btn-clear-review-main:hover {
+    background-color: #dd0a34;
+    color: #FFFFFF;
+}
+
+/* Темная тема для карточек и элементов */
+body.dark-theme .card {
+    background-color: #1d1d1d !important;
+    color: #fff !important;
+    border: 1px solid #444 !important;
+    border-radius: 0.375rem !important;
+}
+
+body.dark-theme .card-body,
+body.dark-theme .card-footer {
+    background-color: #1d1d1d !important;
+    color: #fff !important;
+    border-radius: 0.375rem !important;
+}
+
+body.dark-theme .card .card-title,
+body.dark-theme .card .card-text,
+body.dark-theme .card-body h5,
+body.dark-theme .card-body p {
+    color: #ffffff !important;
+}
+
+body.dark-theme .card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgb(255, 255, 255, 0.5) !important;
+}
+
+body.dark-theme .btn-clear-review-main {
+    color: #FFFFFF !important;
+    margin-top: 1rem !important;
+    display: inline-block !important;
+    vertical-align: top !important;
+}
+
+/* Темная тема для форм и визарда */
+body.dark-theme .wizard-container {
+    background-color: #1d1d1d !important;
+    color: #fff !important;
+    border: 1px solid #444 !important;
+}
+
+body.dark-theme .choose-card {
+    background-color: #2d2d2d !important;
+    color: #fff !important;
+    border: 2px solid #444 !important;
+}
+
+body.dark-theme .choose-card:hover,
+body.dark-theme .choose-card.chosen {
+    background-color: #3d3d3d !important;
+    border-color: #dd0a34 !important;
+    color: #fff !important;
+}
+
+body.dark-theme #id_title,
+body.dark-theme #id_global_section,
+body.dark-theme #id_category,
+body.dark-theme #id_status,
+body.dark-theme #id_section,
+body.dark-theme #id_subcategory {
+    background-color: #E9ECEF !important;
+    color: #495057 !important;
+}
+
+body.dark-theme #id_title:focus,
+body.dark-theme #id_global_section:focus,
+body.dark-theme #id_category:focus,
+body.dark-theme #id_status:focus,
+body.dark-theme #id_section:focus,
+body.dark-theme #id_subcategory:focus {
+    background: #E9ECEF !important;
+    box-shadow: none !important;
+    border-color: #dd0a34 !important;
+}
+
+/* Темная тема для CKEditor */
+body.dark-theme .ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline.ck-focused,
+body.dark-theme .ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline.ck-blurred {
+    background: #E9ECEF !important;
+    color: #495057;
+}
+
+body.dark-theme .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+    background: #E9ECEF !important;
+}
+
+/* Темная тема для фильтров */
+body.dark-theme .docs-filter-page {
+    background-color: #1d1d1d !important;
+    color: #fff !important;
+}
+
+body.dark-theme .docs-filter-page h6 {
+    color: #fff !important;
+}
+
+body.dark-theme .form-check-label {
+    color: #fff !important;
+}
+
+body.dark-theme .btn-toggle {
+    background-color: #2d2d2d !important;
+    color: #fff !important;
+    border: 1px solid #444 !important;
+}
+
+body.dark-theme .btn-check:checked + .btn-toggle,
+body.dark-theme .btn-toggle.active,
+body.dark-theme .btn-toggle:active {
+    background-color: #6c757d !important;
+    color: #fff !important;
+}
+
+/* Темная тема для file upload */
+body.dark-theme .file-btn {
+    background: #2d2d2d !important;
+    color: #dd0a34 !important;
+    border: 1.5px solid #dd0a34 !important;
+}
+
+body.dark-theme .file-btn:hover {
+    background: #dd0a34 !important;
+    color: #fff !important;
+}
+
+body.dark-theme .file-info {
+    color: #fff !important;
+}
+
+body.dark-theme .file-badge {
+    background: #666 !important;
+    color: #fff !important;
+}
+
+body.dark-theme .file-size {
+    color: #ccc !important;
+}
+
+body.dark-theme .file-download {
+    color: #dd0a34 !important;
+}
+
+/* Темная тема для панели фильтров и главной страницы списка */
+body.dark-theme .list-page .col-md-3,
+body.dark-theme .filter-panel {
+    background-color: #1d1d1d !important;
+    color: #fff !important;
+}
+
+body.dark-theme .list-page .row .col-md-3 {
+    background-color: #1d1d1d !important;
+    box-shadow: 0 .3rem 1rem 0 rgba(255,255,255,.1);
+}
+
+/* Темная тема для статусных линий и бейджей */
+body.dark-theme .status-line,
+body.dark-theme .created-date,
+body.dark-theme .text-muted {
+    color: #ccc !important;
+}
+
+body.dark-theme .badge {
+    background-color: #666 !important;
+    color: #fff !important;
+}
+
+/* Темная тема для форм поиска */
+body.dark-theme .search-field,
+body.dark-theme .search-addon {
+    background-color: #2d2d2d !important;
+    color: #fff !important;
+    border-color: #444 !important;
+}
+
+body.dark-theme .search-field:focus {
+    background-color: #3d3d3d !important;
+    box-shadow: none !important;
+    border-color: #dd0a34 !important;
+}
+
+/* Темная тема для скроллбаров */
+body.dark-theme .scrollable::-webkit-scrollbar {
+    width: 7px;
+}
+
+body.dark-theme .scrollable::-webkit-scrollbar-track {
+    background: #2d2d2d !important;
+    border-radius: 5px;
+}
+
+body.dark-theme .scrollable::-webkit-scrollbar-thumb {
+    background: #666 !important;
+    border-radius: 5px;
+}
+
+body.dark-theme .scrollable::-webkit-scrollbar-thumb:hover {
+    background: #888 !important;
+}
+
+/* Темная тема для кнопок wizard */
+body.dark-theme .wizard-next,
+body.dark-theme .wizard-prev,
+body.dark-theme .wizard-submit {
+    background-color: #dd0a34 !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-theme .wizard-next:hover,
+body.dark-theme .wizard-prev:hover,
+body.dark-theme .wizard-submit:hover {
+    background-color: #b50e2c !important;
+}
+
+/* Темная тема для заголовков в wizard */
+body.dark-theme .wizard-container h4,
+body.dark-theme .wizard-container h6 {
+    color: #fff !important;
+}
+
+/* Темная тема для progress bar */
+body.dark-theme .wizard-progress-step {
+    color: #ccc !important;
+}
+
+body.dark-theme .wizard-progress-step.active {
+    color: #dd0a34 !important;
+}
+
+/* Темная тема для detail страниц документов */
+body.dark-theme .document-content {
+    background-color: #1d1d1d !important;
+    color: #fff !important;
+}
+
+body.dark-theme .toc-item a {
+    color: #fff !important;
+}
+
+body.dark-theme .toc-item a:hover {
+    color: #dd0a34 !important;
+}
+
+body.dark-theme .offcanvas {
+    background-color: #2d2d2d !important;
+    color: #fff !important;
+}
+
+body.dark-theme .offcanvas-header,
+body.dark-theme .offcanvas-body {
+    background-color: #2d2d2d !important;
+    color: #fff !important;
+}
+
+body.dark-theme .table {
+    background-color: #2d2d2d !important;
+    color: #fff !important;
+}
+
+body.dark-theme .table td,
+body.dark-theme .table th {
+    border-color: #444 !important;
+    color: #fff !important;
+}
+
+body.dark-theme .table-bordered {
+    border-color: #444 !important;
+}
+
+/* Исправления проблем темной темы */
+
+/* 1. Исправляем проблему с иконками - НЕ применяем filter который может изменять размер */
+body.dark-theme .action-icon {
+    /* Убираем filter: brightness(0) invert(1) который может влиять на размер */
+    filter: none !important;
+    /* Вместо этого просто инвертируем цвета */
+    filter: invert(1) !important;
+}
+
+/* 2. Убираем белое свечение на странице create */
+body.dark-theme .form-control:focus,
+body.dark-theme #id_title:focus,
+body.dark-theme #id_global_section:focus,
+body.dark-theme #id_category:focus,
+body.dark-theme #id_status:focus,
+body.dark-theme #id_section:focus,
+body.dark-theme #id_subcategory:focus {
+    box-shadow: none !important;
+    border-color: #dd0a34 !important;
+}
+
+body.dark-theme .search-field:focus {
+    box-shadow: none !important;
+    border-color: #dd0a34 !important;
+}
+
+/* 4. Исправляем hover для разделов - делаем темнее */
+body.dark-theme .form-check:hover {
+    background-color: #333333 !important;
+}
+
+body.dark-theme .form-check-label:hover {
+    color: #fff !important;
+}
+
+/* CSS классы для документов */
+.doc-bold {
+    font-weight: bold;
+}
+
+.doc-italic {
+    font-style: italic;
+}
+
+.doc-underline {
+    text-decoration: underline;
+}
+
+/* Стили для подсветки поиска в документах */
+.highlight {
+    background-color: yellow;
+    color: black;
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+body.dark-theme .highlight {
+    background-color: #ffcc00;
+    color: #000000;
+}

@@ -260,3 +260,13 @@ def load_more_reviews(request):
         'reviews': reviews_data,
         'has_more': has_more
     })
+
+def get_total_count(request):
+    """
+    API для получения актуального количества обзоров.
+    Используется для обновления метаданных прогрессивной загрузки.
+    """
+    total_count = Review.objects.count()
+    return JsonResponse({
+        'total_count': total_count
+    })

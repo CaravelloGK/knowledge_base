@@ -616,6 +616,14 @@ function initNewsFilters() {
   // Инициализация флага выбора
   categoryRadios.forEach(r => r.dataset.wasChecked = 'false');
 
+  // Автоматическое обновление данных прогрессивной загрузки при загрузке страницы
+  if (window.refreshProgressiveLoading) {
+    // Небольшая задержка чтобы страница полностью загрузилась
+    setTimeout(() => {
+      window.refreshProgressiveLoading();
+    }, 1000);
+  }
+
   async function filterItems() {
     const selectedCategory = document.querySelector('input[name="category"]:checked')?.value?.trim();
     const selectedRubrics = Array.from(rubricCheckboxes)
@@ -881,6 +889,35 @@ function initProgressiveLoading() {
       
       checkLoaded();
     });
+  };
+
+  // Публичная функция для обновления данных после добавления новых записей
+  window.refreshProgressiveLoading = async function() {
+    try {
+      // Получаем актуальную информацию о количестве записей
+      const response = await fetch('/reviews/api/total-count/');
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Обновляем метаданные
+        window.reviewsData.totalCount = data.total_count;
+        
+        // Если новых записей больше чем было загружено, активируем загрузку
+        if (data.total_count > window.reviewsData.loadedCount) {
+          window.reviewsData.hasMore = true;
+          isFullyLoaded = false;
+          
+          console.log('🔄 Обнаружены новые записи! Активирую прогрессивную загрузку...');
+          console.log('📊 Всего записей:', data.total_count);
+          console.log('📊 Загружено:', window.reviewsData.loadedCount);
+          
+          // Запускаем загрузку новых данных
+          await loadMoreReviews();
+        }
+      }
+    } catch (error) {
+      console.warn('Не удалось обновить данные прогрессивной загрузки:', error);
+    }
   };
 
   // Инициализация

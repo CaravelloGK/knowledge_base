@@ -189,7 +189,8 @@ def document_detail(request, document_id):
     info = document.description
     if info:
         doc_info = {
-            'title':document.title,
+            'document': document,
+            'title': document.title,
             'status': document.status,
             'created_at': document.created_at,
             'global_section': document.global_section,
@@ -207,12 +208,28 @@ def document_detail(request, document_id):
         if extension == 'docx':
             doc_parser = Docx_Reader(document.file.path, document.is_template)
             itog = doc_parser.itog()
+            itog['document'] = document  # Добавляем документ в контекст
             return render(request, 'docs/addons/document_detail.html', itog)
         elif extension == 'pptx':
-            pass
+            # TODO: Добавить поддержку PPTX
+            context = {
+                'document': document,
+                'error': 'Формат PPTX пока не поддерживается'
+            }
+            return render(request, 'docs/addons/document_detail.html', context)
         elif extension == 'pdf':
-            pass
+            # TODO: Добавить поддержку PDF
+            context = {
+                'document': document,
+                'error': 'Формат PDF пока не поддерживается'
+            }
+            return render(request, 'docs/addons/document_detail.html', context)
 
+    # Fallback для случаев без файла
+    context = {
+        'document': document,
+        'error': 'Документ не содержит файла или описания'
+    }
     return render(request, 'docs/addons/document_detail.html', context)
 
 

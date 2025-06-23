@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (ReviewCreateView, ReviewDetalView, ReviewsHome,
                     ReviewDeleteView, ReviewUpdateView,
                     post_search, recommend_multiple_reviews, recommend_multiple_preview, review_preview,
-                    load_more_reviews
+                    load_more_reviews, get_total_count
     )
 
 app_name = 'reviews'
@@ -24,4 +24,5 @@ urlpatterns = [
     path('recommend_multiple/preview/', recommend_multiple_preview, name='recommend_multiple_preview'),
     path('review-preview/<int:pk>/', review_preview, name='review_preview'),
     path('api/load-more/', load_more_reviews, name='load_more_reviews'),  # API для прогрессивной загрузки
+    path('api/total-count/', get_total_count, name='get_total_count'),  # API для получения количества записей
 ]

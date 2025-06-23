@@ -1,44 +1,206 @@
-<div class="container-fluid">
+{% extends 'index.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid list-page">
     <div class="row ms-5">
-        <!-- Таблица справа -->
+        <!-- Основной контент -->
         <div class="col p-4">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Юридические лица</h4>
-                </div>
-                <div class="card-body">
-                    <div class="table">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Название</th>
-                                    <th>ИНН</th>
-                                    <th>ОГРН</th>
-                                    <th>Организационно-правовая форма</th>
-                                    <th>Группа компаний</th>
-                                    <th>Статус</th>
-                                </tr>
-                            </thead>
-                            <tbody id="legalEntitiesTable">
-                                {% for entity in legal_entities %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'legal_opin:legal_entity_detail' entity.pk %}">
-                                            {{ entity.name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ entity.inn }}</td>
-                                    <td>{{ entity.ogrn }}</td>
-                                    <td>{{ entity.legal_form }}</td>
-                                    <td>{{ entity.company_group }}</td>
-                                    <td>{{ entity.status }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            <!-- Заголовок с информацией о юридическом лице -->
+            <div class="mb-4 detail-header">
+                <h2 class="fw-bold mb-2">{{ legal_entities.0.name|default:"ООО Ромашка" }}</h2>
+                <div class="row text-muted">
+                    <div class="col-md-6">
+                        <p><strong>ИНН:</strong> {{ legal_entities.0.inn|default:"7725123456" }}</p>
+                        <p><strong>ОГРН:</strong> {{ legal_entities.0.ogrn|default:"1027739123456" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Группа компаний:</strong> {{ legal_entities.0.company_group|default:"Группа Ромашка" }}</p>
+                        <p><strong>Последнее обновление:</strong> {{ legal_entities.0.updated_at|date:"d.m.Y"|default:"15.01.2024" }}</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Навигационные вкладки -->
+            <nav class="mb-4">
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <button class="nav-link active" id="nav-overview-tab" data-bs-toggle="tab" data-bs-target="#nav-overview" type="button" role="tab" aria-controls="nav-overview" aria-selected="true">
+                        Overview
+                    </button>
+                    <button class="nav-link" id="nav-deals-tab" data-bs-toggle="tab" data-bs-target="#nav-deals" type="button" role="tab" aria-controls="nav-deals" aria-selected="false">
+                        Сделки
+                    </button>
+                    <button class="nav-link" id="nav-risks-tab" data-bs-toggle="tab" data-bs-target="#nav-risks" type="button" role="tab" aria-controls="nav-risks" aria-selected="false">
+                        Риски
+                    </button>
+                    <button class="nav-link" id="nav-security-tab" data-bs-toggle="tab" data-bs-target="#nav-security" type="button" role="tab" aria-controls="nav-security" aria-selected="false">
+                        Обеспечение
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Содержимое вкладок -->
+            <div class="tab-content" id="nav-tabContent">
+                
+                <!-- Overview Tab -->
+                <div class="tab-pane fade show active" id="nav-overview" role="tabpanel" aria-labelledby="nav-overview-tab" tabindex="0">
+                    <div class="row">
+                        
+                        <!-- Блок Риски -->
+                        <div class="col-md-4 mb-4">
+                            <div class="overview-block">
+                                <h5 class="fw-bold mb-3">Риски</h5>
+                                <div class="overview-scroll">
+                                    <!-- Пример карточки риска -->
+                                    <div class="card mb-3 shadow-sm position-relative">
+                                        <div class="card-body">
+                                            <div class="status-line mb-2">
+                                                <small class="text-muted">
+                                                    <span class="rubric">
+                                                        <span class="badge rounded-pill bg-danger">Высокий риск</span>
+                                                    </span>
+                                                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
+                                                    <span class="created-date">| 15.01.2024</span>
+                                                </small>
+                                            </div>
+                                            <h6 class="card-title fw-bold">Риск неплатежеспособности</h6>
+                                            <p class="card-text small">Выявлены признаки финансовой нестабильности контрагента</p>
+                                            <a href="#" class="stretched-link"></a>
+                                        </div>
+                                    </div>
+
+                                    <div class="card mb-3 shadow-sm position-relative">
+                                        <div class="card-body">
+                                            <div class="status-line mb-2">
+                                                <small class="text-muted">
+                                                    <span class="rubric">
+                                                        <span class="badge rounded-pill bg-warning">Средний риск</span>
+                                                    </span>
+                                                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
+                                                    <span class="created-date">| 10.01.2024</span>
+                                                </small>
+                                            </div>
+                                            <h6 class="card-title fw-bold">Операционный риск</h6>
+                                            <p class="card-text small">Возможные нарушения в операционной деятельности</p>
+                                            <a href="#" class="stretched-link"></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Блок Обеспечение -->
+                        <div class="col-md-4 mb-4">
+                            <div class="overview-block">
+                                <h5 class="fw-bold mb-3">Обеспечение</h5>
+                                <div class="overview-table table-container" style="height: 400px; overflow-y: auto; overflow-x: auto;">
+                                    <table class="table align-middle mb-0" style="min-width: 300px;">
+                                        <thead style="background: #f7f9fb; position: sticky; top: 0; z-index: 10;">
+                                            <tr style="border-bottom: 2px solid #e3e6ea;">
+                                                <th class="py-2 px-2" style="font-weight: 500; font-size: 0.9rem;">Вид</th>
+                                                <th class="py-2 px-2" style="font-weight: 500; font-size: 0.9rem;">Стоимость</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                                <td class="py-2 px-2">
+                                                    <a href="#" class="text-decoration-none text-primary">Недвижимость</a>
+                                                </td>
+                                                <td class="py-2 px-2">15 000 000 ₽</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                                <td class="py-2 px-2">
+                                                    <a href="#" class="text-decoration-none text-primary">Транспорт</a>
+                                                </td>
+                                                <td class="py-2 px-2">2 500 000 ₽</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                                <td class="py-2 px-2">
+                                                    <a href="#" class="text-decoration-none text-primary">Оборудование</a>
+                                                </td>
+                                                <td class="py-2 px-2">1 200 000 ₽</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Блок Сделки -->
+                        <div class="col-md-4 mb-4">
+                            <div class="overview-block">
+                                <h5 class="fw-bold mb-3">Сделки</h5>
+                                <div class="overview-scroll">
+                                    <!-- Пример карточки сделки -->
+                                    <div class="card mb-3 shadow-sm position-relative">
+                                        <div class="card-body">
+                                            <div class="status-line mb-2">
+                                                <small class="text-muted">
+                                                    <span class="rubric">
+                                                        <span class="badge rounded-pill bg-success">Активная</span>
+                                                    </span>
+                                                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
+                                                    <span class="created-date">| 01.12.2023</span>
+                                                    <span class="ms-2 badge rounded-pill" style="background-color: #28a745;">
+                                                        Кредитование
+                                                    </span>
+                                                </small>
+                                            </div>
+                                            <h6 class="card-title fw-bold">Кредитный договор №1234</h6>
+                                            <p class="card-text small">Сумма: 5 000 000 ₽<br>Срок: до 31.12.2024</p>
+                                            <a href="#" class="stretched-link"></a>
+                                        </div>
+                                    </div>
+
+                                    <div class="card mb-3 shadow-sm position-relative">
+                                        <div class="card-body">
+                                            <div class="status-line mb-2">
+                                                <small class="text-muted">
+                                                    <span class="rubric">
+                                                        <span class="badge rounded-pill bg-secondary">Завершена</span>
+                                                    </span>
+                                                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
+                                                    <span class="created-date">| 15.10.2023</span>
+                                                    <span class="ms-2 badge rounded-pill" style="background-color: #ffa500;">
+                                                        Поставка
+                                                    </span>
+                                                </small>
+                                            </div>
+                                            <h6 class="card-title fw-bold">Договор поставки №5678</h6>
+                                            <p class="card-text small">Сумма: 1 200 000 ₽<br>Завершена: 20.11.2023</p>
+                                            <a href="#" class="stretched-link"></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Сделки Tab -->
+                <div class="tab-pane fade" id="nav-deals" role="tabpanel" aria-labelledby="nav-deals-tab" tabindex="0">
+                    <h4 class="mb-4">Все сделки</h4>
+                    <p class="text-muted">Здесь будет полный список сделок с данным юридическим лицом.</p>
+                </div>
+
+                <!-- Риски Tab -->
+                <div class="tab-pane fade" id="nav-risks" role="tabpanel" aria-labelledby="nav-risks-tab" tabindex="0">
+                    <h4 class="mb-4">Все риски</h4>
+                    <p class="text-muted">Здесь будет полный реестр рисков для данного юридического лица.</p>
+                </div>
+
+                <!-- Обеспечение Tab -->
+                <div class="tab-pane fade" id="nav-security" role="tabpanel" aria-labelledby="nav-security-tab" tabindex="0">
+                    <h4 class="mb-4">Реестр обеспечения</h4>
+                    <p class="text-muted">Здесь будет полный реестр обеспечительного имущества.</p>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
