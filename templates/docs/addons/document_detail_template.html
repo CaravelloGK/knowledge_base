@@ -1,0 +1,112 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
+<style>
+  .template-container { width: 100%; height: 80vh; border: 1px solid #ccc; }
+  .template-toolbar { margin-bottom: 1em; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card shadow-sm position-relative" style="background-color: #fff;">
+        <!-- Блок иконок (админские кнопки) -->
+        <div class="action-icons position-absolute top-0 end-0 m-3 d-flex align-items-center gap-3">
+            <a href="{% url 'docs:document_update' pk=document.id %}" class="action-link" title="Редактировать">
+                <img src="{% static 'img/edit.svg' %}" alt="Редактировать" class="action-icon">
+            </a>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModal" class="action-link" title="Удалить">
+                <img src="{% static 'img/delete.svg' %}" alt="Удалить" class="action-icon">
+            </a>
+            {% if document.global_section.name == 'Корпоративный бизнес' %}
+                <a href="{% url 'docs:kb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Розничный бизнес' %}
+                <a href="{% url 'docs:rb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Административно-хозяйственная деятельность' %}
+                <a href="{% url 'docs:ahd_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Инвестиционный и международный бизнес' %}
+                <a href="{% url 'docs:mb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Корп. управление и раскрытие информации' %}
+                <a href="{% url 'docs:kuri_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% else %}
+                <a href="{% url 'docs:kb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="card-body">
+            <h1>
+                {{ object.title }}
+                <span class="badge bg-primary ms-2">Word-шаблон</span>
+            </h1>
+            
+            <div class="mb-3 template-toolbar">
+                {% if document.file %}
+                <a href="{{ document.file.url }}" download class="btn btn-primary">Скачать DOCX</a>
+                {% endif %}
+                {% if word_file_url %}
+                <a href="{{ word_file_url }}" download class="btn btn-success">
+                    <i class="fas fa-file-word me-1"></i>Скачать Word
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="alert alert-info">
+                <h5>Конструктор договоров</h5>
+                <p>Этот документ является Word-шаблоном. Здесь будет размещен конструктор для создания договоров на основе данного шаблона.</p>
+                <p><strong>Функции:</strong></p>
+                <ul>
+                    <li>Заполнение полей шаблона</li>
+                    <li>Генерация PDF-документа</li>
+                    <li>Сохранение заполненных форм</li>
+                </ul>
+            </div>
+            
+            <div class="template-container">
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="text-center">
+                        <i class="fas fa-file-word fa-3x text-primary mb-3"></i>
+                        <h4>Конструктор договоров</h4>
+                        <p class="text-muted">Функция в разработке</p>
+                        <button class="btn btn-primary" disabled>Открыть конструктор</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        Вы уверены, что хотите удалить документ "{{ document.title }}"?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <a href="{% url 'docs:document_delete' pk=document.id %}" class="btn btn-danger">Удалить</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} 

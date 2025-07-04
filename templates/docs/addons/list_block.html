@@ -1,35 +1,60 @@
+{% load static %}
+<div class="docs-page">
+<div class="scrollable" style="height: 77vh; overflow-y: auto;">
 <div class="row g-3">
     {% for document in documents %}
     <div class="col-md-6">
         <div class="card mb-3 shadow-sm position-relative news-item"
-             data-direct="{{ document.category.name }}"
-             data-subject="{{ document.subcategory.name }}">
-            <div class="card-body">
+             data-direct="{{ document.category.id }}"
+             data-subject="{{ document.subcategory.id }}">
+             <div class="card-type-bar
+                 {% if document.subcategory.name == 'Внутренние нормативные документы' %} type-vnd
+                 {% elif document.subcategory.name == 'Типовые формы / Шаблоны' %} type-template
+                 {% elif document.subcategory.name == 'Инструкции / Памятки / Ответы' %} type-faq
+                 {% elif document.subcategory.name == 'Служебные записки' %} type-zapiska
+                 {% elif document.subcategory.name == 'Нормативно-правовые акты (законы)' %} type-npa
+                 {% elif document.subcategory.name == 'Информационные материалы' %} type-info
+                 {% endif %}">
+             </div>
+             <div class="card-body">
+                <span class="type-badge
+                {% if document.subcategory.name == 'Внутренние нормативные документы' %} type-vnd
+                {% elif document.subcategory.name == 'Типовые формы / Шаблоны' %} type-template
+                {% elif document.subcategory.name == 'Инструкции / Памятки / Ответы' %} type-faq
+                {% elif document.subcategory.name == 'Служебные записки' %} type-zapiska
+                {% elif document.subcategory.name == 'Нормативно-правовые акты (законы)' %} type-npa
+                {% elif document.subcategory.name == 'Информационные материалы' %} type-info
+                {% endif %}">
                 <div class="status-line mb-2">
                   <small class="text-muted">
                     <span class="rubric">
                       {% if document.category %}
-                        <span class="badge rounded-pill bg-secondary">{{ document.category }}</span>
+                        <span class="badge rounded-pill bg-secondary">{{ document.category|truncatechars:50 }}</span>
                       {% endif %}
                     </span>
                     <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
                     {% if document.created_at %}
                       <span class="created-date">| {{ document.created_at|date:"d.m.Y" }}</span>
                     {% endif %}
-                    {% if document.subcategory %}
-                      <span class="ms-2 badge rounded-pill" style="background-color: #28a745;">{{ document.subcategory }}</span>
-                    {% endif %}
                   </small>
                 </div>
-                <h5 class="card-title fw-bold">{{ document.title|truncatechars:100 }}</h5>
+                <h6 class="card-title fw-bold">{{ document.title|truncatechars:80 }}</h6>
                 {% if document.description %}
-                  <p class="card-text">{{ document.description|safe }}</p>
+                  <p class="card-text">{{ document.description|cut:"&nbsp;"|striptags|truncatechars:140 }}</p>
+                {% else %}
+                <p class="card-text"> _</p>
                 {% endif %}
-                <p class="text-muted small mb-1">
-                    {% if document.subcategory %}
-                        <strong>Тип:</strong> {{ document.subcategory }}
-                    {% endif %}
-                </p>
+                 <label class="btn btn-toggle
+                    {% if document.subcategory.name == 'Внутренние нормативные документы' %} type-vnd
+                    {% elif document.subcategory.name == 'Типовые формы / Шаблоны' %} type-template
+                    {% elif document.subcategory.name == 'Инструкции / Памятки / Ответы' %} type-faq
+                    {% elif document.subcategory.name == 'Служебные записки' %} type-zapiska
+                    {% elif document.subcategory.name == 'Нормативно-правовые акты (законы)' %} type-npa
+                    {% elif document.subcategory.name == 'Информационные материалы' %} type-info
+                    {% endif %}"
+                    style="scale: 0.8;" for="subject-{{ document.subcategory }}">
+                 {{ document.subcategory }}
+                 </label>
                 <a href="{% url 'docs:document_detail' document.id %}" class="stretched-link"></a>
             </div>
         </div>
@@ -37,4 +62,6 @@
     {% empty %}
     <p class="text-muted">Нет документов.</p>
     {% endfor %}
+</div>
+</div>
 </div>

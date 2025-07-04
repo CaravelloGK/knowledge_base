@@ -1,0 +1,265 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" novalidate>
+<div class="wizard-container position-relative mt-0">
+{% csrf_token %}
+{{ form.media }}
+{{ form.non_field_errors }}
+    <!-- Основная форма -->
+    <div class="wizard-step active" data-step="1">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4>Редактировать документ</h4>
+            <a href="{% url 'docs:document_detail' document_id=object.id %}" class="btn btn-outline-secondary">← Назад к документу</a>
+        </div>
+        
+        <!-- Общие поля для всех типов -->
+        <div id="group-title" class="form-group mb-3">
+            <h6 class="fw-bold" style="display: inline;">Название</h6>
+            <span style="color: red;">&#42;</span>
+            {% if editing_version %}
+                <div class="form-control bg-light">{{ form.title.value }}</div>
+                <input type="text" name="title" value="{{ form.title.value }}" style="display:none;">
+            {% else %}
+                {{ form.title }}
+            {% endif %}
+            <div class="invalid-feedback">Пожалуйста, укажи название</div>
+        </div>
+        <div id="group-global_section" class="form-group mb-3">
+            <h6 class="fw-bold" style="display: inline;">Направление бизнеса</h6>
+            <span style="color: red;">&#42;</span>
+            {% if editing_version %}
+                <div class="form-control bg-light">
+                    {% for option in form.global_section.field.queryset %}
+                        {% if option.pk == form.global_section.value %}{{ option }}{% endif %}
+                    {% endfor %}
+                </div>
+                <select name="global_section" style="display:none;">
+                    {% for option in form.global_section.field.queryset %}
+                        <option value="{{ option.pk }}" {% if option.pk == form.global_section.value %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                {{ form.global_section }}
+            {% endif %}
+            <div class="invalid-feedback">Пожалуйста, укажи направление бизнеса</div>
+        </div>
+        <div id="group-section" class="form-group mb-3" style="display:none;">
+            <h6 class="fw-bold" style="display: inline;">Направление</h6>
+            <span style="color: red;">&#42;</span>
+            {% if editing_version %}
+                <div class="form-control bg-light">
+                    {% for option in form.section.field.queryset %}
+                        {% if option.pk == form.section.value %}{{ option }}{% endif %}
+                    {% endfor %}
+                </div>
+                <select name="section" style="display:none;">
+                    {% for option in form.section.field.queryset %}
+                        <option value="{{ option.pk }}" {% if option.pk == form.section.value %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                {{ form.section }}
+            {% endif %}
+            <div class="invalid-feedback">Пожалуйста, укажи направление</div>
+        </div>
+        <div id="group-category" class="form-group mb-3">
+            <h6 class="fw-bold" style="display: inline;">Рубрика</h6>
+            <span style="color: red;">&#42;</span>
+            {% if editing_version %}
+                <div class="form-control bg-light">
+                    {% for option in form.category.field.queryset %}
+                        {% if option.pk == form.category.value %}{{ option }}{% endif %}
+                    {% endfor %}
+                </div>
+                <select name="category" style="display:none;">
+                    {% for option in form.category.field.queryset %}
+                        <option value="{{ option.pk }}" {% if option.pk == form.category.value %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                {{ form.category }}
+            {% endif %}
+            <div class="invalid-feedback">Пожалуйста, укажи рубрику</div>
+        </div>
+        <div id="group-subcategory" class="form-group mb-3">
+            <h6 class="fw-bold" style="display: inline;">Тип документа</h6>
+            <span style="color: red;">&#42;</span>
+            {% if editing_version %}
+                <div class="form-control bg-light">
+                    {% for option in form.subcategory.field.queryset %}
+                        {% if option.pk == form.subcategory.value %}{{ option }}{% endif %}
+                    {% endfor %}
+                </div>
+                <select name="subcategory" style="display:none;">
+                    {% for option in form.subcategory.field.queryset %}
+                        <option value="{{ option.pk }}" {% if option.pk == form.subcategory.value %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                {{ form.subcategory }}
+            {% endif %}
+            <div class="invalid-feedback">Пожалуйста, укажи тип документа</div>
+        </div>
+        
+        <!-- Специфичные поля в зависимости от типа -->
+        {% if document_type == 'pdf_document' %}
+            <div id="group-version_date" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Дата редакции</h6>
+                {{ form.version_date }}
+            </div>
+            <div id="group-word_file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Исходный Word-файл</h6>
+                {{ form.word_file }}
+                {% if object.word_file %}
+                <div class="mt-1"><small class="text-muted">Текущий Word: <a href="{{ object.word_file.url }}" target="_blank">{{ object.word_file.name|cut:"documents/word/" }}</a></small></div>
+                {% endif %}
+            </div>
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Файл документа</h6>
+                {{ form.file }}
+                {% if object.file %}
+                <div class="mt-1"><small class="text-muted">Текущий PDF: <a href="{{ object.file.url }}" target="_blank">{{ object.file.name|cut:"documents/" }}</a></small></div>
+                {% endif %}
+            </div>
+        {% elif document_type == 'text_only' %}
+            <div id="group-description" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Описание</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.description }}
+                <div class="invalid-feedback">Пожалуйста, заполните описание</div>
+            </div>
+        {% elif document_type == 'mixed_content' %}
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Файл</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.file }}
+                <div class="invalid-feedback">Пожалуйста, приложи файл</div>
+            </div>
+            <div id="group-description" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Описание</h6>
+                {{ form.description }}
+            </div>
+        {% elif document_type == 'word_template' %}
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Word-шаблон</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.file }}
+                <div class="invalid-feedback">Пожалуйста, приложи Word файл (.docx)</div>
+            </div>
+        {% elif document_type == 'presentation' %}
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Презентация</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.file }}
+                {% if object.file %}
+                <div class="mt-1"><small class="text-muted">Текущий файл: <a href="{{ object.file.url }}" target="_blank">{{ object.file.name|cut:"documents/" }}</a></small></div>
+                {% endif %}
+                <div class="invalid-feedback">Пожалуйста, приложи PowerPoint файл (.pptx)</div>
+            </div>
+            <div id="group-slides_zip" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Архив с PNG-слайдами</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.slides_zip }}
+                {% if object.slides.exists %}
+                <div class="mt-1"><small class="text-muted">Загружено слайдов: {{ object.slides.count }}</small></div>
+                {% endif %}
+                <div class="invalid-feedback">Пожалуйста, приложи zip-архив с PNG-слайдами (slide1.png, slide2.png ...)</div>
+                <small class="form-text text-muted d-block mt-1">Загрузите zip-архив, где каждый файл — отдельный слайд (только PNG, имена по порядку: Слайд1.png, Слайд2.png ...).</small>
+            </div>
+            <div id="group-description" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Описание</h6>
+                {{ form.description }}
+            </div>
+        {% elif document_type == 'pdf_version' %}
+            <div class="alert alert-info">
+                <strong>Редактирование версии:</strong> v{{ editing_version.version_number }}
+            </div>
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Файл версии (PDF)</h6>
+                {{ form.file }}
+                {% if editing_version.file %}
+                <div class="mt-1"><small class="text-muted">Текущий PDF: <a href="{{ editing_version.file.url }}" target="_blank">{{ editing_version.file.name|cut:"documents/versions/" }}</a></small></div>
+                {% endif %}
+            </div>
+            <div id="group-word_file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Исходный Word-файл</h6>
+                {{ form.word_file }}
+                {% if editing_version.word_file %}
+                <div class="mt-1"><small class="text-muted">Текущий Word: <a href="{{ editing_version.word_file.url }}" target="_blank">{{ editing_version.word_file.name|cut:"documents/versions/word/" }}</a></small></div>
+                {% endif %}
+            </div>
+            <div id="group-version_date" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Дата редакции</h6>
+                {{ form.version_date }}
+            </div>
+            <div id="group-comment" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Комментарий к версии</h6>
+                {{ form.comment }}
+            </div>
+        {% else %}
+            <!-- Fallback для неизвестных типов -->
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Файл</h6>
+                {{ form.file }}
+            </div>
+            <div id="group-description" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Описание</h6>
+                {{ form.description }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+<div class="wizard-btns">
+    <a href="{% url 'docs:document_detail' document_id=object.id %}" class="wizard-prev">Отмена</a>
+    <button type="submit" class="btn btn-success">Сохранить изменения</button>
+</div>
+</form>    
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Dynamic category population based on global_section
+  const globalSectionSelect = document.getElementById('id_global_section');
+  const categorySelect = document.getElementById('id_category');
+  if (globalSectionSelect && categorySelect) {
+    globalSectionSelect.addEventListener('change', function() {
+      const globalSectionId = this.value;
+      categorySelect.innerHTML = '<option value="">Загрузка...</option>';
+      fetch(`{% url 'docs:get_categories_for_global_section' %}?global_section_id=${globalSectionId}`)
+        .then(response => response.json())
+        .then(data => {
+          categorySelect.innerHTML = '<option value="">Выбери рубрику</option>';
+          data.categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = cat.name;
+            categorySelect.appendChild(option);
+          });
+        });
+    });
+  }
+
+  const sectionGroup = document.getElementById('group-section');
+  if (globalSectionSelect && sectionGroup) {
+    function updateSectionVisibility() {
+      const selectedOption = globalSectionSelect.options[globalSectionSelect.selectedIndex];
+      if (selectedOption && selectedOption.text.trim() === 'Корпоративный бизнес') {
+        sectionGroup.style.display = '';
+      } else {
+        sectionGroup.style.display = 'none';
+      }
+    }
+    // Run on page load and on change
+    updateSectionVisibility();
+    globalSectionSelect.addEventListener('change', updateSectionVisibility);
+  }
+});
+</script>
+{% endblock %} 

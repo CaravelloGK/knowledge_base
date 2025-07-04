@@ -3,33 +3,112 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
+<style>
+.tooltip-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    cursor: help;
+    margin-left: 8px;
+}
+
+.tooltip-content {
+    display: none;
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    max-width: 250px;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.choose-card {
+    position: relative;
+}
+
+.choose-card:hover .tooltip-content {
+    display: block;
+}
+
+.document-type-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<form id="wizard-form" method="post" enctype="multipart/form-data" novalidate>
-<div docs-form-page>    
-<div class="wizard-align" style="margin-top:2rem;">
-  <div class="wizard-progress position-relative">
-      <div class="wizard-progress-step step-indicator active">1</div>
-      <div class="wizard-progress-step step-indicator">2</div>
-      <div class="wizard-progress-bar" id="wizard-progress-bar" style="left:0; width: 0%;"></div>
-  </div>
-</div>
+{% if not document_type %}
+<!-- ШАГ 1: Выбор типа -->
 <div class="wizard-container position-relative mt-0">
-{% csrf_token %}
-{{ form.media }}
-{{ form.non_field_errors }}
-    <!-- ШАГ 1: Выбор типа -->
-    <div class="wizard-step active" data-step="0">
-        <h4>Что вы хотите добавить?</h4>
-        <div class="choose-cards-row mb-4">
-            <div class="choose-card" data-choice="file">Файл</div>
-            <div class="choose-card" data-choice="info">Информацию</div>
+    <h4>Что вы хотите добавить?</h4>
+    <div class="choose-cards-row mb-4">
+        <div class="choose-card" onclick="window.location.href='?type=document'">
+            <div class="card-title">Документ</div>
+            <div class="tooltip-icon">i</div>
+            <div class="tooltip-content">
+                Французские булочки - это традиционная выпечка, которая готовится из слоеного теста с добавлением масла и сахара.
+            </div>
+            <div class="document-type-info">PDF с версионированием</div>
+        </div>
+        <div class="choose-card" onclick="window.location.href='?type=info'">
+            <div class="card-title">Информация</div>
+            <div class="tooltip-icon">i</div>
+            <div class="tooltip-content">
+                Французские булочки - это традиционная выпечка, которая готовится из слоеного теста с добавлением масла и сахара.
+            </div>
+            <div class="document-type-info">Только текстовая информация</div>
+        </div>
+        <div class="choose-card" onclick="window.location.href='?type=file'">
+            <div class="card-title">Файл</div>
+            <div class="tooltip-icon">i</div>
+            <div class="tooltip-content">
+                Французские булочки - это традиционная выпечка, которая готовится из слоеного теста с добавлением масла и сахара.
+            </div>
+            <div class="document-type-info">Файл + описание</div>
+        </div>
+        <div class="choose-card" onclick="window.location.href='?type=template'">
+            <div class="card-title">Шаблон</div>
+            <div class="tooltip-icon">i</div>
+            <div class="tooltip-content">
+                Французские булочки - это традиционная выпечка, которая готовится из слоеного теста с добавлением масла и сахара.
+            </div>
+            <div class="document-type-info">Word-шаблон (.docx)</div>
+        </div>
+        <div class="choose-card" onclick="window.location.href='?type=presentation'">
+            <div class="card-title">Презентация</div>
+            <div class="tooltip-icon">i</div>
+            <div class="tooltip-content">
+                Французские булочки - это традиционная выпечка, которая готовится из слоеного теста с добавлением масла и сахара.
+            </div>
+            <div class="document-type-info">PowerPoint (.pptx)</div>
         </div>
     </div>
-    <!-- ШАГ 2: Основная форма (поля разные для "Файл" и "Информация") -->
-    <div class="wizard-step" data-step="1">
-        <h4>Заполните данные</h4>
+</div>
+{% else %}
+<!-- ШАГ 2: Форма создания документа -->
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {{ form.media }}
+    {{ form.non_field_errors }}
+    
+    <div class="wizard-container position-relative mt-0">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4>Заполните данные</h4>
+            <a href="{% url 'docs:document_create' %}" class="btn btn-outline-secondary">← Назад к выбору</a>
+        </div>
+        
+        <!-- Общие поля для всех типов -->
         <div id="group-title" class="form-group mb-3">
             <h6 class="fw-bold" style="display: inline;">Название</h6>
             <span style="color: red;">&#42;</span>
@@ -60,172 +139,79 @@
             {{ form.subcategory }}
             <div class="invalid-feedback">Пожалуйста, укажи тип документа</div>
         </div>
-        <div id="group-is_template" class="form-group mb-3">
-            <h6 class="fw-bold" style="display: inline;">Это шаблон?</h6>
-            <span style="color: red;">&#42;</span>
-            <div class="toggle-switch-wrapper">
-                <label class="switch">
-                    {{ form.is_template }}
-                    <span class="slider"></span>
-                </label>
+        
+        <!-- Специфичные поля в зависимости от типа -->
+        {% if document_type == 'document' %}
+            <div id="group-version_date" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Дата редакции</h6>
+                {{ form.version_date }}
             </div>
-            <div class="invalid-feedback">Пожалуйста, укажи шаблон ли это</div>
-        </div>
-        <div id="group-file" class="form-group mb-3">
-            <h6 class="fw-bold" style="display: inline;">Файл</h6>
-            <span style="color: red;">&#42;</span>
-            <div class="custom-file-upload">
-                <input type="file" id="file-input" name="file" style="display:none;">
-                <label for="file-input" class="file-btn">Выберите файл</label>
-                <span class="file-info" id="file-info">Файл не выбран</span>
-                <span class="file-badge" id="file-badge" style="display:none;"></span>
-                <span class="file-size" id="file-size" style="display:none;"></span>
-                <a href="#" id="file-download" class="file-download" style="display:none;">Скачать файл</a>
+            <div id="group-word_file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Исходный Word-файл</h6>
+                {{ form.word_file }}
             </div>
-            <div class="invalid-feedback">Пожалуйста, приложи файл</div>
-        </div>
-        <div id="group-description" class="form-group mb-3">
-            <h6 class="fw-bold" style="display: inline;">Описание</h6>
-            {{ form.description }}
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Файл документа</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.file }}
+                <div class="invalid-feedback">Пожалуйста, приложи PDF файл</div>
+            </div>
+        {% elif document_type == 'info' %}
+            <div id="group-description" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Описание</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.description }}
+                <div class="invalid-feedback">Пожалуйста, заполните описание</div>
+            </div>
+        {% elif document_type == 'file' %}
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Файл</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.file }}
+                <div class="invalid-feedback">Пожалуйста, приложи файл</div>
+            </div>
+            <div id="group-description" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Описание</h6>
+                {{ form.description }}
+            </div>
+        {% elif document_type == 'template' %}
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Word-шаблон</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.file }}
+                <div class="invalid-feedback">Пожалуйста, приложи Word файл (.docx)</div>
+            </div>
+        {% elif document_type == 'presentation' %}
+            <div id="group-file" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Презентация</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.file }}
+                <div class="invalid-feedback">Пожалуйста, приложи PowerPoint файл (.pptx)</div>
+            </div>
+            <div id="group-slides_zip" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Архив с PNG-слайдами</h6>
+                <span style="color: red;">&#42;</span>
+                {{ form.slides_zip }}
+                <div class="invalid-feedback">Пожалуйста, приложи zip-архив с PNG-слайдами (slide1.png, slide2.png ...)</div>
+                <small class="form-text text-muted d-block mt-1">Загрузите zip-архив, где каждый файл — отдельный слайд (только PNG, имена по порядку: Слайд1.png, Слайд2.png ...).</small>
+            </div>
+            <div id="group-description" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Описание</h6>
+                {{ form.description }}
+            </div>
+        {% endif %}
+        
+        <div class="wizard-btns">
+            <button type="submit" class="btn btn-success">Создать документ</button>
         </div>
     </div>
-</div>
-<div class="wizard-btns">
-    <button type="button" class="wizard-prev">Назад</button>
-    <button type="button" class="wizard-next">Далее</button>
-    <button type="submit" class="btn btn-success d-none wizard-submit">Готово</button>
-</div>
-</div>
-</form>    
+</form>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const steps = Array.from(document.querySelectorAll('.wizard-step'));
-  const indicators = Array.from(document.querySelectorAll('.wizard-progress-step'));
-  const progressBar = document.getElementById('wizard-progress-bar');
-  const btnPrev = document.querySelector('.wizard-prev');
-  const btnNext = document.querySelector('.wizard-next');
-  const btnSubmit = document.querySelector('.wizard-submit');
-  let currentStep = 0;
-  let choice = null;
-
-  function updateStep1Fields() {
-    if (currentStep !== 1) return;
-    const show = el => el && (el.style.display = '');
-    const hide = el => el && (el.style.display = 'none');
-    const title = document.getElementById('group-title');
-    const global_section = document.getElementById('group-global_section');
-    const section = document.getElementById('group-section');
-    const category = document.getElementById('group-category');
-    const subcategory = document.getElementById('group-subcategory');
-    const is_template = document.getElementById('group-is_template');
-    const file = document.getElementById('group-file');
-    const description = document.getElementById('group-description');
-    const globalSectionSelect = document.getElementById('id_global_section');
-    const selectedOption = globalSectionSelect ? globalSectionSelect.options[globalSectionSelect.selectedIndex] : null;
-    const showSection = selectedOption && selectedOption.text.trim() === 'Корпоративный бизнес';
-    if (choice === 'file') {
-      show(title);
-      show(global_section);
-      showSection ? show(section) : hide(section);
-      show(category);
-      show(subcategory);
-      show(is_template);
-      show(file);
-      hide(description);
-    } else if (choice === 'info') {
-      show(title);
-      show(global_section);
-      showSection ? show(section) : hide(section);
-      show(category);
-      show(subcategory);
-      hide(is_template);
-      hide(file);
-      show(description);
-    }
-  }
-
-  function updateProgress() {
-    indicators.forEach((ind, idx) => {
-      ind.classList.toggle('active', idx <= currentStep);
-    });
-    progressBar.style.width = `${(currentStep) * 100}%`;
-  }
-
-  function showStep(idx) {
-    steps.forEach((step, i) => {
-      step.classList.remove('active', 'backward');
-      step.style.display = 'none';
-      if(i === idx) {
-        step.classList.add('active');
-        step.style.display = 'block';
-      }
-    });
-    currentStep = idx;
-    updateProgress();
-    btnPrev.style.display = currentStep === 0 ? 'none' : '';
-    btnNext.style.display = (currentStep === 0 || currentStep === steps.length - 1) ? 'none' : '';
-    btnSubmit.classList.toggle('d-none', currentStep !== steps.length - 1);
-    updateStep1Fields();
-  }
-
-  document.querySelectorAll('.choose-card').forEach(card => {
-    card.addEventListener('click', function() {
-      document.querySelectorAll('.choose-card').forEach(c => c.classList.remove('chosen'));
-      card.classList.add('chosen');
-      choice = card.dataset.choice;
-      // Dynamically set required attributes
-      const isTemplateInput = document.getElementById('id_is_template');
-      const descriptionInput = document.getElementById('id_description');
-      if (choice === 'file') {
-        if (isTemplateInput) isTemplateInput.required = true;
-        if (descriptionInput) descriptionInput.required = false;
-      } else if (choice === 'info') {
-        if (isTemplateInput) isTemplateInput.required = false;
-        if (descriptionInput) descriptionInput.required = true;
-      }
-      showStep(1);
-    });
-  });
-
-  btnNext.addEventListener('click', function() {
-    showStep(currentStep+1);
-  });
-  btnPrev.addEventListener('click', function() {
-    showStep(currentStep-1);
-  });
-
-  const fileInput = document.getElementById('file-input');
-  const fileInfo = document.getElementById('file-info');
-  const fileBadge = document.getElementById('file-badge');
-  const fileSize = document.getElementById('file-size');
-  const fileDownload = document.getElementById('file-download');
-  if (fileInput) {
-    fileInput.addEventListener('change', function() {
-      if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        fileInfo.textContent = file.name;
-        const ext = file.name.split('.').pop().toUpperCase();
-        fileBadge.textContent = ext;
-        fileBadge.style.display = '';
-        let size = file.size;
-        let sizeStr = size > 1024 * 1024
-          ? (size / (1024 * 1024)).toFixed(1) + ' МБ'
-          : (size / 1024).toFixed(0) + ' КБ';
-        fileSize.textContent = sizeStr;
-        fileSize.style.display = '';
-        fileDownload.style.display = 'none';
-      } else {
-        fileInfo.textContent = 'Файл не выбран';
-        fileBadge.style.display = 'none';
-        fileSize.style.display = 'none';
-        fileDownload.style.display = 'none';
-      }
-    });
-  }
-
   // Dynamic category population based on global_section
   const globalSectionSelect = document.getElementById('id_global_section');
   const categorySelect = document.getElementById('id_category');
@@ -261,8 +247,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSectionVisibility();
     globalSectionSelect.addEventListener('change', updateSectionVisibility);
   }
-
-  showStep(0);
 });
 </script>
 {% endblock %}

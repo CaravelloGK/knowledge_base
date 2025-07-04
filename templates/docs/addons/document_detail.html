@@ -3,6 +3,131 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
+<style>
+  .pdf-viewer-container { width: 100%; height: 80vh; border: 1px solid #ccc; }
+  .pdf-toolbar { margin-bottom: 1em; }
+  .version-list .active > a { 
+    font-weight: 600; 
+    color: #DD0A34; 
+    background: #f8f9fa; 
+    border-radius: 8px; 
+    padding: 8px 12px; 
+    border-left: 3px solid #DD0A34;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .version-list .list-group-item {
+    border: none;
+    padding: 4px 0;
+    background: transparent;
+  }
+  .version-list a {
+    color: #212529;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+  }
+  .version-list a:hover {
+    background: #e9ecef;
+    color: #DD0A34;
+  }
+  .version-list .text-muted {
+    color: #495057 !important;
+    font-size: 0.85rem;
+    margin-left: 12px;
+    margin-top: 2px;
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border-left: 2px solid #dee2e6;
+  }
+  .document-title { font-size: 1.5rem; margin-bottom: 1rem; }
+  .version-badges {
+    position: absolute;
+    top: 16px;
+    right: -143px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+    z-index: -2;
+  }
+  .info-icon {
+    width: 18px;
+    height: 18px;
+    margin-left: 10px;
+    filter: grayscale(100%) brightness(80%);
+    cursor: pointer;
+    transition: filter 0.3s ease;
+  }
+  .info-icon:hover {
+    filter: invert(14%) sepia(99%) saturate(7434%) hue-rotate(352deg) brightness(95%) contrast(101%);
+  }
+  .external-link-icon {
+    width: 20px;
+    height: 20px;
+    filter: grayscale(100%) brightness(80%);
+    cursor: pointer;
+    transition: filter 0.3s ease;
+  }
+  .external-link-icon:hover {
+    filter: invert(14%) sepia(99%) saturate(7434%) hue-rotate(352deg) brightness(95%) contrast(101%);
+  }
+  .document-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  .document-actions a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #495057;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.85rem;
+  }
+  .document-actions a:hover {
+    color: #007bff;
+  }
+  .document-actions img {
+    width: 48px;
+    height: 48px;
+  }
+  .document-actions .word-icon {
+    filter: invert(27%) sepia(98%) saturate(7492%) hue-rotate(202deg) brightness(95%) contrast(101%);
+    transition: filter 0.2s;
+  }
+  .document-actions .word-icon:hover {
+    filter: invert(27%) sepia(98%) saturate(7492%) hue-rotate(202deg) brightness(110%) contrast(120%);
+  }
+  .btn-close-custom {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .btn-close-custom:hover .action-icon {
+    filter: invert(14%) sepia(99%) saturate(7434%) hue-rotate(352deg) brightness(95%) contrast(101%);
+  }
+  .version-bullet {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #007bff;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -43,13 +168,80 @@
 <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample_2" aria-labelledby="offcanvasExampleLabel">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="offcanvasExampleLabel">Информация о документе</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Закрыть"></button>
+        <button type="button" class="btn-close-custom" data-bs-dismiss="offcanvas" aria-label="Закрыть">
+            <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon" style="width: 16px; height: 16px;">
+        </button>
     </div>
     <div class="offcanvas-body">
-        <p><strong>Дата принятия:</strong> {{ document.created_at|date:"d.m.Y" }}</p>
-        <p><strong>Статус:</strong> {{ document.get_status_display }}</p>
+        <!-- Действия с документом -->
+        <div class="document-actions d-flex justify-content-center gap-4">
+            {% if pdf_url %}
+            <a href="{{ pdf_url }}" download>
+                <img src="{% static 'img/download_pdf.svg' %}" alt="Скачать PDF">
+                Скачать PDF
+            </a>
+            {% endif %}
+            {% if word_file_url %}
+            <a href="{{ word_file_url }}" download>
+                <img src="{% static 'img/download_word.svg' %}" alt="Скачать Word" class="word-icon">
+                Скачать Word
+            </a>
+            {% else %}
+            <a href="#" data-bs-toggle="modal" data-bs-target="#noWordModal">
+                <img src="{% static 'img/download_word_error.svg' %}" alt="Word недоступен" class="word-icon">
+                Скачать Word
+            </a>
+            {% endif %}
+        </div>
+        <p><strong>Дата загрузки:</strong> {{ document.created_at|date:"d.m.Y" }}</p>
         <p><strong>Направление бизнеса:</strong> {{ document.global_section }}</p>
         <p><strong>Рубрика:</strong> {{ document.category }}</p>
+        <!-- История версий в самом низу -->
+        <div class="mt-4">
+            <h5>История версий</h5>
+            {% if object.versions.exists or document.file %}
+            <ul class="list-group version-list mb-3">
+                {% for version in object.versions.all %}
+                <li class="list-group-item {% if version.id == selected_version.id or not selected_version and not show_main and document.current_version and version.id == document.current_version.id %}active{% endif %}">
+                    <a href="{% url 'docs:document_detail' object.pk %}?version={{ version.id }}" class="d-flex align-items-center">
+                        <span class="version-bullet"></span>
+                        <span>v{{ version.version_number }} 
+                        {% if version.version_date %}
+                            (от {{ version.version_date|date:'d.m.Y' }})
+                        {% else %}
+                            (от {{ version.uploaded_at|date:'d.m.Y' }})
+                        {% endif %}
+                        {% if document.current_version and version.id == document.current_version.id %}
+                            <span class="badge bg-success ms-2">Актуальная</span>
+                        {% endif %}
+                        </span>
+                    </a>
+                    {% if version.comment %}
+                    <small class="text-muted d-block">{{ version.comment }}</small>
+                    {% endif %}
+                </li>
+                {% endfor %}
+                <!-- Основной файл как версия -->
+                {% if document.file %}
+                <li class="list-group-item {% if show_main or not selected_version and not document.current_version %}active{% endif %}">
+                    <a href="{% url 'docs:document_detail' object.pk %}?main=true">
+                        v0 (Основной документ)
+                        {% if document.version_date %}
+                            (от {{ document.version_date|date:'d.m.Y' }})
+                        {% else %}
+                            (от {{ document.updated_at|date:'d.m.Y' }})
+                        {% endif %}
+                        {% if not document.current_version %}
+                            <span class="badge bg-success ms-2">Актуальная</span>
+                        {% endif %}
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            {% else %}
+            <p class="text-muted">История версий отсутствует</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 
@@ -73,218 +265,144 @@
 </script>
 
 <div class="container mt-4">
-    <h1>{{ document.title }}</h1>
-    
-    {% if error %}
-        <div class="alert alert-warning" role="alert">
-            {{ error }}
-        </div>
-        <div class="mt-3">
-            <a href="javascript:history.back()" class="btn btn-primary">Назад</a>
-        </div>
-    {% else %}
-        <!-- Поле поиска -->
-        <div class="mb-3">
-            <input type="text" id="searchInput" placeholder="Поиск по тексту..." class="form-control">
-            <div class="mt-2">
-                <button id="prevHighlight" class="btn btn-secondary">Предыдущее</button>
-                <button id="nextHighlight" class="btn btn-secondary">Следующее</button>
-            </div>
-        </div>
-
-        <script>
-            $(document).ready(function() {
-                let currentHighlightIndex = -1;
-                let highlights = [];
-
-                // Функция для подсветки текста
-                function highlightText(text) {
-                    const content = $('#documentContent');
-                    content.html(content.html().replace(/<span class="highlight">(.*?)<\/span>/g, '$1')); // Убираем предыдущие подсветки
-                    highlights = [];
-                    if (text) {
-                        const regex = new RegExp(`(${text})`, 'gi');
-                        content.html(content.html().replace(regex, (match) => {
-                            highlights.push(match);
-                            return `<span class="highlight">${match}</span>`;
-                        }));
-                    }
-                    currentHighlightIndex = -1;
-                }
-
-                // Обработчик ввода в поле поиска
-                $('#searchInput').on('input', function() {
-                    const searchText = $(this).val();
-                    highlightText(searchText);
-                });
-
-                // Навигация между подсветками
-                $('#nextHighlight').on('click', function() {
-                    if (highlights.length > 0) {
-                        currentHighlightIndex = (currentHighlightIndex + 1) % highlights.length;
-                        scrollToHighlight(currentHighlightIndex);
-                    }
-                });
-
-                $('#prevHighlight').on('click', function() {
-                    if (highlights.length > 0) {
-                        currentHighlightIndex = (currentHighlightIndex - 1 + highlights.length) % highlights.length;
-                        scrollToHighlight(currentHighlightIndex);
-                    }
-                });
-
-                // Функция для прокрутки к подсветке
-                function scrollToHighlight(index) {
-                    const highlight = $('.highlight').eq(index);
-                    if (highlight.length) {
-                        $('html, body').animate({
-                            scrollTop: highlight.offset().top - 100
-                        }, 500);
-                        highlight.css('background-color', 'orange'); // Временно выделяем текущее вхождение
-                        setTimeout(() => highlight.css('background-color', 'yellow'), 1000);
-                    }
-                }
-            });
-        </script>
-
-        <!-- Кнопка скачивания -->
-        <div class="mb-5">
-            <div class="btn-toolbar" role="toolbar" aria-label="Панель инструментов с группами кнопок">
-                {% if headings %}
-                <div class="btn-group me-2" role="group" aria-label="Первая группа">
-                    <a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button"
-                       aria-controls="offcanvasExample">
-                        Оглавление
-                    </a>
-                </div>
-                {% endif %}
-                <div class="btn-group me-2" role="group" aria-label="Первая группа">
-                    <a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvasExample_2" role="button"
-                       aria-controls="offcanvasExample">
-                        Информация о документе
-                    </a>
-                </div>
-                {% if not is_template and document.file %}
-                <div class="btn-group" role="group" aria-label="Третья группа">
-                    <a href="{{ document.file.url }}" download class="btn btn-primary">Скачать документ</a>
-                </div>
-                {% endif %}
-
-                <div class="btn-group mx-2" role="group" aria-label="Третья группа">
-                    <a href="javascript:history.back()" class="btn btn-primary back-button">Назад</a>
-                </div>
-            </div>
-
-            <button id="scrollToTop" class="btn btn-primary" style="position: fixed; bottom: 20px; right: 20px; display: none;">Наверх</button>
-
-        </div>
-
-        <div class="document-content" id="documentContent">
-            {% if paragraphs %}
-                {% for para in paragraphs %}
-                    <p>
-                        {% for run in para.runs %}
-                        <span class="{% if run.bold %}doc-bold{% endif %}{% if run.italic %} doc-italic{% endif %}{% if run.underline %} doc-underline{% endif %}">{{ run.text }}</span>
-                        {% endfor %}
-                    </p>
-                {% endfor %}
+    <div class="card shadow-sm position-relative" style="background-color: #fff;">
+        <!-- Блок иконок (админские кнопки) -->
+        <div class="action-icons position-absolute top-0 end-0 m-3 d-flex align-items-center gap-3">
+            <a href="{% url 'docs:document_update' pk=document.id %}{% if selected_version %}?version={{ selected_version.id }}{% endif %}" class="action-link" title="Редактировать документ">
+                <img src="{% static 'img/edit.svg' %}" alt="Редактировать" class="action-icon">
+            </a>
+            <a href="{% url 'docs:add_document_version' pk=document.id %}" class="action-link" title="Добавить новую редакцию">
+                <img src="{% static 'img/create.svg' %}" alt="Добавить редакцию" class="action-icon">
+            </a>
+            {% if selected_version %}
+                <a href="#" data-bs-toggle="modal" data-bs-target="#deleteChoiceModal" class="action-link" title="Удалить">
+                    <img src="{% static 'img/delete.svg' %}" alt="Удалить" class="action-icon">
+                </a>
+            {% else %}
+                <a href="{% url 'docs:document_delete' pk=document.id %}" class="action-link" title="Удалить">
+                    <img src="{% static 'img/delete.svg' %}" alt="Удалить" class="action-icon">
+                </a>
             {% endif %}
+            <a href="#" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample_2" class="action-link" title="Информация о документе">
+                <img src="{% static 'img/info.svg' %}" alt="Информация" class="action-icon">
+            </a>
+            {% if document.global_section.name == 'Корпоративный бизнес' %}
+                <a href="{% url 'docs:kb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Розничный бизнес' %}
+                <a href="{% url 'docs:rb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Административно-хозяйственная деятельность' %}
+                <a href="{% url 'docs:ahd_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Инвестиционный и международный бизнес' %}
+                <a href="{% url 'docs:mb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Корп. управление и раскрытие информации' %}
+                <a href="{% url 'docs:kuri_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% else %}
+                <a href="{% url 'docs:kb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Бейджи версий справа -->
+        <div class="version-badges">
+            {% if selected_version %}
+                {% if selected_version.version_date %}
+                    <span class="badge bg-primary">v{{ selected_version.version_number }} от {{ selected_version.version_date|date:'d.m.Y' }}</span>
+                {% else %}
+                    <span class="badge bg-primary">v{{ selected_version.version_number }} от {{ selected_version.uploaded_at|date:'d.m.Y' }}</span>
+                {% endif %}
+                {% if document.current_version and selected_version.id == document.current_version.id %}
+                    <span class="badge bg-success">Актуальная редакция</span>
+                {% endif %}
+            {% elif show_main %}
+                <span class="badge bg-secondary">v0 (Основной документ)</span>
+            {% elif is_current_version and document.file %}
+                <span class="badge bg-success">Актуальная редакция</span>
+            {% endif %}
+        </div>
+
+        <div class="card-body">
+            <h2 class="document-title d-flex align-items-center">
+                {{ object.title }}
+                {% if pdf_url %}
+                <a href="{{ pdf_url }}" target="_blank" class="ms-2" title="Открыть в новом окне">
+                    <img src="{% static 'img/external-link.svg' %}" alt="Открыть в новом окне" class="external-link-icon">
+                </a>
+                {% endif %}
+            </h2>
             
-            {% if tables %}
-                {% for table in tables %}
-                <table class="table table-bordered mt-4">
-                    {% for row in table %}
-                    <tr>
-                        {% for cell in row %}
-                        <td>{{ cell|safe }}</td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </table>
-                {% endfor %}
+            {% if pdf_url %}
+            <div class="pdf-viewer-container" style="width:100%; height:80vh;">
+                <iframe
+                    id="pdfjs-viewer"
+                    src="{% static 'pdfjs/web/viewer.html' %}?file={{ pdf_url|urlencode }}"
+                    width="100%"
+                    height="100%"
+                    style="border:none;">
+                </iframe>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <strong>Внимание:</strong> Файл документа не найден или недоступен.
+            </div>
             {% endif %}
         </div>
-    {% endif %}
+    </div>
 </div>
 
-<!-- Подключаем jQuery для удобства -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function() {
-    // Функция для подсветки текста
-    function highlightText(text) {
-        const content = $('#documentContent');
-        content.html(content.html().replace(/<span class="highlight">(.*?)<\/span>/g, '$1')); // Убираем предыдущие подсветки
-        if (text) {
-            const regex = new RegExp(`(${text})`, 'gi');
-            content.html(content.html().replace(regex, '<span class="highlight">$1</span>'));
-        }
-    }
-    
-    // Обработчик ввода в поле поиска
-    $('#searchInput').on('input', function() {
-        const searchText = $(this).val();
-        highlightText(searchText);
-    });
-    
-    $(window).scroll(function() {
-        if ($(this).scrollTop() > 200) {
-            $('#scrollToTop').fadeIn();
-        } else {
-            $('#scrollToTop').fadeOut();
-        }
-    });
-    
-    $('#scrollToTop').on('click', function() {
-        $('html, body').animate({ scrollTop: 0 }, 500);
-    });
-    
-    function updateTocHighlight() {
-        const headings = $('h1, h2, h3'); // Выбираем все заголовки
-        const scrollPosition = $(window).scrollTop();
+<!-- Модалка выбора действия удаления -->
+{% if selected_version %}
+<div class="modal fade" id="deleteChoiceModal" tabindex="-1" aria-labelledby="deleteChoiceModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteChoiceModalLabel">Выберите действие</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-grid gap-2">
+          <a href="{% url 'docs:document_delete' pk=document.id %}" class="btn btn-outline-danger">
+            Удалить весь документ "{{ document.title }}"
+          </a>
+          <a href="{% url 'docs:document_version_delete' document_id=document.id version_id=selected_version.id %}" class="btn btn-outline-warning">
+            Удалить версию v{{ selected_version.version_number }}{% if selected_version.version_date %} от {{ selected_version.version_date|date:'d.m.Y' }}{% else %} от {{ selected_version.uploaded_at|date:'d.m.Y' }}{% endif %}
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 
-        headings.each(function() {
-            const heading = $(this);
-            const headingTop = heading.offset().top;
-
-            if (headingTop <= scrollPosition + 100) {
-                const id = heading.attr('id');
-                $('.toc-item a').removeClass('active');
-                $(`.toc-item a[href="#${id}"]`).addClass('active');
-            }
-        });
-    }
-    
-    // Обновляем состояние при прокрутке
-    $(window).scroll(updateTocHighlight);
-    // Обновляем состояние при загрузке страницы
-    updateTocHighlight();
-
-    $('.toc-item').on('click', function(event) {
-        if ($(event.target).is('a')) {
-            return; // Не сворачиваем, если кликнули на ссылку
-        }
-
-        const item = $(this);
-        item.toggleClass('collapsed');
-        item.find('ul').slideToggle();
-    });
-
-    // Инициализация: сворачиваем все подразделы
-    $('.toc-item ul').hide();
-    $('.toc-item').addClass('collapsed');
-
-    // Плавная прокрутка при переходе по якорным ссылкам
-    $('.toc-item a').on('click', function(event) {
-        event.preventDefault();
-        const target = $($(this).attr('href'));
-        if (target.length) {
-            $('html, body').animate({
-                scrollTop: target.offset().top - 100
-            }, 500);
-        }
-    });
-});
-</script>
+<!-- Модалка отсутствия Word -->
+<div class="modal fade" id="noWordModal" tabindex="-1" aria-labelledby="noWordModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="noWordModalLabel">Word-файл отсутствует</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        Для данной редакции документа не был подгружен соответствующий Word-документ. Если вам требуется Word-файл, попробуйте найти его в других редакциях документа.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ок</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

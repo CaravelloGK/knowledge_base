@@ -33,19 +33,14 @@
                    id="subject-{{ elem_3.id }}"
                    value="{{ elem_3.id }}">
             <label class="btn btn-toggle" for="subject-{{ elem_3.id }}">
-                {% if elem_3.name == "Внутренние нормативные документы" %}
-                    <img src="{% static 'img/vnd-type.svg' %}" class="chip-icon" alt="">
-                {% elif elem_3.name == "Типовые формы / Шаблоны" %}
-                    <img src="{% static 'img/template-type.svg' %}" class="chip-icon" alt="">
-                {% elif elem_3.name == "Инструкции / Памятки / Ответы" %}
-                    <img src="{% static 'img/faq-type.svg' %}" class="chip-icon" alt="">
-                {% elif elem_3.name == "Служебные записки" %}
-                    <img src="{% static 'img/zapiska-type.svg' %}" class="chip-icon" alt="">
-                {% elif elem_3.name == "Нормативно-правовые акты (законы)" %}
-                    <img src="{% static 'img/npa-type.svg' %}" class="chip-icon" alt="">
-                {% elif elem_3.name == "Информационные материалы" %}
-                    <img src="{% static 'img/info-type.svg' %}" class="chip-icon" alt="">
-                {% endif %}
+                <span class="type-bar-mini
+                    {% if elem_3.name == 'Внутренние нормативные документы' %} type-vnd
+                    {% elif elem_3.name == 'Типовые формы / Шаблоны' %} type-template
+                    {% elif elem_3.name == 'Инструкции / Памятки / Ответы' %} type-faq
+                    {% elif elem_3.name == 'Служебные записки' %} type-zapiska
+                    {% elif elem_3.name == 'Нормативно-правовые акты (законы)' %} type-npa
+                    {% elif elem_3.name == 'Информационные материалы' %} type-info
+                    {% endif %}"></span>
                 {{ elem_3.name }}
             </label>
             {% endfor %}
@@ -61,39 +56,3 @@
 
             <button id="reset-filters" class="btn-clear-review-main mt-3">Сбросить фильтры</button>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const newsItems = document.querySelectorAll('.news-item');
-    
-    const directRadios = document.querySelectorAll('input[name="direct"]');
-    const subjectRadios = document.querySelectorAll('input[name="subject"]');
-    const resetButton = document.getElementById('reset-filters');
-
-    function filterNews() {
-        const selectedDirect = document.querySelector('input[name="direct"]:checked')?.value;
-        const selectedSubject = document.querySelector('input[name="subject"]:checked')?.value;
-
-        newsItems.forEach(item => {
-            const itemDirect = item.dataset.direct;
-            const itemSubject = item.dataset.subject;
-            
-            const directMatch = !selectedDirect || itemDirect === selectedDirect;
-            const subjectMatch = !selectedSubject || itemSubject === selectedSubject;
-
-            item.style.display = directMatch && subjectMatch ? 'block' : 'none';
-        });
-    }
-
-    directRadios.forEach(radio => radio.addEventListener('change', filterNews));
-    subjectRadios.forEach(radio => radio.addEventListener('change', filterNews));
-
-    resetButton.addEventListener('click', function() {
-        directRadios.forEach(radio => radio.checked = false);
-        subjectRadios.forEach(radio => radio.checked = false);
-        filterNews();
-    });
-
-    filterNews();
-});
-</script>

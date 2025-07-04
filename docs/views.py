@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
+from django.db import transaction
+from django.http import JsonResponse, HttpResponseRedirect
 
-from .forms import SearchForm, DocumentForm
-# from lib2to3.fixes.fix_input import context  # Removed: unnecessary and causes ModuleNotFoundError
-from .util import Docx_Reader
+from .forms import SearchForm, DocumentForm, DocumentVersionForm, DocumentPDFForm, DocumentInfoForm, DocumentFileForm, DocumentTemplateForm, DocumentPresentationForm, SlideZipUploadForm
+from .util import Docx_Reader, PDF_Reader, is_pdf_textual, make_file_unique
 from django.shortcuts import render, get_object_or_404
 from .forms import SearchForm
 from django.http import HttpResponse
@@ -15,8 +16,8 @@ from datetime import datetime
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.core.paginator import Paginator
 from django.conf import settings
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Document, Direction_of_business, Direction, Section, Doc_class
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
+from .models import Document, Direction_of_business, Direction, Section, Doc_class, DocumentVersion
 
 BUSINESS_URLS = {
     "Корпоративный бизнес": "kb_home",
@@ -136,15 +137,55 @@ class KURIView(ListView):
         return Document.objects.filter(global_section=buisness.pk)  # список документов данного бизнеса
 
 
-class DocumentCreateView(CreateView,
-                       # ModeratorRequiredMixin
-                       ):
-
-    model = Document  # Модель - обзоры
-    form_class = DocumentForm  # Форма - 'DocumentForm' (см. Forms.py)
-    template_name = 'docs/docs_form.html'  # Шаблон html docs_form.html
+class DocumentCreateView(CreateView):
+    model = Document
+    template_name = 'docs/docs_form.html'
     success_message = 'Информация добавлена!'
     success_url = reverse_lazy('docs:kb_home')
+
+    def get_form_class(self):
+        """Возвращает соответствующую форму в зависимости от типа документа"""
+        document_type = self.request.GET.get('type', '')
+        if document_type == 'document':
+            return DocumentPDFForm
+        elif document_type == 'info':
+            return DocumentInfoForm
+        elif document_type == 'file':
+            return DocumentFileForm
+        elif document_type == 'template':
+            return DocumentTemplateForm
+        elif document_type == 'presentation':
+            return DocumentPresentationForm
+        else:
+            # По умолчанию возвращаем базовую форму
+            return DocumentForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['document_type'] = self.request.GET.get('type', '')
+        return context
+
+    def form_valid(self, form):
+        # Получаем тип документа из GET параметра
+        document_type = self.request.GET.get('type', '')
+        print(f"DEBUG: Document type = {document_type}")
+        
+        # Устанавливаем is_template в зависимости от типа
+        if document_type == 'template':
+            form.instance.is_template = True
+        else:
+            form.instance.is_template = False
+        
+        # Устанавливаем статус по умолчанию
+        form.instance.status = 'active'
+        
+        print(f"DEBUG: Form is valid, saving document...")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        print(f"DEBUG: Form is invalid")
+        print(f"DEBUG: Form errors: {form.errors}")
+        return super().form_invalid(form)
 
     def get_success_url(self):
         business_name = self.object.global_section.name
@@ -186,51 +227,85 @@ def docs_search(request):
 def document_detail(request, document_id):
     # функция по рендерингу документа
     document = get_object_or_404(Document, id=document_id)
-    info = document.description
-    if info:
-        doc_info = {
-            'document': document,
-            'title': document.title,
-            'status': document.status,
-            'created_at': document.created_at,
-            'global_section': document.global_section,
-            'section': document.section,
-            'category': document.category,
-            'subcategory': document.subcategory,
-            'text': info
-        }
-        return render(request, 'docs/addons/document_detail_inf.html', doc_info)
+    display_type = document.get_display_type()
+    
+    # Обработка версий документа
+    version_id = request.GET.get('version')
+    show_main = request.GET.get('main') == 'true'
+    
+    if version_id:
+        # Если указана конкретная версия - используем её
+        selected_version = get_object_or_404(DocumentVersion, pk=version_id, document=document)
+        pdf_url = selected_version.file.url if selected_version.file else None
+        is_current_version = False
+    elif show_main:
+        # Если явно запрошен основной документ - показываем его
+        selected_version = None
+        pdf_url = document.file.url if document.file else None
+        is_current_version = False
     else:
-        string = str(document.file)
-        parts = string.split("/", 1)
-        substring = parts[1]  # Получаем первую часть строки (до первого "#")
-        extension = substring[substring.find(".") + 1 : ]
-        if extension == 'docx':
-            doc_parser = Docx_Reader(document.file.path, document.is_template)
-            itog = doc_parser.itog()
-            itog['document'] = document  # Добавляем документ в контекст
-            return render(request, 'docs/addons/document_detail.html', itog)
-        elif extension == 'pptx':
-            # TODO: Добавить поддержку PPTX
-            context = {
-                'document': document,
-                'error': 'Формат PPTX пока не поддерживается'
-            }
-            return render(request, 'docs/addons/document_detail.html', context)
-        elif extension == 'pdf':
-            # TODO: Добавить поддержку PDF
-            context = {
-                'document': document,
-                'error': 'Формат PDF пока не поддерживается'
-            }
-            return render(request, 'docs/addons/document_detail.html', context)
-
-    # Fallback для случаев без файла
+        # По умолчанию показываем актуальную редакцию
+        current_version = document.current_version
+        if current_version:
+            selected_version = current_version
+            pdf_url = current_version.file.url if current_version.file else None
+            is_current_version = True
+        else:
+            # Если нет актуальной версии, используем основной файл
+            selected_version = None
+            pdf_url = document.file.url if document.file else None
+            is_current_version = True
+    
     context = {
+        'object': document,  # для совместимости с шаблоном
         'document': document,
-        'error': 'Документ не содержит файла или описания'
+        'display_type': display_type,
+        'pdf_url': pdf_url,
+        'selected_version': selected_version,
+        'is_current_version': is_current_version,
+        'word_file_url': (selected_version.word_file.url if selected_version and selected_version.word_file else document.word_file.url if not selected_version and document.word_file else None),
+        'show_main': show_main,
     }
-    return render(request, 'docs/addons/document_detail.html', context)
+    
+    # Добавляем специфичные данные в зависимости от типа
+    if display_type == 'pdf_document':
+        # PDF-документ - используем PDF просмотрщик
+        is_textual_pdf = False
+        if pdf_url:
+            # Определяем путь к файлу для проверки читаемости
+            if selected_version and selected_version.file:
+                file_path = selected_version.file.path
+            else:
+                file_path = document.file.path
+            is_textual_pdf = is_pdf_textual(file_path) if file_path else False
+        
+        context.update({
+            'is_textual_pdf': is_textual_pdf,
+        })
+        return render(request, 'docs/addons/document_detail.html', context)
+    
+    elif display_type == 'word_template':
+        # Word-шаблон - конструктор договоров
+        return render(request, 'docs/addons/document_detail_template.html', context)
+    
+    elif display_type == 'presentation':
+        # Презентация - слайдер
+        slides = document.slides.all()
+        context['slides'] = slides
+        return render(request, 'docs/addons/document_detail_slide.html', context)
+    
+    elif display_type == 'mixed_content':
+        # Смешанный тип - файл + описание
+        return render(request, 'docs/addons/document_detail_mix.html', context)
+    
+    elif display_type == 'text_only':
+        # Только текстовая информация
+        return render(request, 'docs/addons/document_detail_inf.html', context)
+    
+    else:
+        # Fallback
+        context['error'] = f'Неизвестный тип отображения: {display_type}'
+        return render(request, 'docs/addons/document_detail.html', context)
 
 
 def get_categories_for_global_section(request):
@@ -241,3 +316,335 @@ def get_categories_for_global_section(request):
         for cat in categories
     ]
     return JsonResponse({'categories': data})
+
+class DocumentUpdateView(UpdateView):
+    model = Document
+    template_name = 'docs/document_update_form.html'
+    success_message = 'Документ обновлён'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.version_id = request.GET.get('version')
+        self.editing_version = None
+        if self.version_id:
+            from .models import DocumentVersion
+            self.editing_version = get_object_or_404(DocumentVersion, pk=self.version_id, document_id=kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_class(self):
+        """Возвращает соответствующую форму в зависимости от типа документа"""
+        document_type = self.object.get_display_type()
+        if document_type == 'pdf_document':
+            if self.editing_version:
+                from .forms import DocumentVersionForm
+                return DocumentVersionForm
+            else:
+                return DocumentPDFForm
+        elif document_type == 'text_only':
+            return DocumentInfoForm
+        elif document_type == 'mixed_content':
+            return DocumentFileForm
+        elif document_type == 'word_template':
+            return DocumentTemplateForm
+        elif document_type == 'presentation':
+            return DocumentPresentationForm
+        else:
+            # По умолчанию возвращаем базовую форму
+            return DocumentForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.editing_version:
+            doc = self.object
+            initial.update({
+                'title': doc.title,
+                'global_section': doc.global_section_id,
+                'section': doc.section_id,
+                'category': doc.category_id,
+                'subcategory': doc.subcategory_id,
+                'file': self.editing_version.file,
+                'word_file': self.editing_version.word_file,
+                'version_date': self.editing_version.version_date,
+                'comment': self.editing_version.comment,
+            })
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['document_type'] = 'pdf_version' if self.editing_version else self.object.get_display_type()
+        context['editing_version'] = self.editing_version
+        return context
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        doc_type = self.object.get_display_type()
+        if self.editing_version:
+            # Для редактирования версии все поля необязательные
+            for field_name in ['file', 'word_file', 'version_date', 'comment', 'file_type']:
+                if field_name in form.fields:
+                    form.fields[field_name].required = False
+        elif doc_type == 'presentation':
+            form.fields['file'].required = False
+            form.fields['slides_zip'].required = False
+        elif doc_type == 'pdf_document':
+            form.fields['file'].required = False
+            if 'word_file' in form.fields:
+                form.fields['word_file'].required = False
+        return form
+
+    def form_valid(self, form):
+        if self.editing_version:
+            # Редактируем версию
+            version = self.editing_version
+            
+            # Проверяем уникальность файлов перед сохранением ТОЛЬКО если файл действительно новый
+            if form.cleaned_data.get('file') and form.cleaned_data['file'] != version.file:
+                make_file_unique(form.cleaned_data['file'], self.object)
+                version.file = form.cleaned_data['file']
+            elif form.cleaned_data.get('file'):
+                # Файл не изменился, просто обновляем ссылку
+                version.file = form.cleaned_data['file']
+                
+            if form.cleaned_data.get('word_file') and form.cleaned_data['word_file'] != version.word_file:
+                make_file_unique(form.cleaned_data['word_file'], self.object)
+                version.word_file = form.cleaned_data['word_file']
+            elif form.cleaned_data.get('word_file'):
+                # Word файл не изменился, просто обновляем ссылку
+                version.word_file = form.cleaned_data['word_file']
+            
+            if form.cleaned_data.get('version_date'):
+                version.version_date = form.cleaned_data['version_date']
+            if form.cleaned_data.get('comment'):
+                version.comment = form.cleaned_data['comment']
+            version.save()
+            # Перенумеровываем все версии после изменения
+            document = self.object
+            versions_with_date = list(document.versions.filter(version_date__isnull=False).order_by('version_date'))
+            versions_without_date = list(document.versions.filter(version_date__isnull=True).order_by('uploaded_at'))
+            from django.db import transaction
+            offset = 1000
+            with transaction.atomic():
+                for v in versions_with_date + versions_without_date:
+                    v.version_number += offset
+                    v.save(update_fields=['version_number'])
+                current_num = 1
+                for v in versions_with_date:
+                    v.version_number = current_num
+                    v.save(update_fields=['version_number'])
+                    current_num += 1
+                for v in versions_without_date:
+                    v.version_number = current_num
+                    v.save(update_fields=['version_number'])
+                    current_num += 1
+            return HttpResponseRedirect(reverse('docs:document_detail', kwargs={'document_id': self.object.pk}) + f'?version={self.editing_version.id}')
+        else:
+            # Редактируем основной документ
+            document_type = self.object.get_display_type()
+            if document_type == 'word_template':
+                form.instance.is_template = True
+            else:
+                form.instance.is_template = False
+            # Для PDF: сохраняем файлы только если загружены новые
+            if document_type == 'pdf_document':
+                if not form.cleaned_data.get('file'):
+                    form.instance.file = self.object.file
+                if 'word_file' in form.cleaned_data and not form.cleaned_data.get('word_file'):
+                    form.instance.word_file = self.object.word_file
+
+            print(f"DEBUG: Updating document type = {document_type}")
+            return super().form_valid(form)
+
+    # куда перенаправлять после сохранения
+    def get_success_url(self):
+        if self.editing_version:
+            return reverse_lazy('docs:document_detail', kwargs={'document_id': self.object.pk}) + f'?version={self.editing_version.id}'
+        else:
+            return reverse_lazy('docs:document_detail', kwargs={'document_id': self.object.pk})
+
+
+class DocumentVersionDeleteView(DeleteView):
+    model = DocumentVersion
+    template_name = 'docs/document_confirm_delete.html'
+    pk_url_kwarg = 'version_id'
+    
+    def get_object(self, queryset=None):
+        document_id = self.kwargs['document_id']
+        version_id = self.kwargs['version_id']
+        return get_object_or_404(DocumentVersion, pk=version_id, document_id=document_id)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['delete_type'] = 'version'
+        context['document'] = self.object.document
+        context['version'] = self.object
+        return context
+    
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        document = self.object.document
+        
+        # Сохраняем ссылку на документ перед удалением версии
+        success_url = self.get_success_url()
+        
+        # Удаляем версию
+        self.object.delete()
+        
+        # Перенумеровываем оставшиеся версии
+        self._renumber_remaining_versions(document)
+        
+        return redirect(success_url)
+    
+    def _renumber_remaining_versions(self, document):
+        """Перенумеровывает оставшиеся версии после удаления"""
+        versions_with_date = list(document.versions.filter(version_date__isnull=False).order_by('version_date'))
+        versions_without_date = list(document.versions.filter(version_date__isnull=True).order_by('uploaded_at'))
+        
+        from django.db import transaction
+        offset = 1000
+        with transaction.atomic():
+            # Сначала сдвигаем все номера
+            for v in versions_with_date + versions_without_date:
+                v.version_number += offset
+                v.save(update_fields=['version_number'])
+            
+            # Затем перенумеровываем корректно
+            current_num = 1
+            for v in versions_with_date:
+                v.version_number = current_num
+                v.save(update_fields=['version_number'])
+                current_num += 1
+            
+            for v in versions_without_date:
+                v.version_number = current_num
+                v.save(update_fields=['version_number'])
+                current_num += 1
+    
+    def get_success_url(self):
+        return reverse('docs:document_detail', kwargs={'document_id': self.object.document.pk})
+
+
+class DocumentDeleteView(DeleteView):
+    model = Document
+    template_name = 'docs/document_confirm_delete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['delete_type'] = 'document'
+        return context
+
+    # здесь нужен динамический success_url (зависит от global_section)
+    def get_success_url(self):
+        business_name = self.object.global_section.name
+        url_name = BUSINESS_URLS.get(business_name, 'kb_home')
+        # reverse_lazy нельзя (нужен арг из словаря), используем reverse
+        return reverse(f'docs:{url_name}')
+
+class DocumentListView(ListView):
+    model = Document
+    template_name = 'docs/document_list.html'
+
+class DocumentDetailView(DetailView):
+    model = Document
+    template_name = 'docs/document_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        version_id = self.request.GET.get('version')
+        if version_id:
+            selected_version = get_object_or_404(DocumentVersion, pk=version_id, document=self.object)
+        else:
+            selected_version = self.object.latest_version
+        context['selected_version'] = selected_version
+        return context
+
+class DocumentVersionView(DetailView):
+    model = DocumentVersion
+    pk_url_kwarg = 'version_id'
+    template_name = 'docs/document_version_detail.html'
+
+class AddDocumentVersionView(CreateView):
+    model = DocumentVersion
+    form_class = DocumentVersionForm
+    template_name = 'docs/add_document_version.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.document = get_object_or_404(Document, pk=kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        print("DEBUG: form_valid called")
+        form.instance.document = self.document
+        
+        # Проверяем уникальность файлов перед сохранением
+        if form.cleaned_data.get('file'):
+            make_file_unique(form.cleaned_data['file'], self.document)
+        if form.cleaned_data.get('word_file'):
+            make_file_unique(form.cleaned_data['word_file'], self.document)
+        
+        # Временно ставим любой номер, потом перенумеруем все версии
+        form.instance.version_number = 999
+        form.instance.uploaded_by = self.request.user if self.request.user.is_authenticated else None
+        
+        # Сохраняем версию
+        result = super().form_valid(form)
+        
+        # После сохранения перенумеровываем все версии
+        self._renumber_all_versions()
+        
+        return result
+
+    def _renumber_all_versions(self):
+        """Перенумеровывает все версии документа по порядку дат редакции"""
+        versions_with_date = list(self.document.versions.filter(version_date__isnull=False).order_by('version_date'))
+        versions_without_date = list(self.document.versions.filter(version_date__isnull=True).order_by('uploaded_at'))
+
+        # Чтобы обойти ограничение unique_together, сначала сдвигаем все номера на offset
+        offset = 1000
+        with transaction.atomic():
+            for v in versions_with_date + versions_without_date:
+                v.version_number += offset
+                v.save(update_fields=['version_number'])
+
+            # Теперь пронумеровываем корректно
+            current_num = 1
+            for v in versions_with_date:
+                v.version_number = current_num
+                v.save(update_fields=['version_number'])
+                current_num += 1
+
+            for v in versions_without_date:
+                v.version_number = current_num
+                v.save(update_fields=['version_number'])
+                current_num += 1
+
+    def form_invalid(self, form):
+        print("DEBUG: form_invalid called")
+        print(f"DEBUG: Form errors: {form.errors}")
+        return super().form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('docs:document_detail', kwargs={'document_id': self.document.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['document'] = self.document
+        return context
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Для создания версии поля документа не обязательны
+        for field_name in ['title', 'global_section', 'section', 'category', 'subcategory', 'file_type']:
+            if field_name in form.fields:
+                form.fields[field_name].required = False
+        return form
+
+def upload_presentation_slides(request, document_id):
+    document = get_object_or_404(Document, id=document_id)
+    if request.method == 'POST':
+        form = SlideZipUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            document.slides.all().delete()
+            form.save(document)
+            return redirect('docs:document_detail', document_id=document.id)
+    else:
+        form = SlideZipUploadForm()
+    return render(request, 'docs/addons/upload_slides.html', {'form': form, 'document': document})

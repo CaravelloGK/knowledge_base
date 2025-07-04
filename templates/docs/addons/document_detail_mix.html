@@ -1,0 +1,123 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
+<style>
+  .mix-container { width: 100%; height: 60vh; border: 1px solid #ccc; }
+  .mix-toolbar { margin-bottom: 1em; }
+  .content-section { margin-bottom: 2rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card shadow-sm position-relative" style="background-color: #fff;">
+        <!-- Блок иконок (админские кнопки) -->
+        <div class="action-icons position-absolute top-0 end-0 m-3 d-flex align-items-center gap-3">
+            <a href="{% url 'docs:document_update' pk=document.id %}" class="action-link" title="Редактировать">
+                <img src="{% static 'img/edit.svg' %}" alt="Редактировать" class="action-icon">
+            </a>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModal" class="action-link" title="Удалить">
+                <img src="{% static 'img/delete.svg' %}" alt="Удалить" class="action-icon">
+            </a>
+            {% if document.global_section.name == 'Корпоративный бизнес' %}
+                <a href="{% url 'docs:kb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Розничный бизнес' %}
+                <a href="{% url 'docs:rb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Административно-хозяйственная деятельность' %}
+                <a href="{% url 'docs:ahd_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Инвестиционный и международный бизнес' %}
+                <a href="{% url 'docs:mb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% elif document.global_section.name == 'Корп. управление и раскрытие информации' %}
+                <a href="{% url 'docs:kuri_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% else %}
+                <a href="{% url 'docs:kb_home' %}" class="action-link" title="Закрыть">
+                    <img src="{% static 'img/close.svg' %}" alt="Закрыть" class="action-icon">
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="card-body">
+            <h1>
+                {{ object.title }}
+                <span class="badge bg-warning ms-2">Смешанный контент</span>
+            </h1>
+            
+            <div class="mb-3 mix-toolbar">
+                {% if document.file %}
+                <a href="{{ document.file.url }}" download class="btn btn-primary">Скачать файл</a>
+                {% endif %}
+                {% if word_file_url %}
+                <a href="{{ word_file_url }}" download class="btn btn-success">
+                    <i class="fas fa-file-word me-1"></i>Скачать Word
+                </a>
+                {% endif %}
+            </div>
+            
+            <!-- Секция с описанием -->
+            <div class="content-section">
+                <h3>Описание документа</h3>
+                <div class="card">
+                    <div class="card-body">
+                        {{ document.description|safe }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Секция с файлом -->
+            <div class="content-section">
+                <h3>Прикрепленный файл</h3>
+                {% if document.file.name|lower|slice:"-4:" == ".pdf" %}
+                <div class="mix-container">
+                    <iframe
+                        id="pdfjs-viewer"
+                        src="{% static 'pdfjs/web/viewer.html' %}?file={{ document.file.url|urlencode }}"
+                        width="100%"
+                        height="100%"
+                        style="border:none;">
+                    </iframe>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <h5>Файл документа</h5>
+                    <p>Файл прикреплен, но не поддерживается для предварительного просмотра.</p>
+                    <a href="{{ document.file.url }}" download class="btn btn-primary">Скачать файл</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        Вы уверены, что хотите удалить документ "{{ document.title }}"?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <a href="{% url 'docs:document_delete' pk=document.id %}" class="btn btn-danger">Удалить</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} 
