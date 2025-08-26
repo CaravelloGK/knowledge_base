@@ -1,0 +1,81 @@
+{% extends 'staff/main_staff.html' %}
+
+{% block title %}{{ employee.full_name }} - Staff Organization{% endblock %}
+
+{% block staff_content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="card-title mb-0">{{ employee.full_name }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Должность:</strong></div>
+                    <div class="col-8">{{ employee.position }}</div>
+                </div>
+                
+                {% if employee.department %}
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Подразделение:</strong></div>
+                    <div class="col-8">
+                        <a href="{{ employee.department.get_absolute_url }}">
+                            {{ employee.department.name }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if employee.manager %}
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Руководитель:</strong></div>
+                    <div class="col-8">
+                        <a href="{{ employee.manager.get_absolute_url }}">
+                            {{ employee.manager.full_name }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if employee.phone %}
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Телефон:</strong></div>
+                    <div class="col-8">{{ employee.phone }}</div>
+                </div>
+                {% endif %}
+                
+                {% if employee.email %}
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Email:</strong></div>
+                    <div class="col-8">{{ employee.email }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if subordinates %}
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">Подчиненные</h5>
+            </div>
+            <div class="card-body">
+                {% for subordinate in subordinates %}
+                    <div class="employee-card" onclick="location.href='{{ subordinate.get_absolute_url }}'">
+                        <strong>{{ subordinate.full_name }}</strong> - {{ subordinate.position }}
+                        {% if subordinate.department %}
+                            <br><small class="text-muted">{{ subordinate.department.name }}</small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="mt-3">
+            <a href="{% url 'staff:structure' %}" class="btn btn-outline-primary">
+                ← Назад к структуре
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

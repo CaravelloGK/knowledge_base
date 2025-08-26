@@ -55,8 +55,6 @@
         <small class="text-muted">
           <span class="created-date">{{ document.created_at|date:"d.m.Y" }}</span>
           <span class="status-divider mx-1">|</span>
-          <span class="status">{{ document.get_status_display }}</span>
-          <span class="status-divider mx-1">|</span>
           <span class="global-section">{{ document.global_section }}</span>
           {% if document.category %}
           <span class="status-divider mx-1">|</span>
@@ -65,7 +63,6 @@
         </small>
       </div>
 
-      <h5 class="card-title">{{ document.title }}</h5>
       <p class="card-text mb-4">{{ document.description|safe }}</p>
     </div>
 

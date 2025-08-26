@@ -50,10 +50,41 @@
       <!-- Левая часть (Логотип + Меню) -->
       <div class="d-flex align-items-center gap-3">
         <!-- Блок логотипа -->
-        <div class="header-logo">
+        <div class="header-logo d-flex align-items-center">
           <a href="{% url 'index' %}">
-            <img src="{% static 'img/logo_legal.png' %}" class="bi me-2" width="300" height="50" role="img" aria-label="Bootstrap">
+            <img src="{% static 'img/logo_legal.png' %}" class="bi app-logo" width="192" height="32" role="img" aria-label="MKBLegal">
           </a>
+          {% if id_app == 'reviews' or request.resolver_match.app_name == 'reviews' %}
+            <div class="app-badge d-flex align-items-center gap-2">
+              <i class="bi bi-newspaper"></i>
+              <span>Правовые обзоры</span>
+            </div>
+          {% elif id_app == 'docs' or request.resolver_match.app_name == 'docs' %}
+            <div class="app-badge d-flex align-items-center gap-2">
+              <i class="bi bi-journal-bookmark"></i>
+              <span>База знаний</span>
+            </div>
+          {% elif id_app == 'risk' or request.resolver_match.app_name == 'risk' %}
+            <div class="app-badge d-flex align-items-center gap-1">
+              <i class="bi bi-exclamation-triangle"></i>
+              <span>Правовые риски</span>
+            </div>
+          {% elif id_app == 'legal_opin' or request.resolver_match.app_name == 'legal_opin' %}
+            <div class="app-badge d-flex align-items-center gap-2">
+              <i class="bi bi-shield-check"></i>
+              <span>Проверка правоспособности</span>
+            </div>
+          {% elif id_app == 'faq' or request.resolver_match.app_name == 'faq' %}
+            <div class="app-badge d-flex align-items-center gap-2">
+              <i class="bi bi-question-circle"></i>
+              <span>FAQ</span>
+            </div>
+          {% elif id_app == 'staff' or request.resolver_match.app_name == 'staff' %}
+            <div class="app-badge d-flex align-items-center gap-2">
+              <i class="bi bi-people"></i>
+              <span>Сотрудники</span>
+            </div>
+          {% endif %}
         </div>
 
         <!-- Блок меню -->
@@ -81,7 +112,7 @@
             </a>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="{% url 'legal_opin:legal_entity_list' %}">Реестр юридических лиц</a></li>
-              <li><a class="dropdown-item" href="#">Реестр сделок</a></li>
+              <li><a class="dropdown-item" href="{% url 'legal_opin:deal_list' %}">Реестр сделок</a></li>
               <li><a class="dropdown-item" href="#">Реестр залогового имущества</a></li>
             </ul>
           </div>
@@ -89,7 +120,7 @@
           <!-- Обычные ссылки -->
           <a class="nav-link" href="{% url 'reviews:reviews_main' %}">Правовые обзоры</a>
           <a class="nav-link" href="{% url 'risk:risk_main' %}">Правовые риски</a>
-          <a class="nav-link" href="#">О нас</a>
+          <a class="nav-link" href="{% url 'staff:structure' %}">О нас</a>
         </nav>
       </div>
 
@@ -119,12 +150,12 @@
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuAuth">
             {% if user.is_authenticated %}
               <li>
-                <a href="{% url 'logout' %}" class="btn btn-danger">Выйти</a>
+{#                <a href="{% url 'logout' %}" class="btn btn-danger">Выйти</a>#}
               </li>
             {% else %}
               <li>
                 <!-- Кнопка входа (открывает модальное окно) -->
-                <a href="{% url 'login' %}">Войти</a>
+{#                <a href="{% url 'login' %}">Войти</a>#}
               </li>
             {% endif %}
           </ul>

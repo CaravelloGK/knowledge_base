@@ -1,0 +1,139 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load django_bootstrap5 %}
+{% block body_class %}
+    main-page
+{% endblock %}
+{% block content %}
+<style>
+    .org-chart {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .department-card {
+        margin: 15px;
+        padding: 20px;
+        border: 2px solid #0d6efd;
+        border-radius: 10px;
+        background: white;
+        min-width: 300px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .department-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .children-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 25px;
+        position: relative;
+    }
+    
+    .children-container::before {
+        content: '';
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        border-left: 2px solid #0d6efd;
+        height: 15px;
+    }
+    
+    .child-department {
+        margin: 0 20px;
+        position: relative;
+    }
+    
+    .employee-card {
+        margin: 5px 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        border-left: 4px solid #0d6efd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .employee-card:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .collapsible {
+        cursor: pointer;
+    }
+    
+    .collapsible::after {
+        content: '▼';
+        float: right;
+        transition: transform 0.3s ease;
+    }
+    
+    .collapsible.collapsed::after {
+        transform: rotate(-90deg);
+    }
+    
+    .content {
+        max-height: 1000px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .content.collapsed {
+        max-height: 0;
+    }
+    
+    .search-container {
+        margin-bottom: 30px;
+    }
+    
+    .staff-container {
+        padding: 20px 0;
+    }
+</style>
+
+
+
+<div class="staff-container">
+    {% block staff_content %}
+    {% endblock %}
+</div>
+
+
+
+<script>
+    // Функция для сворачивания/разворачивания
+    function toggleCollapse(element) {
+        const targetId = element.getAttribute('data-target');
+        const target = document.getElementById(targetId);
+        element.classList.toggle('collapsed');
+        target.classList.toggle('collapsed');
+    }
+
+    // Поиск с debounce
+    let searchTimeout;
+    function handleSearch(input) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            input.form.submit();
+        }, 500);
+    }
+
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        // Добавляем обработчики для всех collapsible элементов
+        document.querySelectorAll('.collapsible').forEach(element => {
+            element.addEventListener('click', function() {
+                toggleCollapse(this);
+            });
+        });
+    });
+</script>
+{% endblock %}

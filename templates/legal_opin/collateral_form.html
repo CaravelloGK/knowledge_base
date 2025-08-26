@@ -1,0 +1,117 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Добавить обеспечение для сделки №{{ deal.number|default:deal.id }}</h2>
+    <p>от {{ deal.created_at|date:"d.m.Y" }}</p>
+
+    <form method="post" id="collateral-formset">
+        {% csrf_token %}
+        {% for field in formset.management_form %}
+            {{ field }}
+        {% endfor %}
+    
+        <div id="form-container">
+            {% for form in formset %}
+                <div class="collateral-form-instance mb-4 p-4 border rounded shadow-sm">
+                    <h5 class="mb-3">Объект обеспечения №{{ forloop.counter }}</h5>
+                    {% crispy form %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="empty-form" style="display:none;">
+            <div class="collateral-form-instance mb-4 p-4 border rounded shadow-sm">
+                 <h5 class="mb-3">Объект обеспечения №__prefix__</h5>
+                {% crispy formset.empty_form %}
+            </div>
+        </div>
+
+        <button type="button" id="add-form-btn" class="btn btn-secondary">Добавить еще объект</button>
+        <button type="submit" class="btn btn-primary">Закончить и сохранить</button>
+        <a href="{% url 'legal_opin:deal_detail' deal.pk %}" class="btn btn-outline-secondary">Отмена</a>
+    </form>
+</div>
+<script src="{% static 'js/deal_collateral.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    function updateFormVisibility(formInstance) {
+        const typeSelector = formInstance.querySelector('select[name$="-collateral_type"]');
+        if (!typeSelector) return;
+
+        const realEstateFields = formInstance.querySelector('.real-estate-fields');
+        const securitiesFields = formInstance.querySelector('.securities-fields');
+        const sharesFields = formInstance.querySelector('.shares-fields');
+
+        // Hide all conditional sections
+        if (realEstateFields) realEstateFields.style.display = 'none';
+        if (securitiesFields) securitiesFields.style.display = 'none';
+        if (sharesFields) sharesFields.style.display = 'none';
+
+        // Show the relevant section based on selection
+        const selectedValue = typeSelector.value;
+        if (selectedValue === 'RE') {
+            if (realEstateFields) realEstateFields.style.display = 'block';
+        } else if (selectedValue === 'SE') {
+            if (securitiesFields) securitiesFields.style.display = 'block';
+        } else if (selectedValue === 'SH') {
+            if (sharesFields) sharesFields.style.display = 'block';
+        }
+    }
+
+    // Main container for all forms
+    const formContainer = document.querySelector('#collateral-formset');
+
+    // Add event listener to the container using event delegation
+    formContainer.addEventListener('change', function(e) {
+        if (e.target && e.target.matches('select[name$="-collateral_type"]')) {
+            const formInstance = e.target.closest('.collateral-form-instance');
+            updateFormVisibility(formInstance);
+        }
+    });
+
+    // Trigger for all existing forms on page load
+    document.querySelectorAll('.collateral-form-instance').forEach(formInstance => {
+        updateFormVisibility(formInstance);
+    });
+
+    // --- Logic for adding new forms ---
+    const addFormBtn = document.getElementById('add-form-btn');
+    const formsContainer = document.getElementById('form-container');
+    const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
+    const emptyFormTemplate = document.getElementById('empty-form').innerHTML;
+
+    addFormBtn.addEventListener('click', function() {
+        const formIndex = parseInt(totalFormsInput.value);
+        
+        // Create new form HTML
+        const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formIndex).replace(/№__prefix__/g, `№${formIndex + 1}`);
+        
+        // Create a temporary div to hold the new form
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        const newFormInstance = tempDiv.firstElementChild;
+
+        // Append the new form to the container
+        formsContainer.append(newFormInstance);
+        
+        // Increment the total forms count
+        totalFormsInput.value = formIndex + 1;
+
+        // Update visibility for the newly added form
+        updateFormVisibility(newFormInstance);
+    });
+});
+</script>
+<style>
+    /* Initially hide all conditional fieldsets */
+    .real-estate-fields,
+    .securities-fields,
+    .shares-fields {
+        display: none;
+    }
+</style>
+{% endblock %}

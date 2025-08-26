@@ -1,0 +1,36 @@
+{#{% load keycloak_tags %}#}
+{% load static %}
+
+{#    {% if request.user|in_group:'moderator' %}#}
+        <div class="ms-2 flex-shrink-0">
+          <div class="d-flex align-items-center gap-2 mt-1" style="align-items: unset !important">
+                <a href="{% url 'legal_opin:deal_create' %}" class="btn btn-sm btn-info">Новая сделка</a>
+          </div>
+        </div>
+{#    {% endif %}#}
+<!-- Модальное окно поиска по ИНН -->
+{#<div class="modal fade" id="searchInnModal" tabindex="-1" aria-labelledby="searchInnModalLabel" aria-hidden="true">#}
+{#    <div class="modal-dialog">#}
+{#        <div class="modal-content">#}
+{#            <div class="modal-header">#}
+{#                <h5 class="modal-title" id="searchInnModalLabel">Поиск по ИНН</h5>#}
+{#                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>#}
+{#            </div>#}
+{#            <div class="modal-body">#}
+{#                <form id="innSearchForm">#}
+{#                    <div class="mb-3">#}
+{#                        <label for="searchInn" class="form-label">ИНН</label>#}
+{#                        <input type="text" class="form-control" id="searchInn" name="inn" pattern="\d{10}" maxlength="10" required>#}
+{#                        <div class="form-text">Введите 10 цифр ИНН</div>#}
+{#                    </div>#}
+{#                    <div id="searchResult" class="alert d-none"></div>#}
+{#                </form>#}
+{#            </div>#}
+{#            <div class="modal-footer">#}
+{#                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>#}
+{#                <button type="button" class="btn btn-primary" id="searchInnButton">Искать</button>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

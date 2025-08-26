@@ -1,553 +1,583 @@
 /* <editor-fold> desc="==== Фундамент ====" */
 @font-face {
-    font-family: 'Gratimo Grotesk';
-    font-weight: normal;
-    font-style: normal;
+  font-family: 'Gratimo Grotesk';
+  font-weight: normal;
+  font-style: normal;
 }
 
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: 'Gratimo Grotesk' !important;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Gratimo Grotesk' !important;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
-    position: relative;
-    z-index: 2;
+  position: relative;
+  z-index: 2;
 }
+
+/* Лого и бейдж приложения */
+.app-logo {
+width: 192px !important;
+height: 32px !important;
+object-fit: contain;
+}
+
+.app-badge {
+font-size: 0.9rem;
+color: #6c757d;
+padding: 0.15rem 0.5rem;
+border-radius: 0.5rem;
+background: #f8f9fa;
+border: 1px solid #e9ecef;
+}
+
+body.dark-theme .app-badge {
+background: #2a2a2a;
+color: #ddd;
+border-color: #444;
+}
+
 /* </editor-fold> */
 
 /* <editor-fold> desc="==== Навбар ====" */
 
-    /* -- <editor-fold> desc="==== Дропдаун в Навбаре ====" -- */
-    .dropdown-hover {
-      position: relative; /* чтобы позиционировать меню относительно этого блока */
-    }
+  /* -- <editor-fold> desc="==== Дропдаун в Навбаре ====" -- */
+  .dropdown-hover {
+    position: relative; /* чтобы позиционировать меню относительно этого блока */
+  }
 
-    .dropdown-hover .dropdown-menu {
-      display: block !important;
-      position: absolute;
-      top: 100%;    /* чем больше значение, тем ниже появится */
-      left: 0;
+  .dropdown-hover .dropdown-menu {
+    display: block !important;
+    position: absolute;
+    top: 100%;    /* чем больше значение, тем ниже появится */
+    left: 0;
 
-      /* Начальное (скрытое) состояние */
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(10px); /* сдвиг вниз, будет "подниматься" на hover */
+    /* Начальное (скрытое) состояние */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px); /* сдвиг вниз, будет "подниматься" на hover */
 
-      /* Плавная анимация появления/исчезновения */
-      transition: transform 0.5s ease, opacity 0.5s ease;
-    }
+    /* Плавная анимация появления/исчезновения */
+    transition: transform 0.5s ease, opacity 0.5s ease;
+  }
 
-    /* При наведении: показываем */
-    .dropdown-hover:hover .dropdown-menu {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0); /* сдвигаем в 0, возникает "снизу вверх" */
-    }
-    /* </editor-fold> */
+  /* При наведении: показываем */
+  .dropdown-hover:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0); /* сдвигаем в 0, возникает "снизу вверх" */
+  }
+  /* </editor-fold> */
 
-    .nav-menu {
-      display: flex;
-      gap: 3rem !important;
-      font-weight: 500;
-    }
+  .nav-menu {
+    display: flex;
+    gap: 3rem !important;
+    font-weight: 500;
+  }
 
-    .nav-menu a {
-      color: black;
-      text-decoration: none;
-    }
+  .nav-menu a {
+    color: black;
+    text-decoration: none;
+  }
 
-    .nav-menu a:hover {
-      color: rgb(221, 10, 52);
-    }
-    /* </editor-fold> */
+  .nav-menu a:hover {
+    color: rgb(221, 10, 52);
+  }
+  /* </editor-fold> */
 
 /* <editor-fold> desc="===== Темная тема =====" */
-    body.dark-theme {
-      background-color: #121212;
-      color: #ffffff;
-    }
-
-    body.dark-theme header.p-3.text-bg-white {
-      background-color: #333333 !important;
-      color: #ffffff !important;
-    }
-
-    .no-transitions * {
-      transition: none !important;
-    }
-
-    body.dark-theme .list-page .col-md-3,
-    body.dark-theme .filter-panel {
-        background-color: #1d1d1d !important;
-        color: #fff !important;
-    }
-
-    /* <editor-fold> desc="Иконки" */
-    body.dark-theme .action-icon {
-      filter: brightness(0) invert(1);
-    }
-    /* </editor-fold> */
-
-    /* <editor-fold> desc="Кнопки" */
-    body.dark-theme .btn,
-    body.dark-theme .btn-source {
-      background-color: #444 !important;
-      color: #f1f1f1 !important;
-      border-color: #666 !important;
-    }
-
-    body.dark-theme .btn:hover {
-      background-color: #666 !important;
-    }
-    /* </editor-fold> */
-
-    /* <editor-fold> desc="Навбар" */
-    body.dark-theme .nav-menu a {
-      color: white;
-      text-decoration: none;
-    }
-
-    body.dark-theme .nav-menu a:hover {
-      color: rgb(221, 10, 52);
-      transition: color 0.3s;
-    }
-        /* <editor-fold> desc="Дропдаун в Навбаре" */
-        body.dark-theme .dropdown-hover .dropdown-menu {
-          background-color: #333;
-          border-color: #444;
-        }
-        body.dark-theme .dropdown-hover .dropdown-item {
-          color: #ddd;
-        }
-        body.dark-theme .dropdown-hover .dropdown-item:hover {
-          color: #fff;
-          background-color: #444;
-        }
-
-    body.dark-theme {
+  body.dark-theme {
     background-color: #121212;
     color: #ffffff;
-    }
+  }
 
-    body.dark-theme .sidebar {
-        background-color: #1e1e1e;
-        color: #ffffff;
-    }
+  body.dark-theme header.p-3.text-bg-white {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+  }
 
-    body.dark-theme .toc-item a {
-        color: #ffffff;
-    }
+  .no-transitions * {
+    transition: none !important;
+  }
 
-    body.dark-theme .toc-item a:hover {
-        color: #007bff;
-    }
+  body.dark-theme .list-page .col-md-3,
+  body.dark-theme .filter-panel {
+      background-color: #1d1d1d !important;
+      color: #fff !important;
+  }
 
-    body.dark-theme .document-content {
-        color: #ffffff;
-    }
+  /* <editor-fold> desc="Иконки" */
+  body.dark-theme .action-icon {
+    filter: brightness(0) invert(1);
+  }
+  /* </editor-fold> */
 
-    body.dark-theme .highlight {
-        background-color: #ffcc00;
-        color: #000000;
-    }
+  /* <editor-fold> desc="Кнопки" */
+  body.dark-theme .btn,
+  body.dark-theme .btn-source {
+    background-color: #444 !important;
+    color: #f1f1f1 !important;
+    border-color: #666 !important;
+  }
 
-    body.dark-theme svg path  {
-        fill: #FFFFFF;
-    }
+  body.dark-theme .btn:hover {
+    background-color: #666 !important;
+  }
+  /* </editor-fold> */
 
-    body.dark-theme .icon_n:hover  {
-        fill: #FF0000;
-    }
-    /* </editor-fold> */
-    /* </editor-fold> */
+  /* <editor-fold> desc="Навбар" */
+  body.dark-theme .nav-menu a {
+    color: white;
+    text-decoration: none;
+  }
 
-    /* <editor-fold> desc="Dropdown" */
-    body.dark-theme .dropdown-toggle-btn {
-      background: #333;
-      color: white;
-    }
+  body.dark-theme .nav-menu a:hover {
+    color: rgb(221, 10, 52);
+    transition: color 0.3s;
+  }
+      /* <editor-fold> desc="Дропдаун в Навбаре" */
+      body.dark-theme .dropdown-hover .dropdown-menu {
+        background-color: #333;
+        border-color: #444;
+      }
+      body.dark-theme .dropdown-hover .dropdown-item {
+        color: #ddd;
+      }
+      body.dark-theme .dropdown-hover .dropdown-item:hover {
+        color: #fff;
+        background-color: #444;
+      }
 
-    body.dark-theme .dropdown-options {
-      background: #222;
-      color: white;
-    }
+  body.dark-theme {
+  background-color: #121212;
+  color: #ffffff;
+  }
 
-    body.dark-theme .dropdown-options li:hover {
-      background: #444;
-      color: rgb(221, 10, 52);
-    }
-    /* </editor-fold> */
+  body.dark-theme .sidebar {
+      background-color: #1e1e1e;
+      color: #ffffff;
+  }
+
+  body.dark-theme .toc-item a {
+      color: #ffffff;
+  }
+
+  body.dark-theme .toc-item a:hover {
+      color: #007bff;
+  }
+
+  body.dark-theme .document-content {
+      color: #ffffff;
+  }
+
+  body.dark-theme .highlight {
+      background-color: #ffcc00;
+      color: #000000;
+  }
+
+  body.dark-theme svg path  {
+      fill: #FFFFFF;
+  }
+
+  body.dark-theme .icon_n:hover  {
+      fill: #FF0000;
+  }
+  /* </editor-fold> */
+  /* </editor-fold> */
+
+  /* <editor-fold> desc="Dropdown" */
+  body.dark-theme .dropdown-toggle-btn {
+    background: #333;
+    color: white;
+  }
+
+  body.dark-theme .dropdown-options {
+    background: #222;
+    color: white;
+  }
+
+  body.dark-theme .dropdown-options li:hover {
+    background: #444;
+    color: rgb(221, 10, 52);
+  }
+  /* </editor-fold> */
 
 /* </editor-fold> */
 
 /* <editor-fold desc="===== Глобальные чек-боксы ====="> */
-    input[type="checkbox"] {
-    accent-color: rgb(221, 10, 52) !important;
-    box-shadow: none !important;
-    border: none !important;
-    cursor: pointer;
-    }
+  input[type="checkbox"] {
+  accent-color: rgb(221, 10, 52) !important;
+  box-shadow: none !important;
+  border: none !important;
+  cursor: pointer;
+  }
 
-    input[type="checkbox"]:focus {
-        outline: none !important;
-        box-shadow: none !important;
-    }
+  input[type="checkbox"]:focus {
+      outline: none !important;
+      box-shadow: none !important;
+  }
 
-    input[type="checkbox"]:checked:before {
-        color: #ffffff !important;
-    }
+  input[type="checkbox"]:checked:before {
+      color: #ffffff !important;
+  }
 /* </editor-fold> */
 
 /* <editor-fold desc="===== Глобальные Radio button ====="> */
 
-    .form-check-input {
-        margin-left: unset !important;
-        margin-right: 0.5em !important;
-    }
+  .form-check-input {
+      margin-left: unset !important;
+      margin-right: 0.5em !important;
+  }
 
-    .form-check-input:focus {
-        box-shadow: unset !important;
-    }
+  .form-check-input:focus {
+      box-shadow: unset !important;
+  }
 
-    .form-check-input[type="radio"]{
-        -webkit-appearance:none;
-           -moz-appearance:none;
-                appearance:none;
+  .form-check-input[type="radio"]{
+      -webkit-appearance:none;
+         -moz-appearance:none;
+              appearance:none;
 
-        width: 1rem;
-        height: 1rem;
-        border:2px solid #BDBDBD;
-        border-radius:50%;
-        background:#fff;
-        cursor:pointer;
+      width: 1rem;
+      height: 1rem;
+      border:2px solid #BDBDBD;
+      border-radius:50%;
+      background:#fff;
+      cursor:pointer;
 
-        display:inline-block;
-        position:relative;
-        transition:border-color .15s, background-color .15s, box-shadow .15s;
-        margin-top:.15rem;
-        flex-shrink: 0;
-    }
+      display:inline-block;
+      position:relative;
+      transition:border-color .15s, background-color .15s, box-shadow .15s;
+      margin-top:.15rem;
+      flex-shrink: 0;
+  }
 
-    /* внутренняя точка */
-    .form-check-input[type="radio"]::after{
-        content:"";
-        position:absolute;
-        inset:25%;
-        border-radius:50%;
-        background:transparent;
-        transition:background-color .15s;
-    }
+  /* внутренняя точка */
+  .form-check-input[type="radio"]::after{
+      content:"";
+      position:absolute;
+      inset:25%;
+      border-radius:50%;
+      background:transparent;
+      transition:background-color .15s;
+  }
 
-    .form-check-input[type="radio"]:hover:not(:disabled){
-        border-color:#DD0A34;
-    }
+  .form-check-input[type="radio"]:hover:not(:disabled){
+      border-color:#DD0A34;
+  }
 
-    .form-check-input[type="radio"]:checked{
-        border-color:#DD0A34;
-        background-color: #FFFFFF;
-    }
-    .form-check-input[type="radio"]:checked::after{
-        background:#DD0A34;
-    }
+  .form-check-input[type="radio"]:checked{
+      border-color:#DD0A34;
+      background-color: #FFFFFF;
+  }
+  .form-check-input[type="radio"]:checked::after{
+      background:#DD0A34;
+  }
 
-    /* focus ring */
-    .form-check-input[type="radio"]:focus-visible{
-        outline:2px solid #DD0A34;
-        outline-offset:2px;
-    }
+  /* focus ring */
+  .form-check-input[type="radio"]:focus-visible{
+      outline:2px solid #DD0A34;
+      outline-offset:2px;
+  }
 
-    .form-check-input[type="radio"]:disabled{
-        border-color:#E0E0E0;
-        background:#E0E0E0;
-        cursor:not-allowed;
-    }
-    .form-check-input[type="radio"]:disabled::after{ background:transparent; }
+  .form-check-input[type="radio"]:disabled{
+      border-color:#E0E0E0;
+      background:#E0E0E0;
+      cursor:not-allowed;
+  }
+  .form-check-input[type="radio"]:disabled::after{ background:transparent; }
 /* </editor-fold> */
 
 /* <editor-fold desc="===== Скроллбар ====="> */
-    .scrollable::-webkit-scrollbar {
-        width: 7px;
-    }
+  .scrollable::-webkit-scrollbar {
+      width: 7px;
+  }
 
-    .scrollable::-webkit-scrollbar-track {
-        background: #f1f1f1; /* Цвет фона трека */
-        border-radius: 5px;  /* Скругление углов трека */
-    }
+  .scrollable::-webkit-scrollbar-track {
+      background: #f1f1f1; /* Цвет фона трека */
+      border-radius: 5px;  /* Скругление углов трека */
+  }
 
-    .scrollable::-webkit-scrollbar-thumb {
-        background: #888;  /* Цвет ползунка */
-        border-radius: 5px; /* Скругление углов ползунка */
-    }
+  .scrollable::-webkit-scrollbar-thumb {
+      background: #888;  /* Цвет ползунка */
+      border-radius: 5px; /* Скругление углов ползунка */
+  }
 
-    .scrollable::-webkit-scrollbar-thumb:hover {
-        background: #555; /* Цвет ползунка при наведении */
-    }
+  .scrollable::-webkit-scrollbar-thumb:hover {
+      background: #555; /* Цвет ползунка при наведении */
+  }
 
 /* </editor-fold> */
 
 /* <editor-fold desc="===== Кастомный dropdown ====="> */
 .custom-dropdown {
-  position: relative;
-  width: 100%;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  user-select: none;
+position: relative;
+width: 100%;
+margin-bottom: 1rem;
+font-size: 0.9rem;
+user-select: none;
 }
 
 .dropdown-toggle-btn {
-  width: 100%;
-  background: #e9ecef;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
+width: 100%;
+background: #e9ecef;
+border: none;
+border-radius: 0.5rem;
+padding: 0.5rem 0.75rem;
+text-align: left;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+cursor: pointer;
 }
 
 .dropdown-toggle-btn:hover {
-  background: #dee2e6;
+background: #dee2e6;
 }
 
 .dropdown-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  margin-top: 0.2rem;
-  display: none;
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 0.25rem 0;
+position: absolute;
+top: 100%;
+left: 0;
+right: 0;
+z-index: 10;
+background: white;
+border-radius: 0.5rem;
+box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+margin-top: 0.2rem;
+display: none;
+max-height: 200px;
+overflow-y: auto;
+padding: 0.25rem 0;
 }
 
 .dropdown-options li {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  transition: background 0.15s;
+padding: 0.5rem 1rem;
+cursor: pointer;
+transition: background 0.15s;
 }
 
 .dropdown-options li:hover {
-  background: #f8f9fa;
-  color: rgb(221, 10, 52);
+background: #f8f9fa;
+color: rgb(221, 10, 52);
 }
 
 /* Показываем список */
 .custom-dropdown.open .dropdown-options {
-  display: block;
+display: block;
 }
 /* </editor-fold> */
 
 /* <editor-fold desc="===== Поиск ====="> */
-    /* Единый блок поисковой группы */
-    .search-group {
-        border-radius: 0.5rem !important;
-        overflow: hidden;
-        border: none !important;
-    }
+  /* Единый блок поисковой группы */
+  .search-group {
+      border-radius: 0.5rem !important;
+      overflow: hidden;
+      border: none !important;
+  }
 
-    /* Стили для поискового поля */
-    .search-field {
-        background-color: #e9ecef !important;
-        color: #495057 !important;
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-        white-space: nowrap;
-        overflow: hidden;
-    }
+  /* Стили для поискового поля */
+  .search-field {
+      background-color: #e9ecef !important;
+      color: #495057 !important;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      white-space: nowrap;
+      overflow: hidden;
+  }
 
-    /* Иконка поиска, чтобы она была в едином блоке */
-    .search-addon {
-        background-color: #e9ecef !important;
-        border: none !important;
-        color: #495057 !important;
-    }
+  /* Иконка поиска, чтобы она была в едином блоке */
+  .search-addon {
+      background-color: #e9ecef !important;
+      border: none !important;
+      color: #495057 !important;
+  }
 
-    /* Отключаем фокусное выделение только для элементов внутри .search-group */
-    .search-group .form-control:focus {
-        border-color: #e9ecef !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }
+  /* Отключаем фокусное выделение только для элементов внутри .search-group */
+  .search-group .form-control:focus {
+      border-color: #e9ecef !important;
+      box-shadow: none !important;
+      outline: none !important;
+  }
 
-    .search-group .input-group-text:focus {
-        border-color: #e9ecef !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }
+  .search-group .input-group-text:focus {
+      border-color: #e9ecef !important;
+      box-shadow: none !important;
+      outline: none !important;
+  }
 
-    .search-group:focus-within {
-        outline: none !important;
-        box-shadow: none !important;
-    }
+  .search-group:focus-within {
+      outline: none !important;
+      box-shadow: none !important;
+  }
 /* </editor-fold> */
 
 /* <editor-fold desc="===== Календарь Flatpickr ====="> */
-    .flatpickr-calendar {
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
+  .flatpickr-calendar {
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
 
-    /* Фон верхней панели с месяцем и годом */
-    .flatpickr-month {
-        background-color: white !important;
-    }
+  /* Фон верхней панели с месяцем и годом */
+  .flatpickr-month {
+      background-color: white !important;
+  }
 
-    /* Цвет текста месяца и года */
-    .flatpickr-months .flatpickr-monthDropdown-months,
-    .flatpickr-current-month input.cur-year,
-    .flatpickr-current-month .flatpickr-monthDropdown-months option {
-        color: black !important;
-        background-color: white !important;
-    }
+  /* Цвет текста месяца и года */
+  .flatpickr-months .flatpickr-monthDropdown-months,
+  .flatpickr-current-month input.cur-year,
+  .flatpickr-current-month .flatpickr-monthDropdown-months option {
+      color: black !important;
+      background-color: white !important;
+  }
 
-    /* Фон выпадающего списка с месяцами */
-    .flatpickr-monthDropdown-months {
-        background-color: white !important;
-        color: black !important;
-        border-color: white !important;
-    }
-
-    /* Цвет фона элементов списка месяцев при наведении и выделении */
-    .flatpickr-monthDropdown-months option:hover,
-    .flatpickr-monthDropdown-months option:checked {
-        background-color: white !important;
-        color: black !important;
-    }
-
-    /* Цвет стрелок навигации */
-    .flatpickr-prev-month svg,
-    .flatpickr-next-month svg {
-        fill: black !important;
-    }
-
-    .flatpickr-weekdays {
-        background-color: #ffffff !important;
-    }
-
-    .flatpickr-weekdays span.flatpickr-weekday {
-        background-color: #ffffff !important;
-        color: #B1AFAF !important;
-    }
-
-    .flatpickr-day {
-        transition: background-color 0s;
-        border-radius: 0 !important;
-    }
-
-    .flatpickr-day:hover {
-        background-color: rgb(221,10,52) !important;
-        color: #ffffff !important;
-        border-radius: 0 !important;
-    }
-
-    .flatpickr-day:focus,
-    .flatpickr-day.selected:focus,
-    .flatpickr-day:hover:focus,
-    .flatpickr-day:focus:hover {
-      outline: none !important;
-      box-shadow: none !important;
-    }
-
-    .flatpickr-day.selected,
-    .flatpickr-day.startRange,
-    .flatpickr-day.endRange {
-        background-color: rgb(221,10,52) !important;
-        color: white !important;
-        border-radius: 0 !important;
-        border-color: white !important;
-    }
-
-    .flatpickr-day.today {
-      background-color: rgba(221, 10, 52, 0.15) !important; /* Пример: полупрозрачный фон */
-      color: #dd0a34 !important;                            /* Тёмно-красный текст */
-      border-radius: 0 !important;                           /* Если нужно квадратное выделение */
+  /* Фон выпадающего списка с месяцами */
+  .flatpickr-monthDropdown-months {
+      background-color: white !important;
+      color: black !important;
       border-color: white !important;
-    }
+  }
 
-    .input.form-control.period-field.flatpickr-input.active {
+  /* Цвет фона элементов списка месяцев при наведении и выделении */
+  .flatpickr-monthDropdown-months option:hover,
+  .flatpickr-monthDropdown-months option:checked {
+      background-color: white !important;
+      color: black !important;
+  }
+
+  /* Цвет стрелок навигации */
+  .flatpickr-prev-month svg,
+  .flatpickr-next-month svg {
+      fill: black !important;
+  }
+
+  .flatpickr-weekdays {
+      background-color: #ffffff !important;
+  }
+
+  .flatpickr-weekdays span.flatpickr-weekday {
+      background-color: #ffffff !important;
+      color: #B1AFAF !important;
+  }
+
+  .flatpickr-day {
+      transition: background-color 0s;
+      border-radius: 0 !important;
+  }
+
+  .flatpickr-day:hover {
+      background-color: rgb(221,10,52) !important;
+      color: #ffffff !important;
+      border-radius: 0 !important;
+  }
+
+  .flatpickr-day:focus,
+  .flatpickr-day.selected:focus,
+  .flatpickr-day:hover:focus,
+  .flatpickr-day:focus:hover {
     outline: none !important;
     box-shadow: none !important;
-    }
+  }
+
+  .flatpickr-day.selected,
+  .flatpickr-day.startRange,
+  .flatpickr-day.endRange {
+      background-color: rgb(221,10,52) !important;
+      color: white !important;
+      border-radius: 0 !important;
+      border-color: white !important;
+  }
+
+  .flatpickr-day.today {
+    background-color: rgba(221, 10, 52, 0.15) !important; /* Пример: полупрозрачный фон */
+    color: #dd0a34 !important;                            /* Тёмно-красный текст */
+    border-radius: 0 !important;                           /* Если нужно квадратное выделение */
+    border-color: white !important;
+  }
+
+  .input.form-control.period-field.flatpickr-input.active {
+  outline: none !important;
+  box-shadow: none !important;
+  }
 /* </editor-fold> */
 
 /* <editor-fold desc="==== CK-Editor ===="> */
-    /* Зафиксировали размер ckeditor и добавили внутрь прокручивание */
-    .ck-editor__editable {
-      max-height: 454px !important;
-      overflow-y: auto !important;
-      min-height: 454px !important;
-    }
+  /* Зафиксировали размер ckeditor и добавили внутрь прокручивание */
+  .ck-editor__editable {
+    max-height: 454px !important;
+    overflow-y: auto !important;
+    min-height: 454px !important;
+  }
 
-    /* Cкроллбар у ckeditor */
-    .ck-editor__editable::-webkit-scrollbar {
-        width: 7px;
-    }
-    .ck-editor__editable::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 5px;
-    }
+  .ck-content img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+  }
 
-    .ck-editor__editable::-webkit-scrollbar-track:hover {
-        cursor: pointer;
-    }
+  /* Cкроллбар у ckeditor */
+  .ck-editor__editable::-webkit-scrollbar {
+      width: 7px;
+  }
+  .ck-editor__editable::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 5px;
+  }
 
-    .ck-editor__editable::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 5px;
-    }
-    .ck-editor__editable::-webkit-scrollbar-thumb:hover {
-        background: #555;
-        cursor: pointer;
-    }
+  .ck-editor__editable::-webkit-scrollbar-track:hover {
+      cursor: pointer;
+  }
 
-    /* Убрал рекламный прямоугольник */
-    .ck.ck-balloon-panel.ck-powered-by-balloon[class*=position_border] {
-        visibility: hidden !important;
-    }
+  .ck-editor__editable::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 5px;
+  }
+  .ck-editor__editable::-webkit-scrollbar-thumb:hover {
+      background: #555;
+      cursor: pointer;
+  }
 
-    /* Убрал счетчик слов и символов */
-    .ck-word-count__words {
-        visibility: hidden !important;
-    }
-    .ck-word-count__characters {
-        visibility: hidden !important;
-    }
+  /* Убрал рекламный прямоугольник */
+  .ck.ck-balloon-panel.ck-powered-by-balloon[class*=position_border] {
+      visibility: hidden !important;
+  }
 
-    /* Цвет фона поля ввода без фокуса и закругление */
-    .ck.ck-editor__main>.ck-editor__editable {
-        background: #ffffff !important;
-        border-bottom-left-radius: 0.5rem !important;
-        border-bottom-right-radius: 0.5rem !important;
-    }
+  /* Убрал счетчик слов и символов */
+  .ck-word-count__words {
+      visibility: hidden !important;
+  }
+  .ck-word-count__characters {
+      visibility: hidden !important;
+  }
 
-    /* Закругление панели инструментов */
-    .ck-reset_all :not(.ck-reset_all-excluded *), ck.ck-reset_all {
-        border-top-left-radius: 0.5rem !important;
-        border-top-right-radius: 0.5rem !important;
-    }
+  /* Цвет фона поля ввода без фокуса и закругление */
+  .ck.ck-editor__main>.ck-editor__editable {
+      background: #ffffff !important;
+      border-bottom-left-radius: 0.5rem !important;
+      border-bottom-right-radius: 0.5rem !important;
+  }
 
-    /* Цвет фона поля ввода без фокуса (затемнение) */
-    .ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline.ck-focused {
-        background: #f7f7f7 !important;
-        border-color: #ccced1 !important;
-        box-shadow: none !important;
-    }
+  /* Закругление панели инструментов */
+  .ck-reset_all :not(.ck-reset_all-excluded *), ck.ck-reset_all {
+      border-top-left-radius: 0.5rem !important;
+      border-top-right-radius: 0.5rem !important;
+  }
+
+  /* Цвет фона поля ввода без фокуса (затемнение) */
+  .ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline.ck-focused {
+      background: #f7f7f7 !important;
+      border-color: #ccced1 !important;
+      box-shadow: none !important;
+  }
 /* </editor-fold> */
 
 /* <editor-fold desc="===== MAIN PAGE ====="> */
@@ -934,19 +964,19 @@ header {
 .list-page .row .col-md-3 {
         background-color: #f8f9fa;
         margin-top: -1rem;
-        margin-bottom: -2.3rem;
         box-shadow: 0 .3rem 1rem 0 rgba(44,51,73,.1);
+        height: 1000px;
     }
 
 /* Плавный переход для эффекта подсветки */
 .list-page .card,
 .search-res .card {
     margin-top: 1rem !important;
-    transition: box-shadow 0.15s ease, background-color 0.15s ease !important; 
+    transition: box-shadow 0.15s ease, background-color 0.15s ease !important;
     --bs-card-spacer-x: 2rem !important;
     --bs-card-spacer-y: 2rem !important;
     border: 1px solid transparent !important;
-}
+  }
 
 /* Эффект при наведении */
 .list-page .card:hover,
@@ -971,3 +1001,8 @@ header {
 .dropdown-menu {
     --bs-dropdown-link-active-bg: #FFFFFF00 !important;
 }
+
+.overflow-out {
+    overflow: hidden;
+}
+

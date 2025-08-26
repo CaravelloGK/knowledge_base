@@ -6,6 +6,14 @@ from django.core.files.base import ContentFile
 import re
 
 
+# --- helpers ---
+
+
+class MultiFileInput(forms.FileInput):
+    """FileInput that allows selection of multiple files."""
+    allow_multiple_selected = True
+
+
 class SearchForm(forms.Form):
     """
     Форма для поиска
@@ -94,21 +102,17 @@ class DocumentInfoForm(DocumentForm):
 
 
 class DocumentFileForm(DocumentForm):
-    """Форма для файлов с описанием"""
-    file = forms.FileField(label='Файл', required=True, widget=forms.FileInput(
-        attrs={
-            'class': 'form-control',
-            'accept': '.pdf, .docx, .pptx, .xlsx, .txt, .jpg, .png'
-        }
-    ))
-    description = forms.CharField(label='Описание:',
-                                  widget=CKEditor5Widget(
-                                      attrs={"class": "django_ckeditor_5"}, config_name="extends"),
-                                  required=False)
+    """Форма для mixed_content: описание + несколько вложений"""
+
+    description = forms.CharField(
+        label='Описание:',
+        widget=CKEditor5Widget(attrs={"class": "django_ckeditor_5"}, config_name="extends"),
+        required=False
+    )
 
     class Meta:
         model = Document
-        fields = ['title', 'global_section', 'section', 'category', 'subcategory', 'file', 'description']
+        fields = ['title', 'global_section', 'section', 'category', 'subcategory', 'description']
 
 
 class DocumentTemplateForm(DocumentForm):
@@ -266,3 +270,12 @@ class DocumentPDFUpdateForm(DocumentForm):
     class Meta:
         model = Document
         fields = ['title', 'global_section', 'section', 'category', 'subcategory']
+
+
+# --- Update form for mixed content (optional attachments) ---
+
+class DocumentFileUpdateForm(DocumentFileForm):
+    """Используется при редактировании mixed_content: можно добавить новые вложения, описание не обязателен."""
+    
+    class Meta(DocumentFileForm.Meta):
+        fields = ['title', 'global_section', 'section', 'category', 'subcategory', 'description']

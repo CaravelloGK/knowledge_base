@@ -2,7 +2,10 @@ from django.db import models
 from django.urls import reverse
 from django_ckeditor_5.fields import CKEditor5Field
 import time
+import os
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 User = get_user_model()
 
@@ -87,6 +90,8 @@ class Document(models.Model):
     subcategory = models.ForeignKey(Doc_class, on_delete=models.CASCADE, verbose_name="Тип документа")
     is_template = models.BooleanField(default=False, verbose_name="Это шаблон")
     description = CKEditor5Field(verbose_name='Полное описание', config_name='extends', blank=True, null=True)
+    # Флаг, что документ уже определён как "Смешанный контент" хотя бы один раз
+    is_mixed = models.BooleanField(default=False, editable=False)
 
     def __str__(self):
         return self.title
@@ -102,60 +107,56 @@ class Document(models.Model):
         """
         Определяет тип отображения документа на основе прикрепленных файлов и параметров
         """
-        # 1. PDF-документ
-        if self.file and self.file.name.lower().endswith('.pdf'):
-            return 'pdf_document'
+        # Если документ уже помечен как mixed — всегда возвращаем mixed
+        if self.is_mixed:
+            return 'mixed_content'
+
+        # Сначала проверяем специфичные типы файлов (приоритет выше description)
         
-        # 2. Word-шаблон (DOCX + is_template=True)
-        elif self.file and self.file.name.lower().endswith('.docx') and self.is_template:
-            return 'word_template'
-        
-        # 3. Презентация (PPTX)
-        elif self.file and self.file.name.lower().endswith('.pptx'):
+        # 1. Презентация (PPTX) - всегда презентация, независимо от описания
+        if self.file and self.file.name.lower().endswith('.pptx'):
             return 'presentation'
         
-        # 4. Смешанный тип (любой файл + описание)
-        elif self.file and self.description:
+        # 2. Word-шаблон (DOCX + is_template=True)
+        if self.file and self.file.name.lower().endswith('.docx') and self.is_template:
+            return 'word_template'
+        
+        # 3. PDF-документ (файл PDF, но не смешанный тип)
+        if self.file and self.file.name.lower().endswith('.pdf'):
+            # Если есть и описание, и PDF - проверяем есть ли дополнительные вложения
+            if self.description and self.attachments.exists():
+                return 'mixed_content'  # PDF + описание + вложения = смешанный
+            else:
+                return 'pdf_document'   # Просто PDF (с описанием или без)
+
+        # 4. Смешанный тип (есть description И есть вложения, но нет основного файла)
+        if self.description and self.attachments.exists():
+            if not self.is_mixed:  # фиксируем флаг один раз
+                self.is_mixed = True
+                self.save(update_fields=['is_mixed'])
             return 'mixed_content'
         
-        # 5. Только текстовая информация (нет файлов)
-        elif not self.file:
+        # 5. Только текстовая информация (есть только description, без файлов)
+        if self.description and not self.file and not self.attachments.exists():
             return 'text_only'
         
-        # Fallback - если есть файл, но нет описания и не подходит под другие типы
-        else:
+        # 6. Документ без описания и вложений (только основной файл)
+        if self.file and not self.description and not self.attachments.exists():
+            return 'pdf_document'  # fallback для любых файлов без описания
+
+        # Fallback: если ничего нет
             return 'text_only'
     
     def is_readable_pdf(self):
         """
         Определяет, является ли PDF читаемым (содержит текст)
-        Проверяет первые 2-3 страницы
+        Теперь PDF.js обрабатывает все PDF
         """
         if not self.file or not self.file.name.lower().endswith('.pdf'):
             return False
         
-        try:
-            import fitz  # PyMuPDF
-            
-            doc = fitz.open(self.file.path)
-            total_text = ""
-            
-            # Проверяем первые 3 страницы или все, если меньше
-            pages_to_check = min(3, len(doc))
-            
-            for page_num in range(pages_to_check):
-                page = doc[page_num]
-                text = page.get_text()
-                total_text += text
-            
-            doc.close()
-            
-            # Если нашли больше 100 символов текста - считаем читаемым
-            return len(total_text.strip()) > 100
-            
-        except Exception:
-            # Если не удалось прочитать - считаем нечитаемым (изображение)
-            return False
+        # PDF.js обрабатывает все PDF, считаем все читаемыми
+        return True
 
     @property
     def latest_version(self):
@@ -268,3 +269,63 @@ class PresentationSlide(models.Model):
 
     class Meta:
         ordering = ['order']
+
+
+class DocumentAttachment(models.Model):
+    """Файл-вложение к mixed-content документу (может быть любой тип)."""
+    document = models.ForeignKey(Document, related_name='attachments', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='documents/attachments/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+        verbose_name = 'Вложение'
+        verbose_name_plural = 'Вложения'
+
+    def __str__(self):
+        return f"{self.document.title} | {self.file.name.split('/')[-1]}"
+    
+    def filename(self):
+        """Returns just the filename without path"""
+        return self.file.name.split('/')[-1]
+
+
+# Автоудаление файлов при удалении моделей
+
+@receiver(post_delete, sender=Document)
+def delete_document_files(sender, instance, **kwargs):
+    """Удаляет файлы документа при удалении записи"""
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+    if instance.word_file:
+        if os.path.isfile(instance.word_file.path):
+            os.remove(instance.word_file.path)
+
+
+@receiver(post_delete, sender=DocumentVersion)
+def delete_version_files(sender, instance, **kwargs):
+    """Удаляет файлы версии при удалении записи"""
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+    if instance.word_file:
+        if os.path.isfile(instance.word_file.path):
+            os.remove(instance.word_file.path)
+
+
+@receiver(post_delete, sender=DocumentAttachment)
+def delete_attachment_files(sender, instance, **kwargs):
+    """Удаляет файлы вложений при удалении записи"""
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+
+
+@receiver(post_delete, sender=PresentationSlide)
+def delete_slide_files(sender, instance, **kwargs):
+    """Удаляет файлы слайдов при удалении записи"""
+    if instance.image:
+        if os.path.isfile(instance.image.path):
+            os.remove(instance.image.path)

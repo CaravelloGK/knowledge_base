@@ -5,7 +5,7 @@
     }
 
     /* Card background transparent только для legal_opin */
-    .list-page .card, 
+    .list-page .card,
     .list-page .container-fluid {
         background: transparent !important;
         box-shadow: none !important;
@@ -40,60 +40,245 @@
     }
 /* </editor-fold> */
 
-/* <editor-fold> desc="===== Левая панель навигации =====" */
+/* <editor-fold> desc="===== Левая панель фильтров =====" */
     /* Фиксированная высота для левого блока только в legal_opin */
-    .list-page .filter-panel {
+    .legal-opin-page .filter-panel {
         height: 100vh;
         max-height: 100vh;
-        overflow: hidden;
+        overflow-y: auto;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
     }
 
-    .list-page .nav-item {
-        padding: 12px 16px;
-        margin-bottom: 8px;
+    .filter-section {
+        background: white;
         border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .filter-title {
+        color: #495057;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #007bff;
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 4px;
         cursor: pointer;
         transition: background-color 0.2s ease;
-        background: transparent;
-        display: block;
-        color: #000000;
-    }
-
-    .list-page .nav-item:hover {
-        background: #E9ECEF;
-        color: #000000;
-    }
-
-/* <editor-fold> desc="===== Таблица данных =====" */
-    .table-container {
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #e3e6ea;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .legal-opin-content .table {
-        border-radius: 12px;
-        overflow: hidden;
         margin-bottom: 0;
     }
 
-    .legal-opin-content .table thead th {
-        border: none;
-        font-size: 1rem;
-        color: #222;
-        background: #f7f9fb !important;
+    .filter-option:hover {
+        background: #f8f9fa;
     }
 
-    .legal-opin-content .table tbody tr:hover {
-        background: #f3f6fa;
-        transition: background 0.2s;
+    .filter-option input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
     }
 
-    .legal-opin-content .table td, 
-    .legal-opin-content .table th {
-        vertical-align: middle;
-        border: none;
+    .filter-label {
+        color: #495057;
+        font-size: 0.875rem;
+        cursor: pointer;
+    }
+
+    .filter-option input:checked + .filter-label {
+        color: #007bff;
+        font-weight: 500;
+    }
+
+    /* Стили для подсветки найденного текста */
+    mark.highlight {
+        background-color: #fff3cd;
+        color: #856404;
+        border-radius: 2px;
+        padding: 1px 2px;
+        font-weight: 600;
+        border: 1px solid #ffeaa7;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    /* Стили для кнопок в фильтре */
+    .filter-section .btn-sm {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .filter-section .btn-outline-secondary:hover {
+        background: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .filter-section .btn-outline-primary:hover {
+        background: #007bff;
+        border-color: #007bff;
+    }
+
+        /* Стили для кнопки "Сбросить фильтры" */
+    .btn-clear-review-main {
+        background-color: #d0d0d4;
+        color: #000000;
+        border: 0px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        box-shadow: none !important;
+        outline: none !important;
+        width: 100vh;
+    }
+
+    .btn-clear:hover {
+        background-color: #aeadad;
+    }
+
+    .btn-clear-review-main:hover {
+        background-color: #878788;
+        color: #ffffff;
+    }
+/* </editor-fold> */
+
+/* <editor-fold> desc="===== Карточки юридических лиц =====" */
+    .legal-entities-container {
+        padding-right: 50px; /* Отступ для скроллбара */
+    }
+
+    .entity-card {
+        border: 1px solid #e3e6ea !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0) !important;
+    }
+
+    .entity-card:hover {
+        border-color: #007bff !important;
+    }
+
+    .entity-card .card-body {
+        padding: 1.25rem !important;
+    }
+
+    .entity-card .status-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .entity-card .entity-name {
+        color: #2c3e50 !important;
+        font-size: 1.1rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .entity-card .entity-details {
+        color: #6c757d;
+    }
+
+    .entity-card .entity-details strong {
+        color: #495057;
+    }
+
+    .entity-card .entity-inn,
+    .entity-card .entity-ogrn {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: #007bff;
+    }
+
+    .entity-card .badge {
+        font-size: 0.75rem !important;
+        font-weight: 500 !important;
+    }
+
+    .entity-card .created-date {
+        color: #6c757d !important;
+        font-size: 0.85rem;
+    }
+
+    /* Основные свойства карточки в legal-opin */
+    .legal-entities-container .card {
+        margin-top: 0rem !important;
+        margin-bottom: 1rem !important;
+        transition: box-shadow 0.15s ease, background-color 0.15s ease !important;
+        --bs-card-spacer-x: 2rem !important;
+        --bs-card-spacer-y: 0.7rem !important;
+        border: 1px solid transparent !important;
+    }
+
+    /* Адаптивность для мобильных устройств */
+    @media (max-width: 768px) {
+        .entity-card .status-line {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .entity-card .entity-name {
+            font-size: 1rem !important;
+        }
+
+        .entity-card .entity-details .ms-3 {
+            margin-left: 0 !important;
+            display: block;
+            margin-top: 0.25rem;
+        }
+    }
+
+    /* Стили для индикатора загрузки */
+    .legal-entities-container #loading-indicator {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        margin: 1rem 0;
     }
 /* </editor-fold> */
 
@@ -146,18 +331,113 @@
 /* </editor-fold> */
 
 /* <editor-fold> desc="===== Кнопки =====" */
-    .btn-primary {
-        background: #1976ed;
-        border: none;
-        border-radius: 8px;
+    .btn-entity-add {
+        background-color: rgb(255, 255, 255, 0);
+        color: #dd0a34;
+        border: 1px solid #dd0a34;
+        border-color: #dd0a34;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        box-shadow: none !important;
+        outline: none !important;
+        width: 100vh;
     }
 
-    .btn-primary:hover {
-        background: #155ab6;
+    .btn-entity-add:hover,
+    .btn-entity-add:focus-visible {
+        background-color: #dd0a34;
+        color: #FFFFFF;
     }
 
     .btn-outline-secondary, .btn-light {
         border-radius: 8px;
+    }
+
+    /* Стили для кнопки "Добавить"/"Отмена" */
+    .btn-apply {
+        background-color: #DD0A34;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none !important;
+        min-width: 120px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-apply:hover {
+        color: #fff;
+        background-color: #b50e2c;
+    }
+
+    .btn-apply:disabled {
+        background-color: #DD0A34;
+        opacity: 0.8;
+        cursor: not-allowed;
+    }
+
+    .btn-apply .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+    }
+
+    /* Стили для кнопки "Отмена" */
+    .btn-back {
+        background-color: #E3E3E8;
+        color: #000;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-back:hover {
+        background-color: #d0d0d4;
+    }
+
+    .btn-edit-egrul {
+        background-color: #ffa534;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        transition: background-color 0.3s ease;
+        text-decoration: none !important;
+    }
+
+    .btn-edit-egrul:hover {
+        background-color: #b50e2c;
+        color: #FFFFFF;
+    }
+
+    /* Стили для кнопки "Сбросить фильтры" */
+    .btn-edit {
+        background-color: rgb(255, 255, 255, 0);
+        color: #dd0a34;
+        border: 1px solid #dd0a34;
+        border-color: #dd0a34;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .btn-edit:hover {
+        background-color: #dd0a34;
+        color: #FFFFFF;
     }
 /* </editor-fold> */
 
@@ -183,34 +463,42 @@
         font-size: 0.95rem;
     }
 
-    /* Навигационные вкладки */
+    /* Навигационные вкладки по дизайн-системе */
     .nav-tabs {
-        border-bottom: 2px solid #e3e6ea;
+        border-bottom: 1px solid #e3e6ea;
         margin-bottom: 24px;
     }
 
     .nav-tabs .nav-link {
-        color: #666;
-        font-weight: 500;
-        padding: 12px 20px;
+        color: #6c757d; /* Default - серый текст */
+        font-weight: 400;
+        font-size: 1rem;
+        padding: 12px 20px 16px 20px;
         border: none;
-        border-radius: 8px 8px 0 0;
-        margin-right: 8px;
+        border-radius: 0;
+        margin-right: 24px;
+        background: transparent;
+        border-bottom: 3px solid transparent;
         transition: all 0.2s ease;
+        position: relative;
     }
 
     .nav-tabs .nav-link:hover {
-        color: #1976ed;
-        background: #f8f9fb;
-        border-color: transparent;
+        color: #dc3545; /* Hover - красный текст */
+        background: transparent;
+        border-bottom: 3px solid transparent;
     }
 
     .nav-tabs .nav-link.active {
-        color: #1976ed;
-        background: white;
-        border-color: #e3e6ea #e3e6ea white;
-        border-width: 2px 2px 0;
-        font-weight: 600;
+        color: #212529; /* Active - темный текст */
+        background: transparent;
+        border-bottom: 3px solid #dc3545; /* Active - красная линия снизу */
+        font-weight: 500;
+    }
+
+    .nav-tabs .nav-link:focus {
+        box-shadow: none;
+        outline: none;
     }
 
     /* Overview блоки */
@@ -236,7 +524,7 @@
     /* Таблица обеспечения в overview */
     .overview-table {
         background: white;
-        border-radius: 8px; 
+        border-radius: 8px;
         border: 1px solid #e9ecef;
     }
 
@@ -299,18 +587,486 @@
         background: #a8a8a8;
     }
 
-    /* Пустые состояния для других вкладок */
-    .tab-content .tab-pane {
-        padding: 24px;
+    /* Содержимое вкладок */
+    .tab-content {
+        background: transparent;
+        border: none;
+        padding: 0;
     }
 
-    .tab-content .tab-pane h4 {
+    .tab-content .tab-pane {
+        padding: 24px 0;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e3e6ea;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-top: -1px; /* Перекрываем границу nav-tabs */
+    }
+
+    .tab-content .tab-pane h4,
+    .tab-content .tab-pane h5 {
         color: #1d2329;
         margin-bottom: 16px;
+        padding: 0 24px;
     }
 
     .tab-content .tab-pane .text-muted {
         font-size: 0.95rem;
         color: #666 !important;
     }
+
+        .tab-content .tab-pane p,
+    .tab-content .tab-pane .btn,
+    .tab-content .tab-pane .alert,
+    .tab-content .tab-pane .list-group,
+    .tab-content .tab-pane form {
+        margin-left: 24px;
+        margin-right: 24px;
+    }
+
+    .tab-content .tab-pane .table {
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 0;
+    }
+
+    .tab-content .tab-pane .table-responsive {
+        margin: 0;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+    }
+
+    .tab-content .tab-pane .table thead th {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.9rem;
+        padding: 12px 16px;
+    }
+
+    .tab-content .tab-pane .table tbody td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f5f5f5;
+        vertical-align: middle;
+    }
+
+    .tab-content .tab-pane .table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .tab-content .tab-pane .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Модальное окно с размытием фона */
+    .modal.show {
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .modal-backdrop.show {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .modal-content {
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #e3e6ea;
+        padding: 20px 24px;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #e3e6ea;
+        padding: 16px 24px;
+    }
+
+                      /* Стили для списка участников в модальном окне - карточки */
+     #entities-list .form-check {
+         padding: 16px;
+         margin-bottom: 12px;
+         border-radius: 8px;
+         transition: all 0.2s ease;
+         border: 2px solid #e9ecef;
+         min-height: auto; /* Адаптивная высота */
+         display: flex;
+         align-items: flex-start;
+         background-color: #ffffff;
+         cursor: pointer;
+         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+     }
+
+     #entities-list .form-check:hover {
+         background-color: #f8f9fa;
+         border-color: #1976ed;
+         box-shadow: 0 2px 8px rgba(25, 118, 237, 0.15);
+         transform: translateY(-1px);
+     }
+
+             /* Стили для выбранных карточек */
+     #entities-list .form-check-input:checked + .form-check-label {
+         color: #1976ed;
+         font-weight: 500;
+     }
+
+     /* Стили для выбранных карточек (альтернатива :has() для совместимости) */
+     #entities-list .form-check.checked-card {
+         border-color: #1976ed !important;
+         background-color: #f0f7ff !important;
+         box-shadow: 0 2px 8px rgba(25, 118, 237, 0.2) !important;
+     }
+
+     #entities-list .form-check.checked-card:hover {
+         border-color: #1565c0 !important;
+         background-color: #e3f2fd !important;
+     }
+
+     #entities-list .form-check.hidden {
+         display: none;
+     }
+
+     /* Стили для чекбокса */
+     #entities-list .form-check-input {
+         margin-top: 0;
+         margin-right: 12px;
+         width: 18px;
+         height: 18px;
+         flex-shrink: 0;
+         align-self: center;
+     }
+
+     /* Стили для лейбла - теперь это сетка 2х2 */
+     #entities-list .form-check-label {
+         width: 100%;
+         cursor: pointer;
+         display: grid;
+         grid-template-columns: 1fr 150px; /* Фиксированная ширина правого столбца */
+         grid-template-rows: auto auto;
+         gap: 4px 16px;
+         margin-bottom: 0;
+         padding: 0;
+         align-items: start;
+     }
+
+     /* Название юр. лица (левый верхний угол) */
+     #entities-list .entity-name {
+         grid-column: 1;
+         grid-row: 1;
+         font-weight: 600;
+         font-size: 0.95rem;
+         color: #2c3e50;
+         line-height: 1.4;
+         word-wrap: break-word;
+         overflow-wrap: break-word;
+     }
+
+     /* ИНН (левый нижний угол) */
+     #entities-list .entity-inn {
+         grid-column: 1;
+         grid-row: 2;
+         font-size: 0.85rem;
+         color: #6c757d;
+         line-height: 1.3;
+     }
+
+     /* Селектор роли (правый верхний угол) */
+     #entities-list .role-selector {
+         grid-column: 2;
+         grid-row: 1;
+         width: 100%; /* Занимает всю ширину столбца */
+         align-self: start;
+     }
+
+     /* Ошибка валидации (правый нижний угол) */
+     #entities-list .validation-error {
+         grid-column: 2;
+         grid-row: 2;
+         color: #dc3545;
+         font-size: 0.75rem;
+         font-weight: 500;
+         line-height: 1.2;
+         align-self: start;
+         word-wrap: break-word;
+         overflow-wrap: break-word;
+         hyphens: auto;
+         width: 100%; /* Занимает всю ширину столбца */
+     }
+
+             #entities-list .role-selector select {
+         font-size: 0.875rem;
+         padding: 4px 8px;
+         border: 1px solid #ced4da;
+         border-radius: 4px;
+         background-color: white;
+         width: 100%; /* Занимает всю ширину контейнера */
+     }
+
+    #entities-list .role-selector select:focus {
+        border-color: #1976ed;
+        box-shadow: 0 0 0 0.2rem rgba(25, 118, 237, 0.25);
+    }
+
+    /* Стили для валидации - перенесены ниже */
+
+
+
+    /* Анимация тряски для ошибок */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    /* Стили для выбранных элементов */
+    #entities-list .form-check.selected {
+        order: -2; /* Поднимаем выбранные наверх */
+    }
+
+             /* Стили для элементов с ошибками - они поднимаются еще выше выбранных */
+     #entities-list .form-check.has-error {
+         border: 2px solid #dc3545 !important;
+         background-color: #f8d7da !important;
+         animation: shake 0.5s ease-in-out;
+         order: -3;
+         box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
+     }
+
+     #entities-list .form-check.has-error:hover {
+         border-color: #dc3545 !important;
+         background-color: #f5c6cb !important;
+         transform: none;
+     }
+
+             /* Контейнер для сортировки */
+     #entities-list {
+         display: flex;
+         flex-direction: column;
+         max-height: 400px; /* Максимальная высота */
+         overflow-y: auto;
+         overflow-x: hidden;
+     }
+
+     /* Адаптивная высота управляется через JavaScript */
+
+     /* Стили для скроллбара в списке участников */
+     #entities-list::-webkit-scrollbar {
+         width: 6px;
+     }
+
+     #entities-list::-webkit-scrollbar-track {
+         background: #f1f1f1;
+         border-radius: 3px;
+     }
+
+     #entities-list::-webkit-scrollbar-thumb {
+         background: #c1c1c1;
+         border-radius: 3px;
+     }
+
+     #entities-list::-webkit-scrollbar-thumb:hover {
+         background: #a8a8a8;
+     }
+
+    /* Улучшенные сообщения об ошибках */
+    #form-error .fas {
+        font-size: 0.9rem;
+    }
+
+      /* Узкая центральная колонка для лучшего UX и корректного скролла */
+  .detail-wrapper { max-width: 1120px; margin: 0 auto; padding-bottom: 40vh; }
+  .scroll-spacer { height: 81.5vh; }
+  /* Запас для липкого хедера/меню, чтобы якоря не прятались */
+  section.app-section { scroll-margin-top: 15px; }
+  /* Небольшой апдейт для подсветки активного пункта */
+  .toc a { text-decoration: none; }
+  .toc .list-group-item.active { background: #e9ecef; color: #DD0A34; border-color: #cccaca; }
+
+  /* Стили для заголовка сущности */
+  .entity-name {
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  .entity-subtitle {
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+
+  /* Стили для аватаров и иконок */
+  .avatar-circle {
+    width: 36px;
+    height: 36px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 1.1rem;
+  }
+  .participant-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+  /* Бейджи в общей информации */
+  .info-badges .badge { padding: .5rem .7rem; font-size: 1rem; font-weight: 500; }
+  .info-badges .status-badge { white-space: normal; overflow-wrap: anywhere; word-break: break-word; flex: 0 0 100%; text-align: left; }
+
+  /* Новая сетка для общей информации */
+  .info-grid { display: grid; grid-template-columns: 180px 1fr; gap: .5rem 1rem; align-items: start; }
+  .info-label { font-weight: 600; color: #495057; white-space: nowrap; }
+  .info-grid .badge { padding: .5rem .7rem; font-size: 1rem; font-weight: 500; }
+  .info-grid .status-badge { white-space: normal; overflow-wrap: anywhere; word-break: break-word; text-align: left; display: inline-block; }
+
+  /* Увеличиваем высоту карточки сделки */
+  .deal-card { min-height: 120px; }
+
+  .deal-card:hover {
+    /*transform: translateY(-0px) scale(1) !important; */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgb(221, 10, 52, 0.5) !important;
+  }
+
+  /* Выезжающий бейдж для типа сделки */
+  .deal-type-badge {
+    position: sticky;
+    top: 20px;
+    right: -5px;
+    align-self: end;
+  }
+
+  .deal-type-badge .badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35rem 0.7rem;
+    border-radius: 0.375rem 0 0 0.375rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .btn-new-deal {
+      background-color: #DD0A34;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      border-radius: 0.5rem;
+      text-decoration: none !important;
+  }
+
+  .btn-new-deal:hover {
+      background-color: #b50e2c;
+      color: #fff;
+  }
 /* </editor-fold> */
+
+/* <editor-fold desc="===== Стили для фильтров =====" */
+    /* Стили для фильтров по названию и дате */
+    .filter-section .input-group {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .filter-section .input-group-text {
+        background: #f8f9fa;
+        border-color: #dee2e6;
+        color: #6c757d;
+    }
+
+    .filter-section .form-control {
+        border-color: #dee2e6;
+        font-size: 0.9rem;
+    }
+
+    .filter-section .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* Стили для периода дат */
+    .period-field {
+        font-size: 0.85rem !important;
+    }
+
+    /* Стили для радиокнопок статуса */
+    .status-filters {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .status-filters .btn {
+        font-size: 0.8rem;
+        padding: 0.375rem 0.5rem;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .status-filters .btn-check:checked + .btn-outline-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+
+    .status-filters .btn-check:checked + .btn-outline-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+
+    .status-filters .btn-check:checked + .btn-outline-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+
+    .status-filters .btn-check:checked + .btn-outline-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+    }
+
+    /* Состояние пустого поиска */
+    .empty-state-message {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .empty-state-message i {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-message h5 {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-message p {
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+/* </editor-fold> */
+
+    .scrollable {
+        height: 83vh !important;
+    }

@@ -3,48 +3,6 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
-<style>
-.tooltip-icon {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    background: #007bff;
-    color: white;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 16px;
-    font-size: 12px;
-    cursor: help;
-    margin-left: 8px;
-}
-
-.tooltip-content {
-    display: none;
-    position: absolute;
-    background: #333;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    max-width: 250px;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.choose-card {
-    position: relative;
-}
-
-.choose-card:hover .tooltip-content {
-    display: block;
-}
-
-.document-type-info {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-}
-</style>
 {% endblock %}
 
 {% block content %}
@@ -164,11 +122,14 @@
                 <div class="invalid-feedback">Пожалуйста, заполните описание</div>
             </div>
         {% elif document_type == 'file' %}
-            <div id="group-file" class="form-group mb-3">
-                <h6 class="fw-bold" style="display: inline;">Файл</h6>
-                <span style="color: red;">&#42;</span>
-                {{ form.file }}
-                <div class="invalid-feedback">Пожалуйста, приложи файл</div>
+            <div id="group-attachments" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Вложения</h6>
+                <div id="dropArea" class="drop-area text-center">
+                    <img src="{% static 'img/cloud-upload.svg' %}" alt="upload" style="width:2rem;height:2rem;opacity:.6;">
+                    <p class="mb-0">Перетащите файлы сюда или щёлкните для выбора</p>
+                </div>
+                <ul id="fileList" class="mt-2 list-unstyled small"></ul>
+                <div class="invalid-feedback">Пожалуйста, прикрепи как минимум один файл</div>
             </div>
             <div id="group-description" class="form-group mb-3">
                 <h6 class="fw-bold" style="display: inline;">Описание</h6>
@@ -210,43 +171,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Dynamic category population based on global_section
-  const globalSectionSelect = document.getElementById('id_global_section');
-  const categorySelect = document.getElementById('id_category');
-  if (globalSectionSelect && categorySelect) {
-    globalSectionSelect.addEventListener('change', function() {
-      const globalSectionId = this.value;
-      categorySelect.innerHTML = '<option value="">Загрузка...</option>';
-      fetch(`/docs/ajax/get-categories/?global_section_id=${globalSectionId}`)
-        .then(response => response.json())
-        .then(data => {
-          categorySelect.innerHTML = '<option value="">Выбери рубрику</option>';
-          data.categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.id;
-            option.textContent = cat.name;
-            categorySelect.appendChild(option);
-          });
-        });
-    });
-  }
-
-  const sectionGroup = document.getElementById('group-section');
-  if (globalSectionSelect && sectionGroup) {
-    function updateSectionVisibility() {
-      const selectedOption = globalSectionSelect.options[globalSectionSelect.selectedIndex];
-      if (selectedOption && selectedOption.text.trim() === 'Корпоративный бизнес') {
-        sectionGroup.style.display = '';
-      } else {
-        sectionGroup.style.display = 'none';
-      }
-    }
-    // Run on page load and on change
-    updateSectionVisibility();
-    globalSectionSelect.addEventListener('change', updateSectionVisibility);
-  }
-});
-</script>
+<script src="{% static 'docs/js/main.js' %}"></script>
 {% endblock %}

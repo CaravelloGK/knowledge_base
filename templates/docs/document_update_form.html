@@ -135,12 +135,34 @@
                 <div class="invalid-feedback">Пожалуйста, заполните описание</div>
             </div>
         {% elif document_type == 'mixed_content' %}
-            <div id="group-file" class="form-group mb-3">
-                <h6 class="fw-bold" style="display: inline;">Файл</h6>
-                <span style="color: red;">&#42;</span>
-                {{ form.file }}
-                <div class="invalid-feedback">Пожалуйста, приложи файл</div>
+            <!-- Existing attachments -->
+            <div class="content-section mb-3">
+              <h6 class="fw-bold">Текущие вложения</h6>
+              {% if object.attachments.exists %}
+              <ul class="attachment-list list-unstyled">
+                {% for att in object.attachments.all %}
+                <li class="mb-1 d-flex align-items-center gap-2">
+                  <img src="{% static 'img/file.svg' %}" style="width:18px;height:18px;">
+                  <a href="{{ att.file.url }}" target="_blank">{{ att.filename }}</a>
+                  <label class="small text-danger ms-2">
+                    <input type="checkbox" name="delete_attachments" value="{{ att.id }}"> удалить
+                  </label>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}<p class="text-muted">Нет вложений</p>{% endif %}
             </div>
+
+            <!-- Droparea to add more -->
+            <div id="group-attachments" class="form-group mb-3">
+                <h6 class="fw-bold" style="display: inline;">Добавить вложения</h6>
+                <div id="dropArea" class="drop-area text-center">
+                    <img src="{% static 'img/cloud-upload.svg' %}" alt="upload" style="width:2rem;height:2rem;opacity:.6;">
+                    <p class="mb-0">Перетащите файлы сюда или щёлкните для выбора</p>
+                </div>
+                <ul id="fileList" class="mt-2 list-unstyled small"></ul>
+            </div>
+
             <div id="group-description" class="form-group mb-3">
                 <h6 class="fw-bold" style="display: inline;">Описание</h6>
                 {{ form.description }}
@@ -223,43 +245,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Dynamic category population based on global_section
-  const globalSectionSelect = document.getElementById('id_global_section');
-  const categorySelect = document.getElementById('id_category');
-  if (globalSectionSelect && categorySelect) {
-    globalSectionSelect.addEventListener('change', function() {
-      const globalSectionId = this.value;
-      categorySelect.innerHTML = '<option value="">Загрузка...</option>';
-      fetch(`{% url 'docs:get_categories_for_global_section' %}?global_section_id=${globalSectionId}`)
-        .then(response => response.json())
-        .then(data => {
-          categorySelect.innerHTML = '<option value="">Выбери рубрику</option>';
-          data.categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.id;
-            option.textContent = cat.name;
-            categorySelect.appendChild(option);
-          });
-        });
-    });
-  }
-
-  const sectionGroup = document.getElementById('group-section');
-  if (globalSectionSelect && sectionGroup) {
-    function updateSectionVisibility() {
-      const selectedOption = globalSectionSelect.options[globalSectionSelect.selectedIndex];
-      if (selectedOption && selectedOption.text.trim() === 'Корпоративный бизнес') {
-        sectionGroup.style.display = '';
-      } else {
-        sectionGroup.style.display = 'none';
-      }
-    }
-    // Run on page load and on change
-    updateSectionVisibility();
-    globalSectionSelect.addEventListener('change', updateSectionVisibility);
-  }
-});
-</script>
+<script src="{% static 'docs/js/main.js' %}"></script>
 {% endblock %} 

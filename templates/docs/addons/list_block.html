@@ -38,11 +38,12 @@
                     {% endif %}
                   </small>
                 </div>
-                <h6 class="card-title fw-bold">{{ document.title|truncatechars:80 }}</h6>
                 {% if document.description %}
+                  <h6 class="card-title fw-bold">{{ document.title|truncatechars:80 }}</h6>
                   <p class="card-text">{{ document.description|cut:"&nbsp;"|striptags|truncatechars:140 }}</p>
                 {% else %}
-                <p class="card-text"> _</p>
+                  <h6 class="card-title fw-bold">{{ document.title|truncatechars:80 }}</h6>
+                  <p class="card-text card-text-empty"></p>
                 {% endif %}
                  <label class="btn btn-toggle
                     {% if document.subcategory.name == 'Внутренние нормативные документы' %} type-vnd

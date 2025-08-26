@@ -1,0 +1,195 @@
+{% extends 'index.html' %}
+{% load crispy_forms_tags %}
+{% load legal_opin_extras %}
+{% load static %}
+
+{% block content %}
+<style>
+    .field-changed {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+    }
+    .old-value {
+        color: #856404;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .hide {
+        display: none;
+    }
+</style>
+ 
+    
+    
+    
+<div class="container mt-4">
+    <h2>{% if is_create %}Создание{% else %}Редактирование{% endif %} юридического лица</h2>
+
+    <form method="post" id="MainForm" class="mt-4">
+        {% csrf_token %}
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Данные юридического лица</h4>
+            </div>
+            <div class="card-body">
+                {% for field in form %}
+                    
+                    {# Используем with для безопасного доступа к словарю #}
+                    {% if changed_fields %}
+                        {% with changed_data=changed_fields|get_item:field.name %}
+                            <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                {{ field|as_crispy_field }}
+                                {% if changed_data %}
+                                    <small class="form-text text-muted">
+                                        Старое значение: {{ changed_data.old|default:"(пусто)" }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        {% endwith %}
+                    {% else %}
+                        {{ field|as_crispy_field }}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Единоличный исполнительный орган</h4>
+            </div>
+            <div class="card-body">
+                {{ executive_formset.management_form }}
+                {% for form in executive_formset %}
+                    <div class="executive-form mb-4">
+                        {% for field in form.visible_fields %}
+                            {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                    <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                        {{ field|as_crispy_field }}
+                                        {% if field_changes %}
+                                            <div class="old-value">
+                                                Старое значение: {{ field_changes.old|default:"(пусто)" }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                {% endwith %}
+                            {% endwith %}
+                        {% endfor %}
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Участники</h4>
+            </div>
+            <div class="card-body d-grid gap-2">
+                {{ participant_formset.management_form }}
+                <ol class="list-group list-group-numbered">
+                {% for form in participant_formset %}
+                    <li class="list-group-item"><button class="btn btn-secondary w-95 p-2" type="button" data-bs-toggle="collapse" data-bs-target="#target_{{ forloop.counter }}">{{ form.name.value }}</button></li>
+                    <div class="executive-form mb-4 collapse mx-2" id="target_{{ forloop.counter }}">
+                        {% for field in form.visible_fields %}
+                            {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                    <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                        {{ field|as_crispy_field }}
+                                        {% if field_changes %}
+                                            <div class="old-value">
+                                                Старое значение: {{ field_changes.old|default:"(пусто)" }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endwith %}
+                            {% endwith %}
+                        {% endfor %}
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                </ol>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>Коллегиальные органы управления</h4>
+                <fieldset>
+                    <legend>Выберите количество коллегиальных органов</legend>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="collegial_count" id="collegial_count_0" value="0">
+                        <label class="form-check-label" for="collegial_count_0">
+                            Отсуствуют
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="collegial_count" id="collegial_count_1" value="1">
+                        <label class="form-check-label" for="collegial_count_1">
+                            1 коллегиальный орган
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="collegial_count" id="collegial_count_2" value="2">
+                        <label class="form-check-label" for="collegial_count_2">
+                            2 коллегиальных органа
+                        </label>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="card-body">
+                {{ сollegial_governing_bodies_formset.management_form }}
+                {% if сollegial_governing_bodies_formset.non_form_errors %}
+                    <div class="alert alert-danger">{{ сollegial_governing_bodies_formset.non_form_errors }}</div>
+                {% endif %}
+                {% for form in сollegial_governing_bodies_formset %}
+                    <div class="dynamic-form" data-prefix="collegial" id="collegial_form_{{ forloop.counter0 }}">
+                        {{ form|crispy }}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">{{ form.errors }}</div>
+                        {% endif %}
+                        <hr>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="text-end">
+            <a href="" class="btn btn-secondary" onclick="window.history.back(); return false;">Отмена</a>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+        </div>
+    </form>
+</div>
+
+    <!-- WARNING -->
+    <!-- Скрипт предотвращает действие кнопки ENTER -->    
+<script>
+  const form = document.getElementById('MainForm');
+  form.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+    }
+  });
+</script> 
+    
+    
+<script src="{% static 'js/legal_opin.js' %}"></script>    
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<script id="xml-fields-json" type="application/json">{{ xml_fields|json_script:"xml-fields" }}</script>
+<script id="xml-data-json" type="application/json">{{ xml_data|yesno:'true,false'|json_script:"xml-data" }}</script>
+<script src="{% static 'js/legal_opin.js' %}"></script>    
+    
+{% endblock %}

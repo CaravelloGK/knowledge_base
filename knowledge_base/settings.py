@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     'risk',
     'legal_opin',
     'staff',
+    'crispy_forms',
+    'crispy_bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -77,18 +79,18 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Резервный
 ]
 
-# Настройки Keycloak
-KEYCLOAK_CONFIG = {
-    "KEYCLOAK_URL": "http://localhost:8080",  # Development Keycloak URL
-    "REALM_NAME": "master",
-    "CLIENT_ID": "django-client",
-    "CLIENT_SECRET": "your-client-secret",  # Replace with your actual client secret
-    "REDIRECT_URI": "http://localhost:8000/auth/callback/",
-    'LOGOUT_REDIRECT_URI': 'http://localhost:8000/',
-    'OIDC_LOGOUT_URL': 'http://localhost:8080/realms/master/protocol/openid-connect/logout',
-    'KEYCLOAK_CREATE_USERS': True,
-    'KEYCLOAK_UPDATE_USERS': True,
-}
+# Настройки Keycloak -  Добавить для prod!!!
+# KEYCLOAK_CONFIG = {
+#     "SERVER_URL": "https://kk-dev.k8s.mcb.ru/",  # Без /auth для Keycloak >= 17
+#     "REALM_NAME": "Legal_AD",
+#     "CLIENT_ID": "Django_client",
+#     "CLIENT_SECRET": "RsRq9g18Jh3T2VUE18ixZnBLk2niKYWv",
+#     "REDIRECT_URI": "https://legal-dev-app02.mcb.ru/auth/callback/",  # Callback URL
+#     'LOGOUT_REDIRECT_URI': 'https://legal-dev-app02.mcb.ru/',  # Новый параметр для перенаправления после выхода
+#     'OIDC_LOGOUT_URL': 'https://kk-dev.k8s.mcb.ru/realms/Legal_AD/protocol/openid-connect/logout',
+#     'KEYCLOAK_CREATE_USERS': True,  # Создавать пользователей Django при первом входе
+#     'KEYCLOAK_UPDATE_USERS': True,  # Обновлять данные при каждом входе
+# }
 
 
 # Настройки Celery (для запросов ваписки)
@@ -171,7 +173,7 @@ WSGI_APPLICATION = 'knowledge_base.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': BASE_DIR + '/db.sqlite3',
     }
 }
 
@@ -334,3 +336,14 @@ CKEDITOR_5_CONFIGS = {
 
 # Define a constant in settings.py to specify file upload permissions
 CKEDITOR_5_FILE_UPLOAD_PERMISSION = "staff"  # Possible values: "staff", "authenticated", "any"
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# Keycloak configuration
+KEYCLOAK_CONFIG = {
+    'KEYCLOAK_URL': env('KEYCLOAK_URL', default='http://localhost:8080'),
+    'REALM_NAME': env('KEYCLOAK_REALM', default='master'),
+    'CLIENT_ID': env('KEYCLOAK_CLIENT_ID', default='django-app'),
+    'CLIENT_SECRET': env('KEYCLOAK_CLIENT_SECRET', default=''),
+}

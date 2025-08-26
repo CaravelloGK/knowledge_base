@@ -9,69 +9,75 @@
         {% elif id_app == 'docs' %}
             <link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
         {% elif id_app == 'legal_opin' %}
-            <link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">    
+            <link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">
+        {% elif id_app == 'legal_opin_deal' %}
+            <link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">            
         {% endif %}
     {% endblock %}
 </head>
 <body>
     <!-- Блок контента -->
     {% block content %}
-    <div class="overflow-out" style="overflow: hidden;">  
+    <div class="overflow-out">
         <div class="container-fluid mt-3 list-page">
             <!-- Фильтры и контент -->
             <div class="row">
-            <!-- Левая панель (Фильтры)  -->
-            <div class="col-md-3">
-                <!-- Блок фильтров для каждого приложения -->
-                <div class="filter-panel">
-                   {% if id_app == 'reviews' %}
-                        {% include "reviews/addons/filter_block.html"  %}
-                   {% elif id_app == 'risk' %}
-                        {% include "risk/addons/filter_block.html"  %}
-                   {% elif id_app == 'docs' %}
-                        {% include "docs/addons/filter_block.html"  %}
-                   {% elif id_app == 'legal_opin' %}
-                        {% include "legal_opin/addons/filter_block.html"  %}
-                   {% else %}
-                   {% endif %}
+                <!-- Левая панель (Фильтры)  -->
+                <div class="col-md-3">
+                    <!-- Блок фильтров для каждого приложения -->
+                    <div class="filter-panel">
+                       {% if id_app == 'reviews' %}
+                            {% include "reviews/addons/filter_block.html"  %}
+                       {% elif id_app == 'risk' %}
+                            {% include "risk/addons/filter_block.html"  %}
+                       {% elif id_app == 'docs' %}
+                            {% include "docs/addons/filter_block.html"  %}
+                       {% elif id_app == 'legal_opin' %}
+                            {% include "legal_opin/addons/filter_block.html"  %}
+                       {% elif id_app == 'legal_opin_deal' %}
+                            {% include "legal_opin/addons/filter_block_deal.html"  %}                           
+                       {% else %}
+                       {% endif %}
+                    </div>
+                    <!-- Конец блока фильтров -->
                 </div>
-                <!-- Конец блока фильтров -->
-            </div>
-
-            <!-- Основной контент -->
-            <div class="col-md-9">
-                <div class="mx-auto" style="max-width: 70%;">
-                    <div class="row align-items-start">
-                        <!-- Блок Поиск + Админ -->
-                        <div class="d-flex flex-nowrap align-items-start" style="margin-top: 1.5rem; padding-right: 1rem;">
-                            <!-- Блок Поиск -->
-                            <div class="flex-grow-1" style="min-width: 0;">
-                           {% if id_app == 'reviews' %}
-                                {% include "reviews/addons/search_form.html"  %}
-                           {% elif id_app == 'risk' %}
-                                {% include "risk/addons/search_form.html"  %}
-                           {% elif id_app == 'docs' %}
-                                {% include "docs/addons/search_form.html"  %}
-                           {% else %}
-                           {% endif %}
+    
+                <!-- Основной контент -->
+                <div class="col-md-9">
+                    <div class="mx-auto" style="max-width: 70%;">
+                        <div class="row align-items-start">
+                            <!-- Блок Поиск + Админ -->
+                            <div class="d-flex flex-nowrap align-items-start" style="margin-top: 1.5rem; padding-right: 1rem;">
+                               <!-- Блок Поиск -->
+                               <div class="flex-grow-1" style="min-width: 0;">
+                               {% if id_app == 'reviews' %}
+                                    {% include "reviews/addons/search_form.html"  %}
+                               {% elif id_app == 'risk' %}
+                                    {% include "risk/addons/search_form.html"  %}
+                               {% elif id_app == 'docs' %}
+                                    {% include "docs/addons/search_form.html"  %}
+                               {% else %}
+                               {% endif %}
+                               </div>
+                               <!-- Конец Блока Поиск -->
+    
+                               <!-- Блок функция админа -->
+                               {% if id_app == 'reviews' %}
+                                    {% include "reviews/addons/admin_block.html"  %}
+                               {% elif id_app == 'risk' %}
+                                    {% include "risk/addons/admin_block.html"  %}
+                               {% elif id_app == 'docs' %}
+                                    {% include "docs/addons/admin_block.html"  %}
+                               {% elif id_app == 'legal_opin' %}
+                                    {% include "legal_opin/addons/admin_block_legal.html"  %}
+                               {% else %}
+                               {% endif %}
+                               <!-- Конец блока функций админа -->
                             </div>
-                            <!-- Конец Блока Поиск -->
-
-                           <!-- Блок функция админа -->
-                           {% if id_app == 'reviews' %}
-                                {% include "reviews/addons/admin_block.html"  %}
-                           {% elif id_app == 'risk' %}
-                                {% include "risk/addons/admin_block.html"  %}
-                           {% elif id_app == 'docs' %}
-                                {% include "docs/addons/admin_block.html"  %}
-                           {% else %}
-                           {% endif %}
-                           <!-- Конец блока функций админа -->
-                        </div>
-                        <!-- Конец Блока Поиск + Админ -->
+                            <!-- Конец Блока Поиск + Админ -->
 
                         <!-- Блок Списка для каждого приложения -->
-                        <div class="scrollable" style="height: 84vh; overflow-y: auto;">
+                        <div class="scrollable" style="height: 77vh; overflow-y: auto;">
 
                         {% if query %}
                             {% if id_app == 'reviews' %}
@@ -90,6 +96,10 @@
                                 {% elif id_app == 'docs' %}
                                     {% include "docs/addons/list_block.html"  %}
                                 {% elif id_app == 'legal_opin' %}
+                                    {% include "legal_opin/addons/list_block.html"  %}
+                                {% elif id_app == 'legal_opin_deal' %}
+                                    {% include "legal_opin/addons/list_deal_block.html"  %}
+                                {% elif id_app == 'legal_opin_zalog' %}
                                     {% include "legal_opin/addons/list_block.html"  %}
                                 {% else %}
                            {% endif %}
@@ -112,7 +122,9 @@
         {% elif id_app == 'docs' %}
             <script src="{% static 'docs/js/main.js' %}"></script>
         {% elif id_app == 'legal_opin' %}
-            <script src="{% static 'legal_opin/js/main.js' %}"></script>    
+            <script src="{% static 'legal_opin/js/main.js' %}"></script>
+        {% elif id_app == 'legal_opin_deal' %}
+            <script src="{% static 'legal_opin/js/main.js' %}"></script>            
         {% endif %}
     {% endblock %}
 </body>

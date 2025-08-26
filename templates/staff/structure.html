@@ -1,0 +1,41 @@
+{% extends 'staff/main_staff.html' %}
+
+{% block staff_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="search-container">
+            <form method="get" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" 
+                       placeholder="Поиск сотрудников..." 
+                       value="{{ search_query }}"
+                       oninput="handleSearch(this)">
+                <button type="submit" class="btn btn-primary">Найти</button>
+            </form>
+        </div>
+
+        {% if search_query %}
+            <div class="mb-4">
+                <h3>Результаты поиска: "{{ search_query }}"</h3>
+                {% for employee in employees %}
+                    <div class="employee-card" onclick="location.href='{{ employee.get_absolute_url }}'">
+                        <strong>{{ employee.full_name }}</strong> - {{ employee.position }}
+                        {% if employee.department %}
+                            <br><small class="text-muted">{{ employee.department.name }}</small>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-muted">Сотрудники не найдены</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <h2 class="text-center mb-4">Организационная структура</h2>
+        
+        <div class="org-chart">
+            {% for department in departments %}
+                {% include "staff/includes/department_node.html" with department=department %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

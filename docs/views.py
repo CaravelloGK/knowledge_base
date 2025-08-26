@@ -4,7 +4,7 @@ from django.db import transaction
 from django.http import JsonResponse, HttpResponseRedirect
 
 from .forms import SearchForm, DocumentForm, DocumentVersionForm, DocumentPDFForm, DocumentInfoForm, DocumentFileForm, DocumentTemplateForm, DocumentPresentationForm, SlideZipUploadForm
-from .util import Docx_Reader, PDF_Reader, is_pdf_textual, make_file_unique
+from .util import Docx_Reader, make_file_unique
 from django.shortcuts import render, get_object_or_404
 from .forms import SearchForm
 from django.http import HttpResponse
@@ -180,7 +180,24 @@ class DocumentCreateView(CreateView):
         form.instance.status = 'active'
         
         print(f"DEBUG: Form is valid, saving document...")
-        return super().form_valid(form)
+        # description сохраняется формой (поле 'description')
+
+        # Save document first so we have primary key
+        response = super().form_valid(form)  # creates self.object
+
+        if document_type == 'file':
+            files = self.request.FILES.getlist('attachments')
+            if not files:
+                form.add_error(None, 'Необходимо прикрепить хотя бы один файл.')
+                return self.form_invalid(form)
+            from .models import DocumentAttachment
+            for f in files:
+                DocumentAttachment.objects.create(
+                    document=self.object,
+                    file=f,
+                    uploaded_by=self.request.user if self.request.user.is_authenticated else None
+                )
+        return response
 
     def form_invalid(self, form):
         print(f"DEBUG: Form is invalid")
@@ -270,17 +287,8 @@ def document_detail(request, document_id):
     # Добавляем специфичные данные в зависимости от типа
     if display_type == 'pdf_document':
         # PDF-документ - используем PDF просмотрщик
-        is_textual_pdf = False
-        if pdf_url:
-            # Определяем путь к файлу для проверки читаемости
-            if selected_version and selected_version.file:
-                file_path = selected_version.file.path
-            else:
-                file_path = document.file.path
-            is_textual_pdf = is_pdf_textual(file_path) if file_path else False
-        
         context.update({
-            'is_textual_pdf': is_textual_pdf,
+            'is_textual_pdf': True,  # PDF.js обрабатывает все PDF
         })
         return render(request, 'docs/addons/document_detail.html', context)
     
@@ -342,7 +350,8 @@ class DocumentUpdateView(UpdateView):
         elif document_type == 'text_only':
             return DocumentInfoForm
         elif document_type == 'mixed_content':
-            return DocumentFileForm
+            from .forms import DocumentFileUpdateForm
+            return DocumentFileUpdateForm
         elif document_type == 'word_template':
             return DocumentTemplateForm
         elif document_type == 'presentation':
@@ -392,66 +401,32 @@ class DocumentUpdateView(UpdateView):
         return form
 
     def form_valid(self, form):
-        if self.editing_version:
-            # Редактируем версию
-            version = self.editing_version
-            
-            # Проверяем уникальность файлов перед сохранением ТОЛЬКО если файл действительно новый
-            if form.cleaned_data.get('file') and form.cleaned_data['file'] != version.file:
-                make_file_unique(form.cleaned_data['file'], self.object)
-                version.file = form.cleaned_data['file']
-            elif form.cleaned_data.get('file'):
-                # Файл не изменился, просто обновляем ссылку
-                version.file = form.cleaned_data['file']
-                
-            if form.cleaned_data.get('word_file') and form.cleaned_data['word_file'] != version.word_file:
-                make_file_unique(form.cleaned_data['word_file'], self.object)
-                version.word_file = form.cleaned_data['word_file']
-            elif form.cleaned_data.get('word_file'):
-                # Word файл не изменился, просто обновляем ссылку
-                version.word_file = form.cleaned_data['word_file']
-            
-            if form.cleaned_data.get('version_date'):
-                version.version_date = form.cleaned_data['version_date']
-            if form.cleaned_data.get('comment'):
-                version.comment = form.cleaned_data['comment']
-            version.save()
-            # Перенумеровываем все версии после изменения
-            document = self.object
-            versions_with_date = list(document.versions.filter(version_date__isnull=False).order_by('version_date'))
-            versions_without_date = list(document.versions.filter(version_date__isnull=True).order_by('uploaded_at'))
-            from django.db import transaction
-            offset = 1000
-            with transaction.atomic():
-                for v in versions_with_date + versions_without_date:
-                    v.version_number += offset
-                    v.save(update_fields=['version_number'])
-                current_num = 1
-                for v in versions_with_date:
-                    v.version_number = current_num
-                    v.save(update_fields=['version_number'])
-                    current_num += 1
-                for v in versions_without_date:
-                    v.version_number = current_num
-                    v.save(update_fields=['version_number'])
-                    current_num += 1
-            return HttpResponseRedirect(reverse('docs:document_detail', kwargs={'document_id': self.object.pk}) + f'?version={self.editing_version.id}')
+        # Устанавливаем is_template в зависимости от типа документа
+        document_type = self.object.get_display_type()
+        if document_type == 'word_template':
+            form.instance.is_template = True
         else:
-            # Редактируем основной документ
-            document_type = self.object.get_display_type()
-            if document_type == 'word_template':
-                form.instance.is_template = True
-            else:
-                form.instance.is_template = False
-            # Для PDF: сохраняем файлы только если загружены новые
-            if document_type == 'pdf_document':
-                if not form.cleaned_data.get('file'):
-                    form.instance.file = self.object.file
-                if 'word_file' in form.cleaned_data and not form.cleaned_data.get('word_file'):
-                    form.instance.word_file = self.object.word_file
+            form.instance.is_template = False
+        response = super().form_valid(form)
 
-            print(f"DEBUG: Updating document type = {document_type}")
-            return super().form_valid(form)
+        # если mixed_content – обрабатываем новые attachments
+        if document_type == 'mixed_content':
+            files = self.request.FILES.getlist('attachments')
+            if files:
+                from .models import DocumentAttachment
+                for f in files:
+                    DocumentAttachment.objects.create(
+                        document=self.object,
+                        file=f,
+                        uploaded_by=self.request.user if self.request.user.is_authenticated else None
+                    )
+
+            # handle deletions
+            delete_ids = self.request.POST.getlist('delete_attachments')
+            if delete_ids:
+                from .models import DocumentAttachment
+                DocumentAttachment.objects.filter(document=self.object, id__in=delete_ids).delete()
+        return response
 
     # куда перенаправлять после сохранения
     def get_success_url(self):

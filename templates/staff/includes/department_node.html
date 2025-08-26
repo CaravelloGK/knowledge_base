@@ -1,0 +1,42 @@
+<div class="department-card">
+    <h5 class="department-name">{{ department.name }}</h5>
+    
+    {% if department.manager %}
+        <p class="department-manager text-muted">
+            Руководитель: 
+            <a href="{{ department.manager.get_absolute_url }}" class="text-decoration-none">
+                {{ department.manager.full_name }}
+            </a>
+        </p>
+    {% endif %}
+    
+    {% with employees=department.employees.all %}
+        {% if employees %}
+            <div class="collapsible" data-target="employees-{{ department.id }}">
+                Сотрудники ({{ employees.count }})
+            </div>
+            <div id="employees-{{ department.id }}" class="content">
+                {% for employee in employees %}
+                    <div class="employee-card" onclick="location.href='{{ employee.get_absolute_url }}'">
+                        <strong>{{ employee.full_name }}</strong> - {{ employee.position }}
+                        {% if employee.phone %}
+                            <br><small>{{ employee.phone }}</small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</div>
+
+{% with children=department.child_departments.all %}
+    {% if children %}
+        <div class="children-container">
+            {% for child in children %}
+                <div class="child-department">
+                    {% include "staff/includes/department_node.html" with department=child %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}

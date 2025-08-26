@@ -3,10 +3,6 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
-<style>
-  .template-container { width: 100%; height: 80vh; border: 1px solid #ccc; }
-  .template-toolbar { margin-bottom: 1em; }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -109,4 +105,8 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'docs/js/main.js' %}"></script>
 {% endblock %} 

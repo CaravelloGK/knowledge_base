@@ -2,205 +2,563 @@
 {% load static %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">
+<link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid list-page">
-    <div class="row ms-5">
-        <!-- Основной контент -->
-        <div class="col p-4">
-            <!-- Заголовок с информацией о юридическом лице -->
-            <div class="mb-4 detail-header">
-                <h2 class="fw-bold mb-2">{{ legal_entities.0.name|default:"ООО Ромашка" }}</h2>
-                <div class="row text-muted">
-                    <div class="col-md-6">
-                        <p><strong>ИНН:</strong> {{ legal_entities.0.inn|default:"7725123456" }}</p>
-                        <p><strong>ОГРН:</strong> {{ legal_entities.0.ogrn|default:"1027739123456" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Группа компаний:</strong> {{ legal_entities.0.company_group|default:"Группа Ромашка" }}</p>
-                        <p><strong>Последнее обновление:</strong> {{ legal_entities.0.updated_at|date:"d.m.Y"|default:"15.01.2024" }}</p>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Навигационные вкладки -->
-            <nav class="mb-4">
-                <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                    <button class="nav-link active" id="nav-overview-tab" data-bs-toggle="tab" data-bs-target="#nav-overview" type="button" role="tab" aria-controls="nav-overview" aria-selected="true">
-                        Overview
-                    </button>
-                    <button class="nav-link" id="nav-deals-tab" data-bs-toggle="tab" data-bs-target="#nav-deals" type="button" role="tab" aria-controls="nav-deals" aria-selected="false">
-                        Сделки
-                    </button>
-                    <button class="nav-link" id="nav-risks-tab" data-bs-toggle="tab" data-bs-target="#nav-risks" type="button" role="tab" aria-controls="nav-risks" aria-selected="false">
-                        Риски
-                    </button>
-                    <button class="nav-link" id="nav-security-tab" data-bs-toggle="tab" data-bs-target="#nav-security" type="button" role="tab" aria-controls="nav-security" aria-selected="false">
-                        Обеспечение
-                    </button>
-                </div>
-            </nav>
-
-            <!-- Содержимое вкладок -->
-            <div class="tab-content" id="nav-tabContent">
-                
-                <!-- Overview Tab -->
-                <div class="tab-pane fade show active" id="nav-overview" role="tabpanel" aria-labelledby="nav-overview-tab" tabindex="0">
-                    <div class="row">
-                        
-                        <!-- Блок Риски -->
-                        <div class="col-md-4 mb-4">
-                            <div class="overview-block">
-                                <h5 class="fw-bold mb-3">Риски</h5>
-                                <div class="overview-scroll">
-                                    <!-- Пример карточки риска -->
-                                    <div class="card mb-3 shadow-sm position-relative">
-                                        <div class="card-body">
-                                            <div class="status-line mb-2">
-                                                <small class="text-muted">
-                                                    <span class="rubric">
-                                                        <span class="badge rounded-pill bg-danger">Высокий риск</span>
-                                                    </span>
-                                                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
-                                                    <span class="created-date">| 15.01.2024</span>
-                                                </small>
-                                            </div>
-                                            <h6 class="card-title fw-bold">Риск неплатежеспособности</h6>
-                                            <p class="card-text small">Выявлены признаки финансовой нестабильности контрагента</p>
-                                            <a href="#" class="stretched-link"></a>
-                                        </div>
-                                    </div>
-
-                                    <div class="card mb-3 shadow-sm position-relative">
-                                        <div class="card-body">
-                                            <div class="status-line mb-2">
-                                                <small class="text-muted">
-                                                    <span class="rubric">
-                                                        <span class="badge rounded-pill bg-warning">Средний риск</span>
-                                                    </span>
-                                                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
-                                                    <span class="created-date">| 10.01.2024</span>
-                                                </small>
-                                            </div>
-                                            <h6 class="card-title fw-bold">Операционный риск</h6>
-                                            <p class="card-text small">Возможные нарушения в операционной деятельности</p>
-                                            <a href="#" class="stretched-link"></a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Блок Обеспечение -->
-                        <div class="col-md-4 mb-4">
-                            <div class="overview-block">
-                                <h5 class="fw-bold mb-3">Обеспечение</h5>
-                                <div class="overview-table table-container" style="height: 400px; overflow-y: auto; overflow-x: auto;">
-                                    <table class="table align-middle mb-0" style="min-width: 300px;">
-                                        <thead style="background: #f7f9fb; position: sticky; top: 0; z-index: 10;">
-                                            <tr style="border-bottom: 2px solid #e3e6ea;">
-                                                <th class="py-2 px-2" style="font-weight: 500; font-size: 0.9rem;">Вид</th>
-                                                <th class="py-2 px-2" style="font-weight: 500; font-size: 0.9rem;">Стоимость</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr style="border-bottom: 1px solid #f0f0f0;">
-                                                <td class="py-2 px-2">
-                                                    <a href="#" class="text-decoration-none text-primary">Недвижимость</a>
-                                                </td>
-                                                <td class="py-2 px-2">15 000 000 ₽</td>
-                                            </tr>
-                                            <tr style="border-bottom: 1px solid #f0f0f0;">
-                                                <td class="py-2 px-2">
-                                                    <a href="#" class="text-decoration-none text-primary">Транспорт</a>
-                                                </td>
-                                                <td class="py-2 px-2">2 500 000 ₽</td>
-                                            </tr>
-                                            <tr style="border-bottom: 1px solid #f0f0f0;">
-                                                <td class="py-2 px-2">
-                                                    <a href="#" class="text-decoration-none text-primary">Оборудование</a>
-                                                </td>
-                                                <td class="py-2 px-2">1 200 000 ₽</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Блок Сделки -->
-                        <div class="col-md-4 mb-4">
-                            <div class="overview-block">
-                                <h5 class="fw-bold mb-3">Сделки</h5>
-                                <div class="overview-scroll">
-                                    <!-- Пример карточки сделки -->
-                                    <div class="card mb-3 shadow-sm position-relative">
-                                        <div class="card-body">
-                                            <div class="status-line mb-2">
-                                                <small class="text-muted">
-                                                    <span class="rubric">
-                                                        <span class="badge rounded-pill bg-success">Активная</span>
-                                                    </span>
-                                                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
-                                                    <span class="created-date">| 01.12.2023</span>
-                                                    <span class="ms-2 badge rounded-pill" style="background-color: #28a745;">
-                                                        Кредитование
-                                                    </span>
-                                                </small>
-                                            </div>
-                                            <h6 class="card-title fw-bold">Кредитный договор №1234</h6>
-                                            <p class="card-text small">Сумма: 5 000 000 ₽<br>Срок: до 31.12.2024</p>
-                                            <a href="#" class="stretched-link"></a>
-                                        </div>
-                                    </div>
-
-                                    <div class="card mb-3 shadow-sm position-relative">
-                                        <div class="card-body">
-                                            <div class="status-line mb-2">
-                                                <small class="text-muted">
-                                                    <span class="rubric">
-                                                        <span class="badge rounded-pill bg-secondary">Завершена</span>
-                                                    </span>
-                                                    <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
-                                                    <span class="created-date">| 15.10.2023</span>
-                                                    <span class="ms-2 badge rounded-pill" style="background-color: #ffa500;">
-                                                        Поставка
-                                                    </span>
-                                                </small>
-                                            </div>
-                                            <h6 class="card-title fw-bold">Договор поставки №5678</h6>
-                                            <p class="card-text small">Сумма: 1 200 000 ₽<br>Завершена: 20.11.2023</p>
-                                            <a href="#" class="stretched-link"></a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Сделки Tab -->
-                <div class="tab-pane fade" id="nav-deals" role="tabpanel" aria-labelledby="nav-deals-tab" tabindex="0">
-                    <h4 class="mb-4">Все сделки</h4>
-                    <p class="text-muted">Здесь будет полный список сделок с данным юридическим лицом.</p>
-                </div>
-
-                <!-- Риски Tab -->
-                <div class="tab-pane fade" id="nav-risks" role="tabpanel" aria-labelledby="nav-risks-tab" tabindex="0">
-                    <h4 class="mb-4">Все риски</h4>
-                    <p class="text-muted">Здесь будет полный реестр рисков для данного юридического лица.</p>
-                </div>
-
-                <!-- Обеспечение Tab -->
-                <div class="tab-pane fade" id="nav-security" role="tabpanel" aria-labelledby="nav-security-tab" tabindex="0">
-                    <h4 class="mb-4">Реестр обеспечения</h4>
-                    <p class="text-muted">Здесь будет полный реестр обеспечительного имущества.</p>
-                </div>
-
-            </div>
+<div class="container py-4 detail-wrapper">
+  <div class="row">
+    <!-- TOC -->
+    <aside class="col-12 col-md-3 col-lg-2 mb-3 mb-md-0">
+      <div class="position-sticky" style="top: 15px;">
+        <div class="list-group toc" id="detail-toc">
+          <a class="list-group-item list-group-item-action active" href="#section-overview">Общая информация</a>
+          <a class="list-group-item list-group-item-action" href="#section-eio">ЕИО</a>
+          <a class="list-group-item list-group-item-action" href="#section-participants">Участники</a>
+          <a class="list-group-item list-group-item-action" href="#section-deals">Сделки</a>
+          <a class="list-group-item list-group-item-action" href="#section-risks">Риски</a>
         </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="col-12 col-md-9 col-lg-10">
+      <!-- Header actions -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'legal_opin:legal_entity_list' %}" class="btn btn-back">
+          ← К списку
+        </a>
+        <div class="d-flex gap-2">
+          <a href="{% url 'legal_opin:legal_entity_edit' entity.pk %}" class="btn btn-edit">Редактировать</a>
+          <a href="{% url 'legal_opin:start_update_from_egrul' entity.pk %}" class="btn btn-edit-egrul">Редактировать с выпиской</a>
+        </div>
+      </div>
+
+      <!-- Entity Name Header -->
+      <div class="mb-4">
+        <h2 class="entity-name">{{ entity.name }}</h2>
+        <p class="text-muted entity-subtitle">Добавлено: {{ entity.created_at|date:"d.m.Y H:i" }} Обновлено: {{ entity.updated_at|date:"d.m.Y H:i" }}</p>
+      </div>
+
+      <section id="section-overview" class="app-section mb-3">
+        <div class="card card-elevated">
+          <div class="card-header bg-white">
+            <h5 class="mb-0 section-title"><span class="dot"></span> Общая информация</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                  <span class="text-muted">ИНН: <span class="text-body fw-semibold">{{ entity.inn }}</span></span>
+                  <span class="text-muted">ОГРН: <span class="text-body fw-semibold">{{ entity.ogrn }}</span></span>
+                </div>
+            </div>
+              <div class="col-12">
+                <div class="info-grid">
+                  <div class="info-label">Уставной капитал:</div>
+                  <div>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" id="capital-badge">
+                      {{ entity.authorized_capital|floatformat:0 }} ₽
+                    </span>
+                  </div>
+
+                  <div class="info-label">Группа компаний:</div>
+                  <div>
+                    {% if entity.company_group %}
+                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ entity.company_group }}</span>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </div>
+
+                  <div class="info-label">Статус ЕГРЮЛ:</div>
+                  <div>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 status-badge">{{ entity.status }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+                        </div>
+      </section>
+
+      <section id="section-eio" class="app-section mb-3">
+        <div class="card card-elevated">
+          <div class="card-header bg-white">
+            <h5 class="mb-0 section-title"><span class="dot"></span> Единоличный исполнительный орган</h5>
+          </div>
+          <div class="card-body">
+                            {% if executive_bodies %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                                    <tr>
+                    <th class="border-0 fw-semibold text-dark">Имя/Наименование</th>
+                    <th class="border-0 fw-semibold text-dark">ИНН</th>
+                    <th class="border-0 fw-semibold text-dark">Должность</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for body in executive_bodies %}
+                                    <tr>
+                    <td class="py-3">
+                      <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3">
+                          <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                          <div class="fw-medium">{{ body.name }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-3">
+                      <span class="badge bg-light text-dark border">{{ body.inn|default:"-" }}</span>
+                    </td>
+                    <td class="py-3 text-muted">{{ body.job_title|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+            </div>
+                            {% else %}
+              <div class="text-center py-4">
+                <i class="bi bi-person-x text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mt-2 mb-0">Нет данных о единоличном исполнительном органе</p>
+              </div>
+                            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section id="section-participants" class="app-section mb-3">
+        <div class="card card-elevated">
+          <div class="card-header bg-white">
+            <h4 class="mb-0 section-title"><span class="dot"></span> Участники</h4>
+          </div>
+          <div class="card-body">
+            {% if participants %}
+            <div class="scrollable" style="max-height: calc(4 * 120px); overflow-y: auto; height: unset !important;">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="border-0 fw-semibold text-dark">Участник</th>
+                      <th class="border-0 fw-semibold text-dark">ИНН</th>
+                      <th class="border-0 fw-semibold text-dark">Доля</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for participant in participants %}
+                    <tr>
+                      <td class="py-3">
+                        <div class="d-flex align-items-center">
+                          <div class="participant-icon me-3">
+                            {% if participant.inn|length == 10 %}
+                              <i class="bi bi-building text-primary"></i>
+                            {% else %}
+                              <i class="bi bi-person text-success"></i>
+                            {% endif %}
+                          </div>
+                          <div>
+                            <div class="fw-medium">
+                              {% if participant.name %}
+                                {{ participant.name }}
+                              {% else %}
+                                <span class="text-muted fst-italic">Доступ к сведениям об участниках ограничен</span>
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="py-3">
+                        {% if participant.inn %}
+                          <span class="badge bg-light text-dark border">{{ participant.inn }}</span>
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
+                      <td class="py-3">
+                        {% if participant.share %}
+                          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ participant.share }}</span>
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {% else %}
+            <div class="scrollable" style="max-height: calc(4 * 112px); overflow-y: auto; height: unset !important;">
+              <div class="text-center py-4">
+                <i class="bi bi-people text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mt-2 mb-0">Нет данных об участниках</p>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section id="section-deals" class="app-section mb-3">
+        <div class="card">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h4 class="mb-0">Сделки</h4>
+                              <!-- Фильтры для сделок -->
+                <div class="d-flex gap-2 align-items-center">
+                  <div class="d-flex align-items-center gap-1">
+                    <i class="bi bi-funnel text-muted" style="font-size: 0.9rem;"></i>
+                    <input type="text" id="deal-number-filter" class="form-control search-field" style="width: 160px;" placeholder="Номер сделки...">
+                  </div>
+                <input type="text" id="deal-borrower-filter" class="form-control search-field" style="width: 160px;" placeholder="Должник...">
+                <select id="deal-role-filter" class="form-select search-field" style="width: 160px;">
+                  <option value="">Все роли</option>
+                  {% for role in all_roles %}
+                    <option value="{{ role.name }}">{{ role.name }}</option>
+                  {% endfor %}
+                </select>
+                <a href="{% url 'legal_opin:deal_create' %}" class="btn btn-new-deal">Новая сделка</a>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if deals %}
+            <div id="deals-container" class="scrollable" style="max-height: calc(4 * 120px); overflow-y: auto; height: unset !important;">
+              {% for deal in deals %}
+              <div class="card mb-3 shadow-sm position-relative entity-card deal-card" style="overflow-x: hidden"
+                   data-deal-number="{{ deal.number|lower }}"
+                   data-deal-borrowers="{% for borrower in deal.borrowers %}{{ borrower.name|lower }}{% if not forloop.last %} {% endif %}{% endfor %}"
+                   data-deal-roles="{% for role in deal.current_entity_roles %}{{ role|lower }}{% if not forloop.last %} {% endif %}{% endfor %}">
+                <div class="card-body">
+                  <!-- Строка 1: Тип сделки (слева) + Дата и номер (справа) -->
+                  <div class="d-flex align-items-center mb-2">
+                    <div>
+                      <span class="badge bg-primary">{{ deal.credit_product_type|default:"Сделка" }}</span>
+                    </div>
+                    <div class="text-end">
+                      <small class="text-muted ms-1">| Создано</small>
+                      <small class="text-muted fw-bold"> {% if deal.created_at %}{{ deal.created_at|date:"d.m.Y H:i" }}{% endif %} </small>
+                      <small class="text-muted ms-1">| Номер</small>
+                      <small class="text-muted fw-bold"> {{ deal.number }} </small>
+                    </div>
+                  </div>
+                  
+                  <!-- Строка 2: Числовые показатели -->
+                  <div class="mb-2">
+                    <span class="text-muted small">Сумма:</span> <span class="deal-amount fw-medium">{{ deal.amount|default_if_none:""|floatformat:0 }}{% if deal.amount %} ₽{% else %}-{% endif %}</span>
+                    <span class="text-muted small ms-3">Срок:</span> <span class="fw-medium">{% if deal.term %}{{ deal.term }} мес.{% else %}-{% endif %}</span>
+                    <span class="text-muted small ms-3">Ставка:</span> <span class="fw-medium">{% if deal.interest_rate %}{{ deal.interest_rate }}%{% else %}-{% endif %}</span>
+                  </div>
+                  
+                  <!-- Строка 3: Роль + Должник -->
+                  <div class="d-flex align-items-center">
+                    <div>
+                      <strong class="small text-muted">Роль:</strong>
+                      {% if deal.current_entity_roles %}
+                        {% for role in deal.current_entity_roles %}
+                          <span class="badge bg-light text-dark border me-1">{{ role }}</span>
+                        {% endfor %}
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <strong class="small text-muted ms-1">Должник:</strong>
+                      {% if deal.borrowers %}
+                        {% for borrower in deal.borrowers %}
+                          <span class="badge bg-light text-dark border me-1">{{ borrower.name|truncatechars:90 }}</span>
+                        {% endfor %}
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                
+                  <a href="{% url 'legal_opin:deal_detail' deal.pk %}" class="stretched-link"></a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+                            {% else %}
+            <p class="text-muted mb-0">Нет данных о сделках</p>
+                            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section id="section-risks" class="app-section mb-3">
+        <div class="card">
+          <div class="card-header"><h5 class="mb-0">Риск-факторы</h5></div>
+          <div class="card-body">
+                                <table class="table">
+                                  <tr>
+                                    <td>Факторы</td>
+                                    <td>Значения</td>
+                                  </tr>
+                                  <tr>
+                                    <td>Банкротство</td>
+                                    <td>
+                                        {% if bankrot == True %}
+                    <input class="form-check-input" type="checkbox" value="" checked>
+                                        {% else %}
+                    <input class="form-check-input" type="checkbox" value="">
+                                        {% endif %}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>Заказчик по закупкам</td>
+                                    <td>
+                                        {% if zakup == True %}
+                    <input class="form-check-input" type="checkbox" value="" checked>
+                                        {% else %}
+                    <input class="form-check-input" type="checkbox" value="">
+                                        {% endif %}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>СЭМ</td>
+                                    <td>
+                                        {% if SEM == True %}
+                    <input class="form-check-input" type="checkbox" value="" checked>
+                                        {% else %}
+                    <input class="form-check-input" type="checkbox" value="">
+                                        {% endif %}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>Реорганизация / ликвидация</td>
+                                    <td>
+                                        {% if reorganization == True %}
+                    <input class="form-check-input" type="checkbox" value="" checked>
+                                        {% else %}
+                    <input class="form-check-input" type="checkbox" value="">
+                                        {% endif %}
+                                    </td>
+                                  </tr>
+                                </table>
+                        </div>
+                    </div>
+      </section>
+      <div class="scroll-spacer"></div>
+    </main>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+  // click row navigate
+  $(function(){
+    $('*[data-href]').on('click', function(){ window.location = $(this).data('href'); });
+  });
+
+  // Smooth scroll for TOC clicks
+  document.querySelectorAll('#detail-toc a').forEach(function(link){
+    link.addEventListener('click', function(e){
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  // Enhanced TOC highlighting with better logic
+  const tocLinks = document.querySelectorAll('#detail-toc a');
+  const sections = document.querySelectorAll('section[id^="section-"]');
+  
+  // Modern scroll-based approach (more reliable than IntersectionObserver for TOC)
+  function updateActiveSection() {
+    const scrollPosition = window.scrollY + 20; // minimal offset
+    
+    let activeSection = null;
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      const sectionBottom = sectionTop + section.offsetHeight;
+      
+      if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+        activeSection = section;
+      }
+    });
+    
+    // Fallback: if no section is active, use the last visible one
+    if (!activeSection) {
+      for (let i = sections.length - 1; i >= 0; i--) {
+        if (scrollPosition >= sections[i].offsetTop) {
+          activeSection = sections[i];
+          break;
+        }
+      }
+    }
+    
+    // Update TOC highlighting
+    tocLinks.forEach(link => link.classList.remove('active'));
+    if (activeSection) {
+      const activeLink = document.querySelector(`#detail-toc a[href="#${activeSection.id}"]`);
+      if (activeLink) activeLink.classList.add('active');
+    }
+  }
+  
+  // Throttled scroll listener for better performance  
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        updateActiveSection();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+  
+  // Initial call
+  updateActiveSection();
+
+  // Format authorized capital with thousand separators
+  document.addEventListener('DOMContentLoaded', function() {
+    const cap = document.getElementById('capital-badge');
+    if (cap) {
+      const text = cap.textContent;
+      const match = text.match(/(\d+)\s*₽/);
+      if (match) {
+        const number = match[1];
+        const formatted = number.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        cap.innerHTML = text.replace(number, formatted);
+      }
+    }
+
+    // format deal amounts
+    document.querySelectorAll('.deal-amount').forEach(el => {
+      const text = el.textContent;
+      const m = text.match(/(\d+)\s*₽/);
+      if (m){
+        const n = m[1].replace(/\D/g,'');
+        const fmt = n.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        el.innerHTML = text.replace(m[1], fmt);
+      }
+    });
+
+    // Функция для подсветки найденного текста в сделках
+    function highlightDealText(element, query, className = 'highlight') {
+      if (!query || query.length < 2) {
+        removeDealHighlight(element);
+        return;
+      }
+      
+      const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+      
+      const textNodes = [];
+      let node;
+      while (node = walker.nextNode()) {
+        textNodes.push(node);
+      }
+      
+      textNodes.forEach(textNode => {
+        const text = textNode.textContent;
+        const regex = new RegExp(`(${query})`, 'gi');
+        
+        if (regex.test(text)) {
+          const highlightedText = text.replace(regex, `<mark class="${className}">$1</mark>`);
+          const wrapper = document.createElement('span');
+          wrapper.innerHTML = highlightedText;
+          textNode.parentNode.replaceChild(wrapper, textNode);
+        }
+      });
+    }
+    
+    // Функция для удаления подсветки в сделках
+    function removeDealHighlight(element) {
+      const highlights = element.querySelectorAll('mark.highlight');
+      highlights.forEach(mark => {
+        const parent = mark.parentNode;
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize();
+      });
+    }
+
+    // Фильтрация сделок
+    function filterDeals() {
+      const numberQuery = document.getElementById('deal-number-filter')?.value.toLowerCase().trim() || '';
+      const borrowerQuery = document.getElementById('deal-borrower-filter')?.value.toLowerCase().trim() || '';
+      const roleQuery = document.getElementById('deal-role-filter')?.value.toLowerCase().trim() || '';
+      
+      const dealsContainer = document.getElementById('deals-container');
+      if (!dealsContainer) return;
+      
+      const dealCards = dealsContainer.querySelectorAll('.deal-card');
+      let visibleCount = 0;
+      
+      dealCards.forEach(card => {
+        const dealNumber = card.getAttribute('data-deal-number') || '';
+        const dealBorrowers = card.getAttribute('data-deal-borrowers') || '';
+        const dealRoles = card.getAttribute('data-deal-roles') || '';
+        
+        const matchesNumber = !numberQuery || dealNumber.includes(numberQuery);
+        const matchesBorrower = !borrowerQuery || dealBorrowers.includes(borrowerQuery);
+        const matchesRole = !roleQuery || dealRoles.includes(roleQuery);
+        
+        if (matchesNumber && matchesBorrower && matchesRole) {
+          card.style.display = '';
+          visibleCount++;
+          
+          // Убираем предыдущую подсветку
+          removeDealHighlight(card);
+          
+          // Добавляем подсветку для номера сделки
+          if (numberQuery && numberQuery.length >= 2) {
+            // Подсвечиваем в заголовке карточки "№ XXX"
+            const titleElement = card.querySelector('h5.card-title');
+            if (titleElement && titleElement.textContent.toLowerCase().includes(numberQuery)) {
+              highlightDealText(titleElement, numberQuery);
+            }
+            
+            // Подсвечиваем в правой части где "Номер XXX"
+            const rightText = card.querySelector('.text-end small');
+            if (rightText && rightText.textContent.toLowerCase().includes(numberQuery)) {
+              highlightDealText(rightText, numberQuery);
+            }
+          }
+          
+          // Добавляем подсветку для заемщиков/должников
+          if (borrowerQuery && borrowerQuery.length >= 2) {
+            const borrowerBadges = card.querySelectorAll('.badge.bg-light');
+            borrowerBadges.forEach(badge => {
+              // Проверяем, что это именно бейдж должника (находится в блоке с "Должник:")
+              const parentDiv = badge.closest('div');
+              if (parentDiv && parentDiv.innerHTML.includes('Должник:')) {
+                if (badge.textContent.toLowerCase().includes(borrowerQuery)) {
+                  highlightDealText(badge, borrowerQuery);
+                }
+              }
+            });
+          }
+          
+        } else {
+          card.style.display = 'none';
+          // Убираем подсветку для скрытых карточек
+          removeDealHighlight(card);
+        }
+      });
+    }
+    
+    // Добавляем обработчики событий для фильтров сделок
+    const dealNumberFilter = document.getElementById('deal-number-filter');
+    const dealBorrowerFilter = document.getElementById('deal-borrower-filter');
+    const dealRoleFilter = document.getElementById('deal-role-filter');
+    
+    if (dealNumberFilter) dealNumberFilter.addEventListener('input', filterDeals);
+    if (dealBorrowerFilter) dealBorrowerFilter.addEventListener('input', filterDeals);
+    if (dealRoleFilter) dealRoleFilter.addEventListener('change', filterDeals);
+  });
+</script>
+{% endblock %}
+    <!-- Блок cкриптов -->
+{% block scripts %}
+    <script src="{% static 'legal_opin/js/main.js' %}"></script>
 {% endblock %}

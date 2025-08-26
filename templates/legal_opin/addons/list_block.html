@@ -1,71 +1,128 @@
-<div class="legal-opin-content">
-    <div class="pt-4">
-        <h2 class="fw-bold mb-1" style="font-size:2.2rem;">Юридические лица</h2>
-        <div class="text-muted mb-4" style="font-size:1rem;">
-            Просматривайте ранее добавленные юридические лица
+{% load static %}
+
+<div class="scrollable legal-entities-container" style="height: 77vh; overflow-y: auto;">
+    <!-- Индикатор загрузки -->
+    <div id="loading-indicator" class="text-center py-3" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Загрузка...</span>
         </div>
-        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
-            <!-- Поле поиска -->
-            <div class="input-group search-group" style="max-width: 350px;">
-                <span class="input-group-text search-addon">
-                    <i class="bi bi-search"></i>
-                </span>
-                <input type="text" name="query" class="form-control search-field" placeholder="Поиск" aria-label="Поиск">
+        <p class="text-muted mt-2">Загружаем дополнительные данные...</p>
+    </div>
+    
+    <!-- Контейнер для юридических лиц -->
+    <div id="entities-container">
+        {% for entity in legal_entities %}
+        <div class="card mb-3 shadow-sm position-relative entity-card"
+             data-legal-form="{{ entity.legal_form }}" 
+             data-status="{{ entity.status }}"
+             data-created-date="{{ entity.created_at|date:'Y-m-d' }}"
+             data-updated-date="{{ entity.updated_at|date:'Y-m-d' }}"
+             data-entity-name="{{ entity.name|lower }}"
+             data-entity-inn="{{ entity.inn|default:'' }}"
+             data-entity-ogrn="{{ entity.ogrn|default:'' }}">
+            <div class="card-body">
+                <div class="status-line mb-2">
+                    <small class="text-muted">
+                        <span class="entity-meta">
+                            <span class="badge rounded-pill bg-primary">{{ entity.legal_form }}</span>
+                        </span>
+                        <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
+                        <span class="created-date">| Создано {{ entity.created_at|date:"d.m.Y H:i" }}</span>
+                    </small>
+                </div>
+                <h5 class="card-title fw-bold entity-name">{{ entity.name|truncatechars:80 }}</h5>
+                <div class="entity-details">
+                    <p class="card-text mb-1">
+                        <strong>ИНН:</strong> 
+                        <span class="entity-inn">{{ entity.inn }}</span>
+                        <button class="btn btn-sm btn-outline-secondary copy-btn ms-1" data-copy="{{ entity.inn }}" title="Копировать ИНН">
+                            <img src="{% static 'img/copy.svg' %}" alt="copy" class="copy-icon" width="16" height="16">
+                        </button>
+                        <span class="ms-3"><strong>ОГРН:</strong> 
+                        <span class="entity-ogrn">{{ entity.ogrn }}</span>
+                        <button class="btn btn-sm btn-outline-secondary copy-btn ms-1" data-copy="{{ entity.ogrn }}" title="Копировать ОГРН">
+                            <img src="{% static 'img/copy.svg' %}" alt="copy" class="copy-icon" width="16" height="16">
+                        </button>
+                        </span>
+                    </p>
+                    <p class="text-muted small mb-1">
+                        <strong>Обновлено:</strong> {{ entity.updated_at|date:"d.m.Y H:i" }}
+                    </p>
+                </div>
+                <a href="{% url 'legal_opin:legal_entity_detail' entity.pk %}" class="stretched-link"></a>
             </div>
         </div>
-
-        <!-- Индикатор загрузки -->
-        <div id="loading-indicator" class="text-center py-3" style="display: none;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Загрузка...</span>
-            </div>
-            <p class="text-muted mt-2">Загружаем дополнительные данные...</p>
-        </div>
-
-        <div class="table-container" style="height: 600px; overflow-y: auto; overflow-x: auto;">
-            <table class="table align-middle mb-0" style="min-width: 600px;">
-                <thead style="background: #f7f9fb; position: sticky; top: 0; z-index: 10;">
-                    <tr style="border-bottom: 2px solid #e3e6ea;">
-                        <th class="py-3 px-3" style="font-weight: 500;">#</th>
-                        <th class="py-3 px-3" style="font-weight: 500;">Название</th>
-                        <th class="py-3 px-3" style="font-weight: 500;">ИНН</th>
-                        <th class="py-3 px-3" style="font-weight: 500;">ОГРН</th>
-                        <th class="py-3 px-3" style="font-weight: 500;">Дата обновления</th>
-                    </tr>
-                </thead>
-                <tbody id="entities-container">
-                    {% for entity in legal_entities %}
-                    <tr class="entity-item" 
-                        data-name="{{ entity.name|lower }}"
-                        data-inn="{{ entity.inn }}"
-                        data-ogrn="{{ entity.ogrn }}"
-                        data-update-date="{{ entity.updated_at|date:'Y-m-d' }}"
-                        style="border-bottom: 1px solid #f0f0f0;">
-                        <td class="py-3 px-3">{{ forloop.counter }}</td>
-                        <td class="py-3 px-3">
-                            <a href="{% url 'legal_opin:legal_entity_detail' entity.pk %}" class="text-decoration-none text-primary entity-name">{{ entity.name }}</a>
-                        </td>
-                        <td class="py-3 px-3 entity-inn">{{ entity.inn }}</td>
-                        <td class="py-3 px-3 entity-ogrn">{{ entity.ogrn }}</td>
-                        <td class="py-3 px-3 entity-date">{{ entity.updated_at|date:"d.m.Y" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">Нет юридических лиц.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% empty %}
+        <p class="text-muted">Нет доступных юридических лиц.</p>
+        {% endfor %}
     </div>
 </div>
 
-<!-- Передаем данные через data-атрибуты -->
-<div id="legal-entities-data" 
-     data-total-count="{{ total_count|default:0 }}"
-     data-loaded-count="{{ loaded_count|default:0 }}"
-     data-has-more="{% if has_more %}true{% else %}false{% endif %}"
-     style="display: none;"></div>
+<style>
+.copy-btn {
+    padding: 0.2rem 0.35rem !important;
+    border: 1px solid #dee2e6 !important;
+    background: transparent !important;
+    color: #6c757d !important;
+    border-radius: 0.25rem !important;
+    transition: all 0.15s ease-in-out !important;
+    position: relative;
+    z-index: 10;
+}
 
-<!-- Optionally include Bootstrap Icons for the search icon -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+.copy-btn .copy-icon {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.copy-btn:hover {
+    background: #f8f9fa !important;
+    border-color: #adb5bd !important;
+    color: #495057 !important;
+}
+
+.copy-btn:focus {
+    box-shadow: 0 0 0 0.1rem rgba(0,123,255,.25) !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик для кнопок копирования
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.copy-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const button = e.target.closest('.copy-btn');
+            const textToCopy = button.getAttribute('data-copy');
+            const icon = button.querySelector('img.copy-icon');
+            
+            // Копируем в буфер обмена
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                // Показываем успешное копирование
+                const originalFilter = icon.style.filter;
+                icon.style.filter = 'hue-rotate(90deg) saturate(2)';
+                button.classList.add('btn-outline-success');
+                button.classList.remove('btn-outline-secondary');
+                
+                // Возвращаем исходный вид через 1.5 секунды
+                setTimeout(function() {
+                    icon.style.filter = originalFilter || '';
+                    button.classList.remove('btn-outline-success');
+                    button.classList.add('btn-outline-secondary');
+                }, 1500);
+            }).catch(function(err) {
+                console.error('Ошибка при копировании: ', err);
+                // Показываем ошибку
+                const originalFilter = icon.style.filter;
+                icon.style.filter = 'hue-rotate(320deg) saturate(2)';
+                
+                setTimeout(function() {
+                    icon.style.filter = originalFilter || '';
+                }, 1500);
+            });
+        }
+    });
+});
+</script>

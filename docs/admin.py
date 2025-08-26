@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Direction_of_business, Section, Doc_class, Document, Direction, DocumentVersion
+from .models import Direction_of_business, Section, Doc_class, Document, Direction, DocumentVersion, DocumentAttachment
 
 
 @admin.register(Direction_of_business)
@@ -36,6 +36,13 @@ class DocumentVersionInline(admin.TabularInline):
     fields = ('version_number', 'file', 'file_type', 'version_date', 'comment', 'uploaded_by')
 
 
+class DocumentAttachmentInline(admin.TabularInline):
+    model = DocumentAttachment
+    extra = 0
+    readonly_fields = ('uploaded_at',)
+    fields = ('file', 'uploaded_at', 'uploaded_by')
+
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('title', 'global_section', 'category', 'subcategory', 'section', 'status', 'is_template', 'version_date', 'created_at')
@@ -53,7 +60,7 @@ class DocumentAdmin(admin.ModelAdmin):
             'fields': ('global_section', 'category', 'subcategory', 'section')
         }),
     )
-    inlines = [DocumentVersionInline]
+    inlines = [DocumentVersionInline, DocumentAttachmentInline]
 
 
 @admin.register(DocumentVersion)

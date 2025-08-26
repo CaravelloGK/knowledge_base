@@ -1,0 +1,56 @@
+{% load static %}
+
+<div class="filter-section" style="margin-top: 2.5rem;">
+    <h6 class="fw-bold" style="margin-top: 0rem; place-self: anchor-center;">
+        <i class="bi bi-plus-circle"></i> Создать сделку
+    </h6>
+    <div class="flex-shrink-0">
+        <div class="d-flex align-items-center gap-2 mt-1" style="align-items: unset !important">
+            <a href="{% url 'legal_opin:deal_create' %}" class="btn btn-entity-add">
+                <i class="fas fa-plus"></i> Создать
+            </a>
+        </div>
+    </div>
+</div>    
+
+<div class="filter-section mt-4">
+<h5 class="fw-bold" style="margin-top: 0rem;">
+    <i class="bi bi-funnel"></i> Поиск по фильтрам
+</h5>    
+
+<!-- Фильтр по номеру -->
+<h6 class="fw-bold" style="margin-top: 1rem;">Номер</h6>
+    <div class="input-group search-group">
+        <input type="text" id="deal-number-filter" class="form-control search-field" placeholder="Введите номер сделки...">
+    </div>
+
+<!-- Фильтр по кредитному продукту -->
+<h6 class="fw-bold" style="margin-top: 2rem;">Кредитный продукт</h6>
+    <div class="input-group search-group">
+        <select id="deal-credit-product-filter" class="form-control search-field">
+            <option value="">Все кредитные продукты</option>
+            {% for product in credit_products %}
+                <option value="{{ product.name }}">{{ product.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+<!-- Фильтр по должнику -->
+<h6 class="fw-bold" style="margin-top: 2rem;">Должник</h6>
+    <div class="input-group search-group">
+        <input type="text" id="deal-borrower-filter" class="form-control search-field" placeholder="Введите название должника...">
+    </div>
+
+<!-- Фильтр по периоду создания -->
+<h6 class="fw-bold" style="margin-top: 2rem;">Период создания</h6>
+    <div class="input-group mb-2">
+        <input type="date" id="deal-created-date-from" class="form-control period-field" placeholder="От" style="font-size: 0.9rem;">
+        <span class="input-group-text period-divider"></span>
+        <input type="date" id="deal-created-date-to" class="form-control period-field" placeholder="До" style="font-size: 0.9rem;">
+    </div>
+
+<!-- Управление -->
+    <div class="d-flex justify-content-start align-items-center gap-2" style="margin-top: 2rem;">
+        <button class="btn-clear-review-main" id="reset-deal-filters">Сбросить фильтры</button>
+    </div>
+</div>

@@ -1,0 +1,120 @@
+{% load static %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+                         <div class="container mt-4">
+                 <!-- Контейнер для карточек сделок -->
+                 <div id="deals-container">
+                        {% for deal in deals %}
+                        <div class="card mb-3 shadow-sm position-relative entity-card deal-card" style="overflow-x: hidden"
+                             data-deal-number="{{ deal.number|lower }}"
+                             data-deal-credit-product="{{ deal.credit_product.name|default:""|lower }}"
+                             data-deal-borrowers="{% for borrower in deal.borrowers %}{{ borrower.name|lower }}{% if not forloop.last %} {% endif %}{% endfor %}"
+                             data-deal-created="{{ deal.created_at|date:"Y-m-d" }}">
+                            <div class="card-body">
+                                <!-- Строка 1: Тип сделки (слева) + Дата и номер (справа) -->
+                                <div class="d-flex align-items-center mb-2">
+                                    <div>
+                                        <span class="badge bg-primary">{{ deal.credit_product.name|default:"Сделка" }}</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted ms-1">| Создано</small>
+                                        <small class="text-muted fw-bold"> {% if deal.created_at %}{{ deal.created_at|date:"d.m.Y H:i" }}{% endif %} </small>
+                                        <small class="text-muted ms-1">| Номер</small>
+                                        <small class="text-muted fw-bold"> {{ deal.number }} </small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Строка 2: Числовые показатели -->
+                                <div class="mb-2">
+                                    <span class="text-muted small">Сумма:</span> <span class="deal-amount fw-medium">{{ deal.amount|default_if_none:""|floatformat:0 }}{% if deal.amount %} ₽{% else %}-{% endif %}</span>
+                                    <span class="text-muted small ms-3">Срок:</span> <span class="fw-medium">{% if deal.term %}{{ deal.term }} мес.{% else %}-{% endif %}</span>
+                                    <span class="text-muted small ms-3">Ставка:</span> <span class="fw-medium">{% if deal.interest_rate %}{{ deal.interest_rate }}%{% else %}-{% endif %}</span>
+                                </div>
+                                
+                                <!-- Строка 3: Должники -->
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <strong class="small text-muted ms-1">Должник:</strong>
+                                        {% if deal.borrowers %}
+                                            {% for borrower in deal.borrowers %}
+                                                <span class="badge bg-light text-dark border me-1">{{ borrower.name|truncatechars:90 }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <a href="{% url 'legal_opin:deal_detail' deal.pk %}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-file-earmark-text text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">Сделок пока нет</p>
+                            <a href="{% url 'legal_opin:deal_create' %}" class="btn btn-new-deal">
+                                <i class="bi bi-plus-circle me-2"></i>Создать первую сделку
+                            </a>
+                        </div>
+                                                 {% endfor %}
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Подключаем стили из legal_opin/css/main.css */
+.deals-container .entity-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 0.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.deals-container .entity-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.deals-container .deal-card {
+    min-height: 120px;
+}
+
+.btn-new-deal {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-new-deal:hover {
+    background-color: #ffb300;
+    border-color: #ffb300;
+    color: #000;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Форматирование сумм с разделителями тысяч
+    document.querySelectorAll('.deal-amount').forEach(el => {
+        const text = el.textContent;
+        const match = text.match(/(\d+)\s*₽/);
+        if (match) {
+            const number = match[1].replace(/\D/g, '');
+            const formatted = number.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            el.innerHTML = text.replace(match[1], formatted);
+        }
+    });
+});
+</script>

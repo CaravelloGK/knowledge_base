@@ -1,0 +1,420 @@
+{% extends 'index.html' %}
+{% load static %}
+
+<head>
+    {% block extra_head %}
+            <link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">
+    {% endblock %}
+</head>
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'legal_opin:deal_list' %}">Сделки</a></li>
+                        <li class="breadcrumb-item active">Сделка №{{ deal.id }}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Навигация по вкладкам -->
+            <ul class="nav nav-tabs" id="dealTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="conditions-tab" data-bs-toggle="tab" data-bs-target="#conditions" type="button" role="tab" aria-controls="conditions" aria-selected="true">Условия сделки</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants" type="button" role="tab" aria-controls="participants" aria-selected="false">Участники</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="collateral-tab" data-bs-toggle="tab" data-bs-target="#collateral" type="button" role="tab" aria-controls="collateral" aria-selected="false">Обеспечение</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="risks-tab" data-bs-toggle="tab" data-bs-target="#risks" type="button" role="tab" aria-controls="risks" aria-selected="false">Риски</button>
+                </li>
+            </ul>
+
+            <!-- Содержимое вкладок -->
+            <div class="tab-content" id="dealTabsContent">
+                <div class="tab-pane fade show active" id="conditions" role="tabpanel">
+                   <a href="{% url 'legal_opin:deal_edit' deal.pk %}" class="btn btn-primary mb-3">
+                        <i class="fas fa-edit"></i> Редактировать
+                   </a>
+                    <p><strong>Вид кредитного продукта:</strong> {{ deal.credit_product.name|default:"Не указан" }}</p>
+                    <p><strong>Сумма:</strong> {{ deal.amount|floatformat:2 }} ₽</p>
+                    <p><strong>Срок:</strong> {{ deal.term }} мес.</p>
+                </div>
+
+                <div class="tab-pane fade" id="participants" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Участники сделки</h5>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addParticipantModal">
+                            <i class="fas fa-plus"></i> Добавить участника
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Наименование</th>
+                                <th>ИНН</th>
+                                <th>Роль</th>
+                                    <th>Актуальность данных</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for participant in deal.participants.all %}
+                            <tr>
+                                <td>
+                                        <a href="{% url 'legal_opin:legal_entity_detail' participant.legal_entity.pk %}" class="text-decoration-none">
+                                        {{ participant.legal_entity.name }}
+                                    </a>
+                                </td>
+                                <td>{{ participant.legal_entity.inn }}</td>
+                                <td><span class="badge bg-secondary">{{ participant.role.name }}</span></td>
+                                <td>
+                                    {% if participant.legal_entity.updated_at.date|date:"Y-m-d" == now|date:"Y-m-d" %}
+                                            <span class="badge bg-success">Данные актуальные</span>
+                                        {% elif participant.legal_entity.updated_at.date|date:"Y-m-d" < now|date:"Y-m-d" %}
+                                            <a href="{% url 'legal_opin:start_update_from_egrul' participant.legal_entity.pk %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-file-alt"></i> Актуализировать
+                                        </a>
+                                    {% else %}
+                                            <span class="text-muted">Будущая дата</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                        <a href="{% url 'legal_opin:deal_participant_form_edit' participant.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Редактировать
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted">Участников пока нет.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                        </div>
+                </div>
+                
+                <!-- Tab 3: Обеспечение -->
+                <div class="tab-pane fade" id="collateral" role="tabpanel" aria-labelledby="collateral-tab">
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4>Обеспечение по сделке</h4>
+                            <a href="{% url 'legal_opin:add_collateral' deal.pk %}" class="btn btn-primary">Добавить обеспечение</a>
+                        </div>
+                
+                        {% if grouped_collaterals %}
+                            <ul class="list-group">
+                                {% for owner, types in grouped_collaterals.items %}
+                                    {% for type, data in types.items %}
+                                    <li class="list-group-item">
+                                        {{ owner }} - {{ type }}
+                                        {% if data.is_countable %}
+                                            ({{ data.count }} объект/ов)
+                                        {% endif %}
+                                    </li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="alert alert-info" role="alert">
+                                Обеспечение по данной сделке еще не добавлено.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="risks" role="tabpanel">
+                    <p>Информация о рисках будет добавлена позже.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления участников -->
+<div class="modal fade" id="addParticipantModal" tabindex="-1" aria-labelledby="addParticipantModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addParticipantModalLabel">Добавить участников</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="add-participants-form" method="post" action="{% url 'legal_opin:add_multiple_participants' deal_pk=deal.pk %}">
+          {% csrf_token %}
+          
+          <!-- Поиск -->
+          <div class="mb-3">
+            <label for="participant-search" class="form-label">Поиск по названию или ИНН</label>
+            <input type="text" id="participant-search" class="form-control" placeholder="Введите название или ИНН для поиска...">
+          </div>
+          
+          <!-- Список юридических лиц -->
+          <div class="mb-3">
+            <label class="form-label">Выберите участников:</label>
+            <div id="entities-list" class="border rounded p-3" style="max-height: 450px; overflow-y: auto;">
+              {% for entity in available_entities %}
+              <div class="form-check entity-item" data-name="{{ entity.name|lower|default:'' }}" data-inn="{{ entity.inn|default:'' }}">
+                <input class="form-check-input" type="checkbox" name="entity_ids" value="{{ entity.id }}" id="entity-{{ entity.id }}">
+                <label class="form-check-label" for="entity-{{ entity.id }}">
+                  <!-- Название (левый верхний) -->
+                  <div class="entity-name">{{ entity.name }}</div>
+                  
+                  <!-- ИНН (левый нижний) -->
+                  <div class="entity-inn">
+                    {% if entity.inn %}ИНН: {{ entity.inn }}{% else %}ИНН не указан{% endif %}
+                  </div>
+                  
+                  <!-- Селектор роли (правый верхний) -->
+                  <div class="role-selector" style="display: none;">
+                    <select class="form-select form-select-sm" name="role_{{ entity.id }}">
+                      <option value="">Роль...</option>
+                      {% for role in all_roles %}
+                        <option value="{{ role.name }}">{{ role.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  
+                  <!-- Место для ошибки валидации (правый нижний) - добавляется через JS -->
+                </label>
+              </div>
+              {% empty %}
+              <p class="text-muted">Все юридические лица уже добавлены как участники.</p>
+              {% endfor %}
+            </div>
+          </div>
+          
+          <div id="form-error" class="text-danger"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-primary" id="save-participants" disabled>Добавить участников</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Поиск участников в модальном окне
+    $('#participant-search').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase().trim();
+        const entityItems = $('#entities-list .entity-item');
+        
+        console.log('Search term:', searchTerm); // Отладка
+        
+        entityItems.each(function() {
+            const $item = $(this);
+            const name = ($item.data('name') || '').toString().toLowerCase();
+            const inn = ($item.data('inn') || '').toString().toLowerCase();
+            
+            console.log('Checking item:', name, inn); // Отладка
+            
+            if (searchTerm === '' || name.includes(searchTerm) || inn.includes(searchTerm)) {
+                $item.removeClass('hidden').show();
+            } else {
+                $item.addClass('hidden').hide();
+            }
+        });
+    });
+    
+    // Показать/скрыть dropdown роли при выборе участника
+    $('#entities-list').on('change', 'input[type="checkbox"]', function() {
+        const $checkbox = $(this);
+        const $entityItem = $checkbox.closest('.entity-item');
+        const $formCheck = $checkbox.closest('.form-check');
+        const $roleSelector = $entityItem.find('.role-selector');
+        
+        if ($checkbox.is(':checked')) {
+            $roleSelector.show();
+            $entityItem.addClass('selected');
+            $formCheck.addClass('checked-card'); // Добавляем класс для стилизации карточки
+        } else {
+            $roleSelector.hide();
+            $roleSelector.find('select').val(''); // Сбрасываем выбор роли
+            $entityItem.removeClass('selected has-error');
+            $formCheck.removeClass('checked-card'); // Убираем класс стилизации
+            // Убираем ошибки при снятии выбора
+            clearValidationError($entityItem);
+        }
+        
+        // Проверяем, можно ли активировать кнопку сохранения
+        updateSaveButtonState();
+    });
+    
+    // Отслеживаем изменения в выборе ролей
+    $('#entities-list').on('change', 'select[name^="role_"]', function() {
+        updateSaveButtonState();
+    });
+    
+    // Функция для обновления состояния кнопки сохранения
+    function updateSaveButtonState() {
+        const $checkedBoxes = $('#entities-list input[type="checkbox"]:checked');
+        const $saveButton = $('#save-participants');
+        let allRolesSelected = true;
+        
+        if ($checkedBoxes.length === 0) {
+            $saveButton.prop('disabled', true);
+            return;
+        }
+        
+        // Проверяем, что для каждого выбранного участника выбрана роль
+        $checkedBoxes.each(function() {
+            const entityId = $(this).val();
+            const roleValue = $(`select[name="role_${entityId}"]`).val();
+            if (!roleValue) {
+                allRolesSelected = false;
+                return false; // break из each
+            }
+        });
+        
+        $saveButton.prop('disabled', !allRolesSelected);
+    }
+
+
+    
+    // Функция для показа ошибки валидации
+    function showValidationError($entityItem, errorMessage) {
+        // Убираем старые ошибки
+        clearValidationError($entityItem);
+        
+        // Добавляем класс ошибки к карточке
+        $entityItem.closest('.form-check').addClass('has-error');
+        
+        // Добавляем текст ошибки в правый нижний угол сетки
+        const $errorDiv = $('<div class="validation-error"></div>').text(errorMessage);
+        $entityItem.find('.form-check-label').append($errorDiv);
+    }
+    
+    // Функция для очистки ошибки валидации
+    function clearValidationError($entityItem) {
+        $entityItem.closest('.form-check').removeClass('has-error');
+        $entityItem.find('.validation-error').remove();
+    }
+    
+    // Функция для очистки всех ошибок
+    function clearAllValidationErrors() {
+        $('#entities-list .entity-item').each(function() {
+            clearValidationError($(this));
+        });
+    }
+    
+    // Сохранение участников
+    $('#save-participants').on('click', function() {
+        const $button = $(this);
+        const $checkedBoxes = $('#entities-list input[type="checkbox"]:checked');
+        
+        if ($checkedBoxes.length === 0) {
+            $('#form-error').text('Пожалуйста, выберите хотя бы одного участника.');
+            return;
+        }
+        
+        // Проверяем, что все роли выбраны
+        let missingRoles = false;
+        $checkedBoxes.each(function() {
+            const entityId = $(this).val();
+            const roleValue = $(`select[name="role_${entityId}"]`).val();
+            if (!roleValue) {
+                missingRoles = true;
+                return false;
+            }
+        });
+        
+        if (missingRoles) {
+            $('#form-error').text('Пожалуйста, выберите роль для всех участников.');
+            return;
+        }
+        
+        // Очищаем предыдущие ошибки
+        clearAllValidationErrors();
+        
+        // Показываем индикатор загрузки
+        const originalText = $button.html();
+        $button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Добавление...');
+        $('#form-error').text('');
+        
+        // Собираем данные для отправки
+        const participants = [];
+        $checkedBoxes.each(function() {
+            const entityId = $(this).val();
+            const role = $(`select[name="role_${entityId}"]`).val();
+            participants.push({
+                entity_id: entityId,
+                role: role
+            });
+        });
+        
+        // Отправляем данные
+        $.ajax({
+            url: $('#add-participants-form').attr('action'),
+            type: 'POST',
+            data: {
+                'participants': JSON.stringify(participants),
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Перезагружаем страницу для обновления списка участников
+                    window.location.reload();
+                } else if (response.status === 'validation_error') {
+                    // Обрабатываем ошибки валидации - строгий режим "все или ничего"
+                    const validationErrors = response.validation_errors;
+                    
+                    // Показываем ошибки для каждого проблемного участника
+                    $checkedBoxes.each(function() {
+                        const entityId = $(this).val();
+                        const $entityItem = $(this).closest('.entity-item');
+                        
+                        if (validationErrors[entityId]) {
+                            // Есть ошибка - показываем её
+                            showValidationError($entityItem, validationErrors[entityId]);
+                        }
+                    });
+                    
+                    // Восстанавливаем кнопку
+                    $button.prop('disabled', false).html(originalText);
+                    
+                    // Показываем сообщение об ошибке
+                    const errorCount = Object.keys(validationErrors).length;
+                    $('#form-error').html(`<div class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Исправьте ошибки валидации (${errorCount} участников). Никто не будет добавлен до устранения всех ошибок.</div>`);
+                } else {
+                    $('#form-error').text(response.message || 'Произошла ошибка при добавлении участников.');
+                    $button.prop('disabled', false).html(originalText);
+                } 
+            },
+            error: function(xhr) {
+                const message = xhr.responseJSON && xhr.responseJSON.message 
+                    ? xhr.responseJSON.message 
+                    : 'Произошла ошибка при добавлении участников.';
+                $('#form-error').text(message);
+                $button.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+    
+    // Сброс модального окна при закрытии
+    $('#addParticipantModal').on('hidden.bs.modal', function() {
+        $('#participant-search').val('');
+        $('#entities-list input[type="checkbox"]').prop('checked', false);
+        $('#entities-list .entity-item').removeClass('hidden selected has-error').show();
+        $('#entities-list .form-check').removeClass('checked-card has-error'); // Убираем классы карточек
+        $('#entities-list .role-selector').hide();
+        $('#entities-list select[name^="role_"]').val('');
+        $('#save-participants').prop('disabled', true);
+        $('#form-error').text('');
+        clearAllValidationErrors();
+    });
+});
+</script>    
+{% endblock %}

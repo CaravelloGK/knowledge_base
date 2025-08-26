@@ -3,16 +3,14 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'docs/css/main.css' %}">
-<style>
-  .mix-container { width: 100%; height: 60vh; border: 1px solid #ccc; }
-  .mix-toolbar { margin-bottom: 1em; }
-  .content-section { margin-bottom: 2rem; }
-</style>
 {% endblock %}
 
 {% block content %}
 
 <div class="container mt-4">
+    <!-- Заголовок документа -->
+    <h1 class="document-title mb-4">{{ object.title }}</h1>
+    
     <div class="card shadow-sm position-relative" style="background-color: #fff;">
         <!-- Блок иконок (админские кнопки) -->
         <div class="action-icons position-absolute top-0 end-0 m-3 d-flex align-items-center gap-3">
@@ -50,69 +48,103 @@
         </div>
 
         <div class="card-body">
-            <h1>
-                {{ object.title }}
-                <span class="badge bg-warning ms-2">Смешанный контент</span>
-            </h1>
-            
-            <div class="mb-3 mix-toolbar">
-                {% if document.file %}
-                <a href="{{ document.file.url }}" download class="btn btn-primary">Скачать файл</a>
-                {% endif %}
-                {% if word_file_url %}
-                <a href="{{ word_file_url }}" download class="btn btn-success">
-                    <i class="fas fa-file-word me-1"></i>Скачать Word
-                </a>
-                {% endif %}
-            </div>
-            
             <!-- Секция с описанием -->
-            <div class="content-section">
-                <h3>Описание документа</h3>
-                <div class="card">
-                    <div class="card-body">
+            {% if document.description %}
+            <div class="content-section mb-4">
+                <div class="modern-content-card">
+                    <div class="content-card-header">
+                        <div class="content-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="content-label">Описание</span>
+                    </div>
+                    <div class="content-card-body">
                         {{ document.description|safe }}
                     </div>
                 </div>
             </div>
+            {% endif %}
             
-            <!-- Секция с файлом -->
+            <!-- Секция с вложениями -->
             <div class="content-section">
-                <h3>Прикрепленный файл</h3>
-                {% if document.file.name|lower|slice:"-4:" == ".pdf" %}
-                <div class="mix-container">
-                    <iframe
-                        id="pdfjs-viewer"
-                        src="{% static 'pdfjs/web/viewer.html' %}?file={{ document.file.url|urlencode }}"
-                        width="100%"
-                        height="100%"
-                        style="border:none;">
-                    </iframe>
+                <div class="modern-content-card">
+                    <div class="content-card-header">
+                        <div class="content-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="content-label">Вложения</span>
+                    </div>
+                    <div class="content-card-body">
+                        {% with atts=document.attachments.all %}
+                        {% if atts|length %}
+                        <div class="attachment-grid">
+                            {% for att in atts %}
+                            <div class="attachment-item">
+                                <div class="attachment-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <a href="{{ att.file.url }}" download class="attachment-link">
+                                    {{ att.filename }}
+                                </a>
+                            </div>
+                            {% endfor %}
                 </div>
                 {% else %}
-                <div class="alert alert-info">
-                    <h5>Файл документа</h5>
-                    <p>Файл прикреплен, но не поддерживается для предварительного просмотра.</p>
-                    <a href="{{ document.file.url }}" download class="btn btn-primary">Скачать файл</a>
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <h4 class="empty-title">Нет вложений</h4>
+                            <p class="empty-description">Добавьте файлы через кнопку "Редактировать" в правом верхнем углу</p>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
 <!-- Модальное окно удаления -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+<div class="modal fade universal-modal" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      <!-- Верхняя строчка: иконка - кнопка закрытия -->
+      <div class="modal-top-row">
+        <img src="{% static 'img/delete.svg' %}" alt="Удаление" class="modal-icon">
+        <button type="button" class="modal-close-btn" data-bs-dismiss="modal" aria-label="Закрыть">
+          <img src="{% static 'img/close.svg' %}" alt="Закрыть">
+        </button>
       </div>
-      <div class="modal-body">
-        Вы уверены, что хотите удалить документ "{{ document.title }}"?
+      
+      <!-- Заголовок -->
+      <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+      
+      <!-- Текст -->
+      <div class="modal-text">
+        <p>Вы уверены, что хотите удалить документ "{{ document.title }}"?</p>
+        <p class="text-muted">Это действие нельзя отменить.</p>
       </div>
-      <div class="modal-footer">
+      
+      <!-- Кнопки -->
+      <div class="modal-buttons">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
         <a href="{% url 'docs:document_delete' pk=document.id %}" class="btn btn-danger">Удалить</a>
       </div>
@@ -120,4 +152,8 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'docs/js/main.js' %}"></script>
 {% endblock %} 
