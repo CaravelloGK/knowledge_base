@@ -60,3 +60,8 @@ def find_changes(changes_list, inn):
         if item.get('inn') == inn:
             return item
     return {'changes': {}}
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

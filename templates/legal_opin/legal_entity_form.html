@@ -4,192 +4,1803 @@
 {% load static %}
 
 {% block content %}
-<style>
-    .field-changed {
-        background-color: #fff3cd;
-        border: 1px solid #ffeeba;
-        padding: 10px;
-        margin: 5px 0;
-        border-radius: 4px;
-    }
-    .old-value {
-        color: #856404;
-        font-size: 0.9em;
-        margin-top: 5px;
-    }
-    .hide {
-        display: none;
-    }
-</style>
- 
-    
-    
-    
-<div class="container mt-4">
-    <h2>{% if is_create %}Создание{% else %}Редактирование{% endif %} юридического лица</h2>
+    <link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">
+    <style>
+        .field-changed {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
 
-    <form method="post" id="MainForm" class="mt-4">
-        {% csrf_token %}
+        .old-value {
+            color: #856404;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Данные юридического лица</h4>
-            </div>
-            <div class="card-body">
-                {% for field in form %}
-                    
-                    {# Используем with для безопасного доступа к словарю #}
-                    {% if changed_fields %}
-                        {% with changed_data=changed_fields|get_item:field.name %}
-                            <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
-                                {{ field|as_crispy_field }}
-                                {% if changed_data %}
-                                    <small class="form-text text-muted">
-                                        Старое значение: {{ changed_data.old|default:"(пусто)" }}
-                                    </small>
-                                {% endif %}
+        .hide {
+            display: none;
+        }
+
+        label[for^="id_confirmation_procedure_"] {
+            display: block !important;
+        }
+    </style>
+
+
+
+
+    <div class="container mt-4">
+        <h2>{% if is_create %}Создание{% else %}Редактирование{% endif %} юридического лица</h2>
+
+        <div class="row">
+            <!-- Навигация -->
+            <aside class="col-12 col-md-3 col-lg-2 mb-3 mb-md-0">
+                <div class="position-sticky" style="top: 15px;">
+                    <div class="list-group toc" id="form-toc">
+                        <a class="list-group-item list-group-item-action active" href="#section-main">Основная
+                            информация</a>
+                        <a class="list-group-item list-group-item-action" href="#section-executive">Единоличный
+                            исполнительный орган</a>
+                        <a class="list-group-item list-group-item-action" href="#section-participants">Участники</a>
+                        <a class="list-group-item list-group-item-action" href="#section-corporate">Корпоративные
+                            процедуры</a>
+                        <a class="list-group-item list-group-item-action" href="#section-decision">Принятие решения</a>
+                        <a class="list-group-item list-group-item-action" href="#section-markers">Риск - факторы</a>
+                        <a class="list-group-item list-group-item-action" href="#section-collegial">Коллегиальные органы
+                            управления</a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main content -->
+            <main class="col-12 col-md-9 col-lg-10">
+                <form method="post" id="MainForm" class="mt-4">
+                    {% csrf_token %}
+
+                    <!-- 1. Основная информация -->
+                    <section id="section-main" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Основная информация</h4>
                             </div>
-                        {% endwith %}
-                    {% else %}
-                        {{ field|as_crispy_field }}
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Единоличный исполнительный орган</h4>
-            </div>
-            <div class="card-body">
-                {{ executive_formset.management_form }}
-                {% for form in executive_formset %}
-                    <div class="executive-form mb-4">
-                        {% for field in form.visible_fields %}
-                            {% with exec_changes=executive_changes|find_changes:form.inn.value %}
-                                {% with field_changes=exec_changes.changes|get_item:field.name %}
-                                    <div class="form-group {% if field_changes %}field-changed{% endif %}">
-                                        {{ field|as_crispy_field }}
-                                        {% if field_changes %}
-                                            <div class="old-value">
-                                                Старое значение: {{ field_changes.old|default:"(пусто)" }}
-                                            </div>
-                                        {% endif %}
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- 2 строка: Организационно-правовая форма - ИНН - ОГРН -->
+                                    <div class="col-md-4">
+                                        {% with field=form.legal_form %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
                                     </div>
-                                    
-                                {% endwith %}
-                            {% endwith %}
-                        {% endfor %}
-                        {% for hidden in form.hidden_fields %}
-                            {{ hidden }}
-                        {% endfor %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Участники</h4>
-            </div>
-            <div class="card-body d-grid gap-2">
-                {{ participant_formset.management_form }}
-                <ol class="list-group list-group-numbered">
-                {% for form in participant_formset %}
-                    <li class="list-group-item"><button class="btn btn-secondary w-95 p-2" type="button" data-bs-toggle="collapse" data-bs-target="#target_{{ forloop.counter }}">{{ form.name.value }}</button></li>
-                    <div class="executive-form mb-4 collapse mx-2" id="target_{{ forloop.counter }}">
-                        {% for field in form.visible_fields %}
-                            {% with parts_changes=part_changes|find_changes:form.inn.value %}
-                                {% with field_changes=parts_changes.changes|get_item:field.name %}
-                                    <div class="form-group {% if field_changes %}field-changed{% endif %}">
-                                        {{ field|as_crispy_field }}
-                                        {% if field_changes %}
-                                            <div class="old-value">
-                                                Старое значение: {{ field_changes.old|default:"(пусто)" }}
-                                            </div>
-                                        {% endif %}
+                                    <div class="col-md-4">
+                                        {% with field=form.inn %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
                                     </div>
-                                {% endwith %}
+                                    <div class="col-md-4">
+                                        {% with field=form.ogrn %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- 1 строка: Название - Юрисдикция/местонахождение -->
+                                    <div class="col-md-6">
+                                        {% with field=form.name %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% with field=form.address %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- 3 строка: Группа компаний - Уставной капитал -->
+                                    <div class="col-md-6">
+                                        {% with field=form.company_group %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% with field=form.authorized_capital %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+    
+                                <div class="row">
+                                    <!-- Регистратор -->
+                                    <div class="col-md-8">
+                                        {% with field=form.registrar %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {% with field=form.registrar_inn %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            
+                            
+                                <div class="row">
+                                    <!-- 4 строка: Статус -->
+                                    <div class="col-md-12">
+                                        {% with field=form.status %}
+                                            {% if changed_fields %}
+                                                {% with changed_data=changed_fields|get_item:field.name %}
+                                                    <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                        {{ field|as_crispy_field }}
+                                                        {% if changed_data %}
+                                                            <small class="form-text text-muted">
+                                                                Старое
+                                                                значение: {{ changed_data.old|default:"(пусто)" }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ field|as_crispy_field }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 2. Единоличный исполнительный орган -->
+                    <section id="section-executive" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Единоличный исполнительный орган</h4>
+                            </div>
+                            <div class="card-body">
+                                {{ executive_formset.management_form }}
+                                {% for form in executive_formset %}
+                                    <div class="executive-form mb-4">
+                                        <!-- 1 строка: Имя/Наименование - Должность -->
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                {% with field=form.name %}
+                                                    {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                                        {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                {{ field|as_crispy_field }}
+                                                                {% if field_changes %}
+                                                                    <div class="old-value">
+                                                                        Старое
+                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {% with field=form.job_title %}
+                                                    {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                                        {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                {{ field|as_crispy_field }}
+                                                                {% if field_changes %}
+                                                                    <div class="old-value">
+                                                                        Старое
+                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+
+                                        <!-- 2 строка: ИНН - Дата начала действия полномочий - Срок полномочий -->
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                {% with field=form.inn %}
+                                                    {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                                        {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                {{ field|as_crispy_field }}
+                                                                {% if field_changes %}
+                                                                    <div class="old-value">
+                                                                        Старое
+                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            </div>
+                                            <div class="col-md-4">
+                                                {% with field=form.date_of_authority %}
+                                                    {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                                        {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                {{ field|as_crispy_field }}
+                                                                {% if field_changes %}
+                                                                    <div class="old-value">
+                                                                        Старое
+                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            </div>
+                                            <div class="col-md-4">
+                                                {% with field=form.period_of_authority %}
+                                                    {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                                        {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                {{ field|as_crispy_field }}
+                                                                {% if field_changes %}
+                                                                    <div class="old-value">
+                                                                        Старое
+                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            </div>
+                                            <div class="col-md-12">
+                                                {% with field=form.authority_is_true %}
+                                                    {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                                        {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                {{ field|as_crispy_field }}
+                                                                {% if field_changes %}
+                                                                    <div class="old-value">
+                                                                        Старое
+                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            </div>                                        
+                                        
+                                        </div>
+
+                                        <!-- 3 строка: Документ, на основании которого избран ЕИО - Дополнительная информация -->
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                {% with field=form.doc_of_authority %}
+                                                    {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                                        {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                {{ field|as_crispy_field }}
+                                                                {% if field_changes %}
+                                                                    <div class="old-value">
+                                                                        Старое
+                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {% with field=form.dop_info %}
+                                                    {% with exec_changes=executive_changes|find_changes:form.inn.value %}
+                                                        {% with field_changes=exec_changes.changes|get_item:field.name %}
+                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                {{ field|as_crispy_field }}
+                                                                {% if field_changes %}
+                                                                    <div class="old-value">
+                                                                        Старое
+                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+
+                                        {% for hidden in form.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 3. Участники -->
+                    <section id="section-participants" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                            {% with field=form.legal_form %}
+                                {% if field.value == 'ООО' %}
+                                    <h4>Участники</h4>
+                                {% else %}    
+                                    <h4>Акционеры</h4>
+                                {% endif %}
                             {% endwith %}
-                        {% endfor %}
-                        {% for hidden in form.hidden_fields %}
-                            {{ hidden }}
-                        {% endfor %}
-                    </div>
-                {% endfor %}
-                </ol>
-            </div>
-        </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Информация о доле, принадлежащей обществу -->
+                                {% with field=form.capital_org %}
+                                    {% if changed_fields %}
+                                        {% with changed_data=changed_fields|get_item:field.name %}
+                                            <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                {{ field|as_crispy_field }}
+                                                {% if changed_data %}
+                                                    <small class="form-text text-muted">
+                                                        Старое значение: {{ changed_data.old|default:"(пусто)" }}
+                                                    </small>
+                                                {% endif %}
+                                            </div>
+                                        {% endwith %}
+                                    {% else %}
+                                        {{ field|as_crispy_field }}
+                                    {% endif %}
+                                {% endwith %}
+
+                                <div class="participants-container">
+                                    {{ participant_formset.management_form }}
+
+                                    {% for form in participant_formset %}
+                                        <div class="participant-card mb-3 pe-2">
+                                            {% with field=form.name %}
+                                                {% if field.value %}
+                                                    <div class="participant-header" data-target="#target_{{ forloop.counter }}">
+                                                        <div class="participant-info">
+                                                            <span class="participant-number">{{ forloop.counter }}</span>
+                                                            <span class="participant-name">{{ form.name.value|default:"Новый участник" }}</span>
+                                                        </div>
+                                                        <div class="participant-actions">
+                                                            <i class="fas fa-chevron-down toggle-icon"></i>
+                                                        </div>
+                                                    </div>
         
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4>Коллегиальные органы управления</h4>
-                <fieldset>
-                    <legend>Выберите количество коллегиальных органов</legend>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="collegial_count" id="collegial_count_0" value="0">
-                        <label class="form-check-label" for="collegial_count_0">
-                            Отсуствуют
-                        </label>
+                                                    <div class="participant-content" id="target_{{ forloop.counter }}"
+                                                         style="display: none;">
+                                                        <!-- 1 строка: Имя/Наименование -->
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                {% with field=form.name %}
+                                                                    {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                                                        {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                                {{ field|as_crispy_field }}
+                                                                                {% if field_changes %}
+                                                                                    <div class="old-value">
+                                                                                        Старое
+                                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        {% endwith %}
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            </div>
+                                                        </div>
+        
+                                                        <!-- 2 строка: ИНН - Доля - Юрисдикция/Гражданство -->
+                                                        <div class="row">
+                                                            <div class="col-md-4">
+                                                                {% with field=form.inn %}
+                                                                    {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                                                        {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                                {{ field|as_crispy_field }}
+                                                                                {% if field_changes %}
+                                                                                    <div class="old-value">
+                                                                                        Старое
+                                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        {% endwith %}
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                {% with field=form.share %}
+                                                                    {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                                                        {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                                {{ field|as_crispy_field }}
+                                                                                {% if field_changes %}
+                                                                                    <div class="old-value">
+                                                                                        Старое
+                                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        {% endwith %}
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                {% with field=form.address %}
+                                                                    {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                                                        {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                                {{ field|as_crispy_field }}
+                                                                                {% if field_changes %}
+                                                                                    <div class="old-value">
+                                                                                        Старое
+                                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        {% endwith %}
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            </div>
+                                                        </div>
+        
+                                                        <!-- 3 строка: Информация о доле -->
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                {% with field=form.share_info %}
+                                                                    {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                                                        {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                                                {{ field|as_crispy_field }}
+                                                                                {% if field_changes %}
+                                                                                    <div class="old-value">
+                                                                                        Старое
+                                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        {% endwith %}
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-md-12 mx-2">
+                                                                {% with field=form.dop_info %}
+                                                                    {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                                                        {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                                                            <div class="form-group {% if field_changes %}field-changed{% endif %}"
+                                                                                 mx-2>
+                                                                                {{ field|as_crispy_field }}
+                                                                                {% if field_changes %}
+                                                                                    <div class="old-value">
+                                                                                        Старое
+                                                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        {% endwith %}
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            </div>
+                                                        </div>
+
+                                                        {% for hidden in form.hidden_fields %}
+                                                            {{ hidden }}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="row">
+                                                        <div class="col-md-12 mx-2">
+                                                            {% with field=form.dop_info %}
+                                                                {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                                                    {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                                                        <div class="form-group {% if field_changes %}field-changed{% endif %}" mx-2>
+                                                                            {{ field|as_crispy_field }}
+                                                                            {% if field_changes %}
+                                                                                <div class="old-value">
+                                                                                    Старое
+                                                                                    значение: {{ field_changes.old|default:"(пусто)" }}
+                                                                                </div>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            {% endwith %}
+                                                        </div>
+                                                    </div>                                                
+                                            {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+{#                                <div id="participants-empty" class="participants-empty d-none">Информация по участникам#}
+{#                                    не обнаружена#}
+{#                                </div>#}
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 4. Корпоративный договор -->
+                    <section id="section-corporate" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Корпоративный договор</h4>
+                            </div>
+                            <div class="red-flags-grid manual-analysis my-2 mx-2">
+                                <div class="red-flag-card" data-field="corp_dogovor">
+                                    <div class="red-flag-header">
+                                        <div class="red-flag-icon">
+                                            <img src="{% static 'img/file.svg' %}"
+                                                 alt="Корпоративный договор" class="red-flag-svg">
+                                        </div>
+                                        <div class="red-flag-title">Корпоративный договор</div>
+                                        <div class="red-flag-toggle">
+                                            <input type="checkbox" id="id_corp_dogovor"
+                                                   name="corp_dogovor" class="red-flag-checkbox"
+                                                   {% if form.corp_dogovor.value %}checked{% endif %}>
+                                            <label for="id_corp_dogovor"
+                                                   class="toggle-switch"></label>
+                                        </div>
+                                    </div>
+                                    <div class="red-flag-content" id="corp_dogovor_content"
+                                         {% if form.corp_dogovor.value %}style="display: block;"{% endif %}>
+                                        <div class="form-group">
+                                            <label for="id_corp_dogovor_restrictions">Ограничения, выявленые в
+                                                корпоративном договоре</label>
+                                            <textarea name="corp_dogovor_restrictions"
+                                                      id="id_corp_dogovor_restrictions"
+                                                      class="form-control"
+                                                      rows="3">{{ form.corp_dogovor_restrictions.value|default:"" }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="id_corp_dogovor_conditions">Условия порядка распределения
+                                                голосов по корпоративному договору</label>
+                                            <textarea name="corp_dogovor_conditions"
+                                                      id="id_corp_dogovor_conditions"
+                                                      class="form-control"
+                                                      rows="3">{{ form.corp_dogovor_conditions.value|default:"" }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div
+                        </div>
+                    </section>                
+                
+                    <!-- 4. Информация об учредительных документах -->
+                    <section id="section-corporate" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Учредительные документы</h4>
+                            </div>
+                            <div class="card-body">
+                                {% for field in form %}
+                                    {% if field.name in "info_ustav,info_ustav_doc,info_ustav_doc_dop_info" %}
+                                        {% if changed_fields %}
+                                            {% with changed_data=changed_fields|get_item:field.name %}
+                                                <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                    {{ field|as_crispy_field }}
+                                                    {% if changed_data %}
+                                                        <small class="form-text text-muted">
+                                                            Старое значение: {{ changed_data.old|default:"(пусто)" }}
+                                                        </small>
+                                                    {% endif %}
+                                                </div>
+                                            {% endwith %}
+                                        {% else %}
+                                            {{ field|as_crispy_field }}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+                
+
+
+
+                    <!-- 5. Органы управления/способы приняти решения -->
+                    <section id="section-decision" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Органы управления/способы приняти решения</h4>
+                            </div>
+                            <div class="card-body">
+                                {% for field in form %}
+                                    {% if field.name in "power, 'kvorum', confirmation_procedure,confirmation_procedure_dop_info,sposob_vibor" %}
+                                        {% if changed_fields %}
+                                            {% with changed_data=changed_fields|get_item:field.name %}
+                                                <div class="form-group {% if changed_data %}alert alert-warning{% endif %}">
+                                                    {{ field|as_crispy_field }}
+                                                    {% if changed_data %}
+                                                        <small class="form-text text-muted">
+                                                            Старое значение: {{ changed_data.old|default:"(пусто)" }}
+                                                        </small>
+                                                    {% endif %}
+                                                </div>
+                                            {% endwith %}
+                                        {% else %}
+                                            {{ field|as_crispy_field }}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 6. Особые маркеры -->
+                    <section id="section-markers" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Риск факторы</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="markers-grid">
+                                    <!-- ЕИО - единственный участник в одном лице -->
+                                    <div class="marker-card {% if form.eio_uchast.value %}active{% endif %}"
+                                         data-field="eio_uchast">
+                                        <div class="marker-icon">
+                                            <img src="{% static 'img/mass-share.svg' %}" alt="ЕИО" class="marker-svg">
+                                        </div>
+                                        <div class="marker-title">{{ form.eio_uchast.label }}</div>
+                                        <input type="checkbox" id="{{ form.eio_uchast.id_for_label }}"
+                                               name="{{ form.eio_uchast.html_name }}" class="d-none"
+                                               {% if form.eio_uchast.value %}checked{% endif %} readonly>
+                                    </div>
+
+
+                                </div>
+                                <div class="card my-2">
+                                    <div class="card-body">
+                                        <!-- Автоматический анализ -->
+                                        <div class="red-flags-subsection mb-4">
+                                            <div class="subsection-header">
+                                                <h5 class="subsection-title">
+                                                    <i class="fas fa-robot me-2"></i>
+                                                    Автоматический анализ
+                                                </h5>
+                                            </div>
+        
+                                            <!-- Контейнер для автоматических рэд флагов -->
+                                            <div class="red-flags-grid auto-analysis">
+                                                <!-- Заказчик по закупкам -->
+                                                <div class="red-flag-card" data-field="zakup">
+                                                    <div class="red-flag-header">
+                                                        <div class="red-flag-icon">
+                                                            <img src="{% static 'img/zakupki.svg' %}" alt="Закупки"
+                                                                 class="red-flag-svg">
+                                                        </div>
+                                                        <div class="red-flag-title">Заказчик по закупкам</div>
+                                                        <div class="red-flag-toggle">
+                                                            <input type="checkbox" id="id_zakup" name="zakup"
+                                                                   class="red-flag-checkbox" {% if form.zakup.value %}checked
+                                                                   data-originally-checked{% endif %}>
+                                                            <label for="id_zakup" class="toggle-switch"></label>
+                                                        </div>
+                                                        <div class="red-flag-status"></div>
+                                                    </div>
+                                                    <div class="red-flag-content" id="zakup_content"
+                                                         {% if form.zakup.value %}style="display: block;"{% endif %}>
+                                                        <div class="form-group">
+                                                            <label for="id_laws_zakup">Закон по закупкам</label>
+                                                            <select name="laws_zakup" id="id_laws_zakup" class="form-select">
+                                                                <option value="">Выберите закон</option>
+                                                                <option value="44-ФЗ"
+                                                                        {% if form.laws_zakup.value == "44-ФЗ" %}selected{% endif %}>
+                                                                    44-ФЗ
+                                                                </option>
+                                                                <option value="223-ФЗ"
+                                                                        {% if form.laws_zakup.value == "223-ФЗ" %}selected{% endif %}>
+                                                                    223-ФЗ
+                                                                </option>
+                                                                <option value="44-ФЗ и 223-ФЗ"
+                                                                        {% if form.laws_zakup.value == "44-ФЗ и 223-ФЗ" %}selected{% endif %}>
+                                                                    44-ФЗ и 223-ФЗ
+                                                                </option>
+                                                            </select>
+                                                        </div>
+        
+                                                        <!-- Победитель по закупке (дочерний элемент) -->
+                                                        <div class="red-flag-child">
+                                                         {% if form.zakup.value %}style="display: block;"{% endif %}
+                                                        <div class="form-group">
+                                                            <label for="id_zakup_dop_info">Дополнительная информация</label>
+                                                            <textarea name="zakup_dop_info" id="id_zakup_dop_info"
+                                                                      class="form-control"
+                                                                      rows="3">{{ form.zakup_dop_info.value|default:"" }}</textarea>
+                                                        </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+        
+                                                <!-- Банкротство -->
+                                                <div class="red-flag-card" data-field="bankrot">
+                                                    <div class="red-flag-header">
+                                                        <div class="red-flag-icon">
+                                                            <img src="{% static 'img/UPORB.svg' %}" alt="Банкротство"
+                                                                 class="red-flag-svg">
+                                                        </div>
+                                                        <div class="red-flag-title">Банкротство</div>
+                                                        <div class="red-flag-toggle">
+                                                            <input type="checkbox" id="id_bankrot" name="bankrot"
+                                                                   class="red-flag-checkbox" {% if form.bankrot.value %}checked
+                                                                   data-originally-checked{% endif %}>
+                                                            <label for="id_bankrot" class="toggle-switch"></label>
+                                                        </div>
+                                                        <div class="red-flag-status"></div>
+                                                    </div>
+                                                    <div class="red-flag-content" id="bankrot_content"
+                                                         {% if form.bankrot.value %}style="display: block;"{% endif %}>
+                                                        <div class="form-group">
+                                                            <label for="id_bankrot_dop_info">Дополнительная информация</label>
+                                                            <textarea name="bankrot_dop_info" id="id_bankrot_dop_info"
+                                                                      class="form-control"
+                                                                      rows="3">{{ form.bankrot_dop_info.value|default:"" }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+        
+                                                <!-- Недружественное лицо -->
+                                                <div class="red-flag-card" data-field="SEM">
+                                                    <div class="red-flag-header">
+                                                        <div class="red-flag-icon">
+                                                            <img src="{% static 'img/UPOKK.svg' %}" alt="Недружественное лицо"
+                                                                 class="red-flag-svg">
+                                                        </div>
+                                                        <div class="red-flag-title">Недружественное лицо</div>
+                                                        <div class="red-flag-toggle">
+                                                            <input type="checkbox" id="id_SEM" name="SEM"
+                                                                   class="red-flag-checkbox" {% if form.SEM.value %}checked
+                                                                   data-originally-checked{% endif %}>
+                                                            <label for="id_SEM" class="toggle-switch"></label>
+                                                        </div>
+                                                        <div class="red-flag-status"></div>
+                                                    </div>
+                                                    <div class="red-flag-content" id="SEM_content"
+                                                         {% if form.SEM.value %}style="display: block;"{% endif %}>
+                                                        <div class="form-group">
+                                                            <label for="id_SEM_dop_info">Дополнительная информация</label>
+                                                            <textarea name="SEM_dop_info" id="id_SEM_dop_info"
+                                                                      class="form-control"
+                                                                      rows="3">{{ form.SEM_dop_info.value|default:"" }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+        
+                                                <!-- Реорганизация/ликвидация -->
+                                                <div class="red-flag-card" data-field="reorganization">
+                                                    <div class="red-flag-header">
+                                                        <div class="red-flag-icon">
+                                                            <img src="{% static 'img/UPOBD.svg' %}"
+                                                                 alt="Реорганизация/ликвидация" class="red-flag-svg">
+                                                        </div>
+                                                        <div class="red-flag-title">Реорганизация/ликвидация</div>
+                                                        <div class="red-flag-toggle">
+                                                            <input type="checkbox" id="id_reorganization" name="reorganization"
+                                                                   class="red-flag-checkbox"
+                                                                   {% if form.reorganization.value %}checked
+                                                                   data-originally-checked{% endif %}>
+                                                            <label for="id_reorganization" class="toggle-switch"></label>
+                                                        </div>
+                                                        <div class="red-flag-status"></div>
+                                                    </div>
+                                                    <div class="red-flag-content" id="reorganization_content"
+                                                         {% if form.reorganization.value %}style="display: block;"{% endif %}>
+                                                        <div class="form-group">
+                                                            <label for="id_reorganization_dop_info">Дополнительная
+                                                                информация</label>
+                                                            <textarea name="reorganization_dop_info"
+                                                                      id="id_reorganization_dop_info" class="form-control"
+                                                                      rows="3">{{ form.reorganization_dop_info.value|default:"" }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+        
+                                            </div>
+                                        </div>
+                                        <!-- Ручной анализ -->
+                                        <div class="red-flags-subsection mb-4">
+                                            <div class="subsection-header">
+                                                <h5 class="subsection-title">
+                                                    <i class="fas fa-user-edit me-2"></i>
+                                                    Ручной анализ
+                                                </h5>
+                                            </div>
+        
+                                            <!-- Контейнер для ручных рэд флагов -->
+                                            <div class="red-flags-grid manual-analysis">
+        
+                                                <!-- Судебные споры -->
+                                                <div class="red-flag-card" data-field="judicial_disputes">
+                                                    <div class="red-flag-header">
+                                                        <div class="red-flag-icon">
+                                                            <img src="{% static 'img/court.svg' %}" alt="Судебные споры"
+                                                                 class="red-flag-svg">
+                                                        </div>
+                                                        <div class="red-flag-title">Судебные споры</div>
+                                                        <div class="red-flag-toggle">
+                                                            <input type="checkbox" id="id_judicial_disputes"
+                                                                   name="judicial_disputes" class="red-flag-checkbox"
+                                                                   {% if form.judicial_disputes.value %}checked{% endif %}>
+                                                            <label for="id_judicial_disputes" class="toggle-switch"></label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="red-flag-content" id="judicial_disputes_content"
+                                                         {% if form.judicial_disputes.value %}style="display: block;"{% endif %}>
+                                                    </div>
+                                                </div>
+        
+                                                <!-- Исполнительное производство -->
+                                                <div class="red-flag-card" data-field="enforcement_proceedings">
+                                                    <div class="red-flag-header">
+                                                        <div class="red-flag-icon">
+                                                            <img src="{% static 'img/ispol_proizvodstvo.svg' %}"
+                                                                 alt="Исполнительное производство" class="red-flag-svg">
+                                                        </div>
+                                                        <div class="red-flag-title">Исполнительное производство</div>
+                                                        <div class="red-flag-toggle">
+                                                            <input type="checkbox" id="id_enforcement_proceedings"
+                                                                   name="enforcement_proceedings" class="red-flag-checkbox"
+                                                                   {% if form.enforcement_proceedings.value %}checked{% endif %}>
+                                                            <label for="id_enforcement_proceedings"
+                                                                   class="toggle-switch"></label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="red-flag-content" id="enforcement_proceedings_content"
+                                                         {% if form.enforcement_proceedings.value %}style="display: block;"{% endif %}>
+                                                        <div class="form-group">
+                                                            <label for="id_enforcement_proceedings_dop_info">Дополнительная
+                                                                информация</label>
+                                                            <textarea name="enforcement_proceedings_dop_info"
+                                                                      id="id_enforcement_proceedings_dop_info"
+                                                                      class="form-control"
+                                                                      rows="3">{{ form.enforcement_proceedings_dop_info.value|default:"" }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+        
+                                                <!-- Приостановление операций -->
+                                                <div class="red-flag-card" data-field="priostanov">
+                                                    <div class="red-flag-header">
+                                                        <div class="red-flag-icon">
+                                                            <img src="{% static 'img/operation_stop.svg' %}"
+                                                                 alt="Приостановление операций" class="red-flag-svg">
+                                                        </div>
+                                                        <div class="red-flag-title">Приостановление операций</div>
+                                                        <div class="red-flag-toggle">
+                                                            <input type="checkbox" id="id_priostanov" name="priostanov"
+                                                                   class="red-flag-checkbox"
+                                                                   {% if form.priostanov.value %}checked{% endif %}>
+                                                            <label for="id_priostanov" class="toggle-switch"></label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="red-flag-content" id="priostanov_content"
+                                                         {% if form.priostanov.value %}style="display: block;"{% endif %}>
+                                                        <div class="form-group">
+                                                            <label for="id_priostanov_dop_info">Дополнительная
+                                                                информация</label>
+                                                            <textarea name="priostanov_dop_info" id="id_priostanov_dop_info"
+                                                                      class="form-control"
+                                                                      rows="3">{{ form.priostanov_dop_info.value|default:"" }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+        
+                                                <!-- Отзыв лицензии -->
+                                                <div class="red-flag-card" data-field="license_revocation">
+                                                    <div class="red-flag-header">
+                                                        <div class="red-flag-icon">
+                                                            <img src="{% static 'img/license_otziv.svg' %}" alt="Отзыв лицензии"
+                                                                 class="red-flag-svg">
+                                                        </div>
+                                                        <div class="red-flag-title">Отзыв лицензии</div>
+                                                        <div class="red-flag-toggle">
+                                                            <input type="checkbox" id="id_license_revocation"
+                                                                   name="license_revocation" class="red-flag-checkbox"
+                                                                   {% if form.license_revocation.value %}checked{% endif %}>
+                                                            <label for="id_license_revocation" class="toggle-switch"></label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="red-flag-content" id="license_revocation_content"
+                                                         {% if form.license_revocation.value %}style="display: block;"{% endif %}>
+                                                        <div class="form-group">
+                                                            <label for="id_license_revocation_dop_info">Дополнительная
+                                                                информация</label>
+                                                            <textarea name="license_revocation_dop_info"
+                                                                      id="id_license_revocation_dop_info" class="form-control"
+                                                                      rows="3">{{ form.license_revocation_dop_info.value|default:"" }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+        
+                                        </div>
+                                    </div>
+                                </div>                            
+                            </div>
+                        </div>
+                    </section>
+                
+                    <section id="section-markers" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Дополнительная информация/комментарии</h4>
+                            </div>
+                            <div class="col-md-10 mx-3">
+                                {% with field=form.dop_info_general %}
+                                    {% with parts_changes=part_changes|find_changes:form.inn.value %}
+                                        {% with field_changes=parts_changes.changes|get_item:field.name %}
+                                            <div class="form-group {% if field_changes %}field-changed{% endif %}">
+                                                {{ field|as_crispy_field }}
+                                                {% if field_changes %}
+                                                    <div class="old-value">
+                                                        Старое
+                                                        значение: {{ field_changes.old|default:"(пусто)" }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endwith %}
+                                    {% endwith %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </section>                
+
+                    <!-- 8. Коллегиальные органы управления -->
+                    <section id="section-collegial" class="app-section mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4>Коллегиальные органы управления</h4>
+                                <fieldset>
+                                    <legend>Выберите количество коллегиальных органов</legend>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="collegial_count"
+                                               id="collegial_count_0" value="0"
+                                               {% if сollegial_governing_bodies_formset.initial_form_count == 0 %}checked{% endif %}>
+                                        <label class="form-check-label" for="collegial_count_0">
+                                            Отсуствуют
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="collegial_count"
+                                               id="collegial_count_1" value="1"
+                                               {% if сollegial_governing_bodies_formset.initial_form_count == 1 %}checked{% endif %}>
+                                        <label class="form-check-label" for="collegial_count_1">
+                                            1 коллегиальный орган
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="collegial_count"
+                                               id="collegial_count_2" value="2"
+                                               {% if сollegial_governing_bodies_formset.initial_form_count|default:0 >= 2 %}checked{% endif %}>
+                                        <label class="form-check-label" for="collegial_count_2">
+                                            2 коллегиальных органа
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="card-body">
+                                {{ сollegial_governing_bodies_formset.management_form }}
+                                {% if сollegial_governing_bodies_formset.non_form_errors %}
+                                    <div class="alert alert-danger">{{ сollegial_governing_bodies_formset.non_form_errors }}</div>
+                                {% endif %}
+                                {% for form in сollegial_governing_bodies_formset %}
+                                    <div class="dynamic-form" data-prefix="collegial"
+                                         id="collegial_form_{{ forloop.counter0 }}">
+                                        <div class="d-flex justify-content-end mb-2">
+                                            <button type="button" class="btn btn-sm btn-outline-danger gov-remove-btn"
+                                                    data-index="{{ forloop.counter0 }}">
+                                                Удалить орган
+                                            </button>
+                                        </div>
+                                        <div class="row g-4 align-items-center">
+                                            <div class="col-lg-5">
+                                                <h5 class="gov-title text-center">Орган управления</h5>
+                                                {# Скрытый реальный select для сабмита #}
+                                                <select id="{{ form.governing_bodies.id_for_label }}"
+                                                        name="{{ form.governing_bodies.html_name }}"
+                                                        class="form-select gov-hidden-select">
+                                                    {% for val, label in form.fields.governing_bodies.choices %}
+                                                        <option value="{{ val }}"
+                                                                {% if form.governing_bodies.value == val %}selected{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+
+                                                {# Слайдер-замена #}
+                                                <div class="gov-slider"
+                                                     data-select="#{{ form.governing_bodies.id_for_label }}">
+                                                    <button type="button" class="gov-nav gov-prev"
+                                                            aria-label="Назад"></button>
+                                                    <div class="gov-viewport">
+                                                        <div class="gov-track"></div>
+                                                    </div>
+                                                    <button type="button" class="gov-nav gov-next"
+                                                            aria-label="Вперед"></button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-lg-7 gov-fields">
+                                                <div class="row g-2">
+                                                    <div class="col-md-12">{{ form.kvorum|as_crispy_field }}</div>
+                                                    <div class="col-md-6">{{ form.date_of_authority|as_crispy_field }}</div>
+                                                    <div class="col-md-6">{{ form.period_of_authority|as_crispy_field }}</div>
+                                                    <div class="col-12">{{ form.powers|as_crispy_field }}</div>
+                                                    <div class="col-12">{{ form.team_composition|as_crispy_field }}</div>
+                                                    <div class="col-12">{{ form.doc_choice|as_crispy_field }}</div>
+                                                    <div class="col-12">{{ form.dop_info|as_crispy_field }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                                        {# Скрыто рендерим DELETE для управления через кнопку #}
+                                        <div class="d-none">
+                                            {{ form.DELETE }}
+                                        </div>
+                                        {# Кнопка выше будет переключать этот DELETE #}
+                                        {% if form.errors %}
+                                            <div class="alert alert-danger">{{ form.errors }}</div>
+                                        {% endif %}
+                                        <hr>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="text-end">
+                        <a href="" class="btn btn-clear-form" onclick="window.history.back(); return false;">Отмена</a>
+                        <button type="submit" class="btn btn-apply">Сохранить</button>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="collegial_count" id="collegial_count_1" value="1">
-                        <label class="form-check-label" for="collegial_count_1">
-                            1 коллегиальный орган
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="collegial_count" id="collegial_count_2" value="2">
-                        <label class="form-check-label" for="collegial_count_2">
-                            2 коллегиальных органа
-                        </label>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="card-body">
-                {{ сollegial_governing_bodies_formset.management_form }}
-                {% if сollegial_governing_bodies_formset.non_form_errors %}
-                    <div class="alert alert-danger">{{ сollegial_governing_bodies_formset.non_form_errors }}</div>
-                {% endif %}
-                {% for form in сollegial_governing_bodies_formset %}
-                    <div class="dynamic-form" data-prefix="collegial" id="collegial_form_{{ forloop.counter0 }}">
-                        {{ form|crispy }}
-                        {% if form.errors %}
-                            <div class="alert alert-danger">{{ form.errors }}</div>
-                        {% endif %}
-                        <hr>
-                    </div>
-                {% endfor %}
-            </div>
+                </form>
+            </main>
         </div>
 
-        <div class="text-end">
-            <a href="" class="btn btn-secondary" onclick="window.history.back(); return false;">Отмена</a>
-            <button type="submit" class="btn btn-primary">Сохранить</button>
-        </div>
-    </form>
-</div>
+        <!-- Пустое пространство для корректной работы ToC -->
+        <div class="scroll-spacer"></div>
+    </div>
 
     <!-- WARNING -->
-    <!-- Скрипт предотвращает действие кнопки ENTER -->    
-<script>
-  const form = document.getElementById('MainForm');
-  form.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-    }
-  });
-</script> 
-    
-    
-<script src="{% static 'js/legal_opin.js' %}"></script>    
+    <!-- Скрипт предотвращает действие кнопки ENTER только для submit, но позволяет перенос строк в textarea -->
+    <script>
+        const form = document.getElementById('MainForm');
+        form.addEventListener('keydown', function (event) {
+            // Если нажат Enter
+            if (event.key === 'Enter') {
+                // Если фокус на textarea - разрешаем Enter для переноса строк
+                if (event.target.tagName === 'TEXTAREA') {
+                    return; // Разрешаем Enter в textarea
+                }
+
+                // Если фокус на input, select или другом элементе - блокируем Enter
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT' ||
+                    event.target.tagName === 'BUTTON' || event.target.closest('.red-flag-toggle')) {
+                    event.preventDefault();
+                    return;
+                }
+
+                // Для всех остальных случаев блокируем Enter
+                event.preventDefault();
+            }
+        });
+
+        // Особые маркеры: синхронизация карточек с соответствующими чекбоксами
+        document.addEventListener('DOMContentLoaded', function () {
+            function syncMarkerCards() {
+                document.querySelectorAll('.markers-grid .marker-card').forEach(card => {
+                    const cb = card.querySelector('input[type="checkbox"]');
+                    if (!cb) return;
+                    if (cb.checked) card.classList.add('active'); else card.classList.remove('active');
+                    // Блокируем изменение состояния (они readonly)
+                    cb.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    });
+                });
+            }
+
+            syncMarkerCards();
+        });
+        // Smooth scroll for TOC clicks
+        document.querySelectorAll('#form-toc a').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+            });
+        });
+
+        // Enhanced TOC highlighting with better logic
+        const tocLinks = document.querySelectorAll('#form-toc a');
+        const sections = document.querySelectorAll('section[id^="section-"]');
+
+        // Modern scroll-based approach (more reliable than IntersectionObserver for TOC)
+        function updateActiveSection() {
+            const scrollPosition = window.scrollY + 20; // minimal offset
+
+            let activeSection = null;
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionBottom = sectionTop + section.offsetHeight;
+
+                if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                    activeSection = section;
+                }
+            });
+
+            // Fallback: if no section is active, use the last visible one
+            if (!activeSection) {
+                for (let i = sections.length - 1; i >= 0; i--) {
+                    if (scrollPosition >= sections[i].offsetTop) {
+                        activeSection = sections[i];
+                        break;
+                    }
+                }
+            }
+
+            // Update TOC highlighting
+            tocLinks.forEach(link => link.classList.remove('active'));
+            if (activeSection) {
+                const activeLink = document.querySelector(`#form-toc a[href="#${activeSection.id}"]`);
+                if (activeLink) activeLink.classList.add('active');
+            }
+        }
+
+        // Throttled scroll listener for better performance  
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    updateActiveSection();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        // Initial call
+        updateActiveSection();
+
+        // Автовысота для textarea
+        function autoResizeTextarea(textarea) {
+            // Удаляем атрибут rows
+            textarea.removeAttribute('rows');
+
+            // Сбрасываем высоту для корректного расчёта
+            textarea.style.height = 'auto';
+
+            // Базовая минимальная высота (как у text input)
+            const styles = window.getComputedStyle(textarea);
+            const minH = parseFloat(styles.minHeight) || 0; // ориентируемся только на CSS
+
+            // Если пусто — держим базовую высоту
+            if (!textarea.value || textarea.value.trim() === '') {
+                textarea.style.height = minH + 'px';
+                return;
+            }
+
+            // Под содержимое, но не меньше min-height
+            const contentH = textarea.scrollHeight;
+            textarea.style.height = Math.max(contentH, minH) + 'px';
+        }
+
+        // Функция для инициализации автовысоты
+        function initAutoResize() {
+            // Находим все textarea
+            const textareas = document.querySelectorAll('textarea');
+
+            textareas.forEach(textarea => {
+                // Устанавливаем начальную высоту и базу
+                autoResizeTextarea(textarea);
+
+                const isReadonly = textarea.hasAttribute('readonly') || textarea.classList.contains('readonly-field');
+
+                if (!isReadonly) {
+                    // Только для редактируемых полей
+                    textarea.addEventListener('input', () => autoResizeTextarea(textarea));
+                    textarea.addEventListener('focus', () => autoResizeTextarea(textarea));
+                    // Обработчик для изменения размера окна
+                    textarea.addEventListener('resize', () => autoResizeTextarea(textarea));
+                }
+            });
+        }
+
+        // Функция для пересчета всех видимых textarea
+        function recalculateVisibleTextareas() {
+            document.querySelectorAll('textarea').forEach(textarea => {
+                // Проверяем, что textarea видима
+                const isVisible = textarea.offsetParent !== null;
+                if (isVisible) {
+                    autoResizeTextarea(textarea);
+                }
+            });
+        }
+
+        // MutationObserver для динамически добавленных textarea
+        const textareaObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Проверяем, является ли добавленный элемент textarea
+                        if (node.tagName === 'TEXTAREA') {
+                            autoResizeTextarea(node);
+                            const isReadonly = node.hasAttribute('readonly') || node.classList.contains('readonly-field');
+                            if (!isReadonly) {
+                                node.addEventListener('input', () => autoResizeTextarea(node));
+                                node.addEventListener('focus', () => autoResizeTextarea(node));
+                            }
+                        }
+
+                        // Проверяем дочерние элементы на наличие textarea
+                        const childTextareas = node.querySelectorAll('textarea');
+                        childTextareas.forEach(textarea => {
+                            autoResizeTextarea(textarea);
+                            const isReadonlyChild = textarea.hasAttribute('readonly') || textarea.classList.contains('readonly-field');
+                            if (!isReadonlyChild) {
+                                textarea.addEventListener('input', () => autoResizeTextarea(textarea));
+                                textarea.addEventListener('focus', () => autoResizeTextarea(textarea));
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        // Начинаем наблюдение за изменениями в DOM
+        textareaObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Инициализируем автовысоту при загрузке страницы
+        initAutoResize();
+
+        // Инициализация flatpickr на всех date-полях страницы (после загрузки ресурсов)
+        window.addEventListener('load', function () {
+            if (!window.flatpickr) return;
+            const isRu = !!(window.flatpickr && window.flatpickr.l10ns && window.flatpickr.l10ns.ru);
+            const dateInputs = Array.from(document.querySelectorAll('input[type="date"], input[data-date="true"]'));
+            dateInputs.forEach(input => {
+                const isReadonly = input.hasAttribute('readonly') || input.classList.contains('readonly-field');
+                if (!isReadonly) {
+                    input.setAttribute('type', 'text');
+                }
+                window.flatpickr(input, {
+                    dateFormat: 'Y-m-d',
+                    altInput: !isReadonly,
+                    altFormat: 'd.m.Y',
+                    allowInput: !isReadonly,
+                    clickOpens: !isReadonly,
+                    disableMobile: true,
+                    locale: isRu ? 'ru' : undefined
+                });
+            });
+        });
+
+        // Собственная анимация для карточек участников
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Слушатель для Bootstrap табов и аккордеонов
+            document.addEventListener('shown.bs.tab', () => {
+                setTimeout(() => recalculateVisibleTextareas(), 100);
+            });
+
+            document.addEventListener('shown.bs.collapse', () => {
+                setTimeout(() => recalculateVisibleTextareas(), 100);
+            });
+            const participantHeaders = document.querySelectorAll('.participant-header');
+            // Плейсхолдер для пустых участников
+            const participantsEmpty = document.getElementById('participants-empty');
+            const participantsContainer = document.querySelector('.participants-container');
+            const participantCards = document.querySelectorAll('.participants-container .participant-card');
+            // Определяем, есть ли реальные участники: либо есть карточки с непустым содержимым, либо вообще нет карточек
+            let hasRealParticipants = false;
+            participantCards.forEach(card => {
+                const nameEl = card.querySelector('.participant-name');
+                const nameText = (nameEl?.textContent || '').trim();
+                if (nameText && nameText !== 'Новый участник') {
+                    hasRealParticipants = true;
+                }
+            });
+            if (!hasRealParticipants && participantsEmpty) {
+                participantsEmpty.classList.remove('d-none');
+                if (participantsContainer) participantsContainer.classList.add('d-none');
+            }
+
+            participantHeaders.forEach(header => {
+                header.addEventListener('click', function () {
+                    const icon = this.querySelector('.toggle-icon');
+                    const targetId = this.getAttribute('data-target');
+                    const target = document.querySelector(targetId);
+
+                    // Переключаем состояние
+                    if (target.classList.contains('show')) {
+                        // Сворачиваем
+                        target.classList.remove('show');
+                        icon.style.transform = 'rotate(0deg)';
+
+                        // Скрываем после анимации
+                        setTimeout(() => {
+                            if (!target.classList.contains('show')) {
+                                target.style.display = 'none';
+                            }
+                        }, 400);
+                    } else {
+                        // Разворачиваем
+                        target.style.display = 'block';
+                        // Небольшая задержка для корректной анимации
+                        setTimeout(() => {
+                            target.classList.add('show');
+                            // Пересчитываем textarea после показа
+                            recalculateVisibleTextareas();
+                        }, 10);
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
+            });
+        });
+
+        // Управление карточками рэд флагов
+        document.addEventListener('DOMContentLoaded', function () {
+            // Инициализация слайдеров коллегиальных органов
+            document.querySelectorAll('.gov-slider').forEach(function (slider) {
+                const selectId = slider.getAttribute('data-select');
+                const select = document.querySelector(selectId);
+                if (!select) return;
+
+                // Спрячем реальный select (останется для сабмита)
+                select.style.position = 'absolute';
+                select.style.left = '-9999px';
+
+                const viewport = slider.querySelector('.gov-viewport');
+                const track = slider.querySelector('.gov-track');
+                const prevBtn = slider.querySelector('.gov-prev');
+                const nextBtn = slider.querySelector('.gov-next');
+
+                // Функция для получения иконки по названию органа
+                function getGovIcon(orgName) {
+                    const iconMap = {
+                        'Совет директоров': 'sovet_director.svg',
+                        'Наблюдательный совет': 'nabl_sovet.svg',
+                        'Правление': 'pravlenie.svg',
+                        'Комитет по управлению рисками': 'KURI.svg',
+                        'Операционный комитет': 'OPOMO.svg'
+                    };
+                    return iconMap[orgName] || 'info.svg'; // fallback на info.svg если иконка не найдена
+                }
+
+                // Построим элементы из options
+                const options = Array.from(select.options).filter(o => o.value);
+                track.innerHTML = '';
+                options.forEach(function (opt, idx) {
+                    const item = document.createElement('div');
+                    item.className = 'gov-item';
+                    item.setAttribute('data-value', opt.value);
+                    const iconName = getGovIcon(opt.text);
+                    item.innerHTML = '<div class="gov-inner"><div class="gov-icon"><img src="/static/img/' + iconName + '" alt="' + opt.text + '" class="gov-svg"></div><div class="gov-label">' + opt.text + '</div></div>';
+                    track.appendChild(item);
+                });
+                // Если в select нет выбранного значения (extra-форма), НЕ выбираем автоматически первый пункт,
+                // чтобы не создавать дубликаты при сабмите. Разрешим синхронизацию только после явного клика.
+                const initiallySelectedIndex = options.findIndex(o => o.selected);
+                let index = initiallySelectedIndex >= 0 ? initiallySelectedIndex : 0;
+                let allowSync = initiallySelectedIndex >= 0; // синхронизировать select и активное состояние только если было исходное значение
+                const total = options.length;
+
+                function updateSlider() {
+                    const slide = track.children[index];
+                    if (!slide) return;
+                    const offset = slide.offsetLeft; // точное смещение нужного слайда
+                    track.style.transform = 'translate3d(' + (-offset) + 'px, 0, 0)';
+                    // Активное состояние и синхронизация только если это не пустая extra-форма
+                    track.querySelectorAll('.gov-item').forEach((el, i) => {
+                        if (allowSync && i === index) el.classList.add('active'); else el.classList.remove('active');
+                    });
+                    if (allowSync && options[index]) {
+                        select.value = options[index].value;
+                    }
+                }
+
+                function go(delta) {
+                    index = (index + delta + total) % total;
+                    updateSlider();
+                }
+
+                prevBtn.addEventListener('click', () => go(-1));
+                nextBtn.addEventListener('click', () => go(1));
+
+                // Клик по карточке
+                track.addEventListener('click', function (e) {
+                    const item = e.target.closest('.gov-item');
+                    if (!item) return;
+                    const value = item.getAttribute('data-value');
+                    const idx = options.findIndex(o => o.value === value);
+                    if (idx >= 0) {
+                        index = idx;
+                        allowSync = true;
+                        updateSlider();
+                    }
+                });
+
+                // Реагировать на внешнее изменение select (если будет)
+                select.addEventListener('change', function () {
+                    const idx = options.findIndex(o => o.value === select.value);
+                    if (idx >= 0) {
+                        index = idx;
+                        allowSync = true;
+                        updateSlider();
+                    }
+                });
+
+                // Пересчет ширины при ресайзе
+                window.addEventListener('resize', updateSlider);
+                // Инициализируем только позиционирование. Если исходного выбора нет, select остается пустым
+                updateSlider();
+            });
+
+            // Утилита: пересчитать кол-во "живых" (существующих в БД и не помеченных на удаление)
+            function syncCollegialCountRadios() {
+                const radios = document.querySelectorAll('input[name="collegial_count"]');
+                const formBlocks = Array.from(document.querySelectorAll('[id^="collegial_form_"]'));
+                const alive = formBlocks.reduce((acc, b) => {
+                    const idInput = b.querySelector('input[name$="-id"]');
+                    const del = (b.querySelector('input[name$="-DELETE"]') || {}).checked;
+                    const governingBodies = b.querySelector('select[name$="-governing_bodies"]');
+
+                    // Считаем формы, которые:
+                    // 1. Имеют существующий id в БД и не помечены на удаление, ИЛИ
+                    // 2. Не имеют id (новые формы), но имеют выбранный орган управления и не помечены на удаление
+                    if ((idInput && idInput.value && !del) || (!idInput && governingBodies && governingBodies.value && !del)) {
+                        return acc + 1;
+                    }
+                    return acc;
+                }, 0);
+
+                if (radios.length) {
+                    if (alive <= 0) radios[0].checked = true; // 0
+                    else if (alive === 1) radios[1].checked = true; // 1
+                    else radios[2].checked = true; // 2
+                }
+            }
+
+            // Удаление коллегиального органа: синхронизация с hidden DELETE
+            document.querySelectorAll('.gov-remove-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const idx = this.getAttribute('data-index');
+                    const formRoot = document.getElementById('collegial_form_' + idx);
+                    if (!formRoot) return;
+
+                    // Ищем соответствующий checkbox DELETE внутри этой формы
+                    const delInput = formRoot.querySelector('input[type="checkbox"][name$="-DELETE"]') || formRoot.querySelector('input[name$="-DELETE"]');
+                    if (!delInput) return;
+
+                    // Переключаем
+                    delInput.checked = !delInput.checked;
+
+                    // Визуально скрываем/показываем поля формы, чтобы было понятно что удалено
+                    formRoot.classList.toggle('gov-deleted', delInput.checked);
+                    // Меняем текст кнопки
+                    this.classList.toggle('btn-outline-danger', !delInput.checked);
+                    this.classList.toggle('btn-success', delInput.checked);
+                    this.textContent = delInput.checked ? 'Восстановить орган' : 'Удалить орган';
+
+                    // Автосинхронизация radio количества (но не удаляем второй автоматически)
+                    syncCollegialCountRadios();
+                    // Также синхронизируем с функцией из legal_opin.js для корректной работы previousValue
+                    if (window.syncRadioWithActiveCount) {
+                        window.syncRadioWithActiveCount();
+                    }
+                    // Не трогаем TOTAL_FORMS — формы остаются, просто одна помечена на удаление
+                });
+            });
+
+            // Установим корректное значение радио при первом открытии страницы (по данным из БД)
+            syncCollegialCountRadios();
+            // Блокируем взаимодействие с чекбоксами 'Особые маркеры' (readonly)
+            document.querySelectorAll('#section-markers .form-check-input[readonly], #section-markers .form-check-input.readonly-field').forEach(cb => {
+                cb.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                });
+                cb.setAttribute('tabindex', '-1');
+            });
+
+            const redFlagCards = document.querySelectorAll('.red-flag-card');
+            const redFlagsGrids = document.querySelectorAll('.red-flags-grid');
+
+            // Функция для умного раскрытия контента
+            function hasContent(content) {
+                if (!content) return false;
+
+                // Проверяем, есть ли реальный контент (поля, дочерние элементы)
+                const formGroups = content.querySelectorAll('.form-group');
+                const childElements = content.querySelectorAll('.red-flag-child');
+
+                // Специальная проверка для карточки "Заказчик по закупкам"
+                const isZakupCard = content.closest('.red-flag-card').getAttribute('data-field') === 'zakup';
+
+                return formGroups.length > 0 || childElements.length > 0 || isZakupCard;
+            }
+
+            // Функция для перемещения активных рэд флагов в начало
+            function reorderActiveFlags() {
+                // Отключено по требованию: больше не меняем порядок карточек при кликах
+                return;
+            }
+
+            redFlagCards.forEach(card => {
+                const checkbox = card.querySelector(':scope > .red-flag-header > .red-flag-toggle > .red-flag-checkbox');
+                const content = card.querySelector('.red-flag-content');
+                const statusEl = card.querySelector('.red-flag-status');
+
+                // Пропускаем карточки без основного чекбокса (дочерние элементы)
+                if (!checkbox) return;
+
+                // Зафиксируем исходное автоматическое состояние (что пришло с бэка)
+                const autoWasOn = checkbox.hasAttribute('data-originally-checked');
+
+                function setStatusText() {
+                    if (!statusEl) return;
+                    // Сброс классов состояний
+                    card.classList.remove('state-auto-on', 'state-auto-off', 'state-manual-from-on', 'state-manual-from-off');
+
+                    if (checkbox.checked && autoWasOn) {
+                        statusEl.textContent = 'Обнаружена опасность';
+                        card.classList.add('state-auto-on');
+                    } else if (!checkbox.checked && !autoWasOn) {
+                        statusEl.textContent = 'Опасностей не обнаружено';
+                        card.classList.add('state-auto-off');
+                    } else if (!checkbox.checked && autoWasOn) {
+                        statusEl.textContent = 'Опасность была обнаружена, но были внесены корректировки';
+                        card.classList.add('state-manual-from-on');
+                    } else if (checkbox.checked && !autoWasOn) {
+                        statusEl.textContent = 'Опасность не была обнаружена, но были внесены корректировки';
+                        card.classList.add('state-manual-from-off');
+                    }
+                }
+
+                // Функция для обновления состояния карточки
+                function updateCardState() {
+                    if (checkbox.checked) {
+                        card.classList.add('active');
+
+                        if (content && hasContent(content)) {
+                            const isReadonly = card.classList.contains('readonly');
+                            if (isReadonly) {
+                                const wasOriginallyChecked = checkbox.hasAttribute('data-originally-checked');
+                                if (wasOriginallyChecked) {
+                                    content.style.display = 'block';
+                                    setTimeout(() => content.classList.add('show'), 10);
+                                }
+                            } else {
+                                // Показываем только текущий контент
+                                content.style.display = 'block';
+                                setTimeout(() => content.classList.add('show'), 10);
+                                // Пересчитываем высоту textarea внутри раскрытого контента
+                                requestAnimationFrame(() => {
+                                    recalculateVisibleTextareas();
+                                });
+                            }
+                        }
+                    } else {
+                        card.classList.remove('active');
+                        if (content) {
+                            content.classList.remove('show');
+                            setTimeout(() => {
+                                content.style.display = 'none';
+                            }, 400);
+                        }
+                    }
+                    reorderActiveFlags();
+                    setStatusText();
+                }
+
+                // Обработчик изменения чекбокса
+                checkbox.addEventListener('change', updateCardState);
+
+                // Safety: ensure label click toggles zakup_win even inside readonly parent
+                if (checkbox.id === 'id_zakup_win') {
+                    const label = card.querySelector('label[for="id_zakup_win"]');
+                    if (label) {
+                        label.addEventListener('click', function (e) {
+                            // allow default; stop any parent handlers from cancelling
+                            e.stopPropagation();
+                        });
+                    }
+                }
+
+                // Инициализация состояния при загрузке
+                updateCardState();
+                setStatusText();
+
+                // Карточки автоматического анализа больше не readonly — позволяем переключение
+
+                // Добавляем класс для карточек без контента
+                if (!hasContent(content)) {
+                    card.classList.add('no-content');
+                }
+
+                // Специальная обработка для карточки "Заказчик по закупкам"
+                if (card.getAttribute('data-field') === 'zakup' && checkbox.checked) {
+                    // Принудительно показываем контент при загрузке, если рэд флаг активен
+                    if (content) {
+                        content.style.display = 'block';
+                        content.classList.add('show');
+                        // Пересчитываем textarea
+                        setTimeout(() => recalculateVisibleTextareas(), 50);
+                    }
+                }
+            });
+
+            // Перемещаем активные рэд флаги в начало после инициализации всех карточек
+            reorderActiveFlags();
+
+            // Обработчик для дочерних рэд флагов
+            const childCheckboxes = document.querySelectorAll('.red-flag-child .red-flag-checkbox');
+            childCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    // Обновляем стили дочернего элемента
+                    const childElement = this.closest('.red-flag-child');
+                    if (this.checked) {
+                        childElement.classList.add('active');
+                    } else {
+                        childElement.classList.remove('active');
+                    }
+                });
+
+                // Инициализация состояния дочерних элементов
+                if (checkbox.checked) {
+                    checkbox.closest('.red-flag-child').classList.add('active');
+                }
+            });
+
+
+        });
+    </script>
+
+
+    <script src="{% static 'js/legal_opin.js' %}"></script>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<script id="xml-fields-json" type="application/json">{{ xml_fields|json_script:"xml-fields" }}</script>
-<script id="xml-data-json" type="application/json">{{ xml_data|yesno:'true,false'|json_script:"xml-data" }}</script>
-<script src="{% static 'js/legal_opin.js' %}"></script>    
-    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script id="xml-fields-json" type="application/json">{{ xml_fields|json_script:"xml-fields" }}</script>
+    <script id="xml-data-json" type="application/json">{{ xml_data|yesno:'true,false'|json_script:"xml-data" }}</script>
+    <script src="{% static 'js/legal_opin.js' %}"></script>
+
 {% endblock %}

@@ -103,6 +103,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const form0 = document.getElementById('collegial_form_0');
         const form1 = document.getElementById('collegial_form_1');
 
+        const selectFirstOptionIfEmpty = (formIndex) => {
+            const form = document.getElementById(`collegial_form_${formIndex}`);
+            if (!form) return;
+            const idInput = form.querySelector('input[name$="-id"]');
+            const hasDbId = !!(idInput && idInput.value);
+            if (hasDbId) return; // существующую запись не трогаем
+            const select = form.querySelector('select[name$="-governing_bodies"]');
+            if (!select) return;
+            if (!select.value) {
+                const first = Array.from(select.options).find(o => o.value);
+                if (first) {
+                    select.value = first.value;
+                    // уведомим слайдер о смене
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        };
+
         const updateForms = () => {
             const value = document.querySelector('input[name="collegial_count"]:checked')?.value;
 
@@ -115,34 +133,142 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (form0) form0.style.display = 'block';
                 if (form1) form1.style.display = 'none';
                 clearForm(1);
+                // При первом показе формы-0 выберем значение по умолчанию
+                selectFirstOptionIfEmpty(0);
             } else if (value === '2') {
                 if (form0) form0.style.display = 'block';
                 if (form1) form1.style.display = 'block';
+                // При первом показе выберем значения по умолчанию
+                selectFirstOptionIfEmpty(0);
+                selectFirstOptionIfEmpty(1);
             }
         };
 
-        // Инициализация
-        if (form0Value && form1Value) {
-            document.getElementById('collegial_count_2').checked = true;
-        } else if (form0Value || form1Value) {
-            document.getElementById('collegial_count_1').checked = true;
-            if (form0Value) {
-                clearForm(1);
-            } else {
-                clearForm(0);
+        // Функция проверки заполненности формы
+        const hasFormData = (formIndex) => {
+            const form = document.getElementById(`collegial_form_${formIndex}`);
+            if (!form) return false;
+            
+            const inputs = form.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=button]):not([type=submit]):not([type=reset]), textarea, select');
+            const hasValue = Array.from(inputs).some(input => input.value.trim() !== '');
+            
+            const deleteCheckbox = form.querySelector('input[name$="-DELETE"]');
+            return hasValue && (!deleteCheckbox || !deleteCheckbox.checked);
+        };
+
+        // Функция показа предупреждения
+        const showWarning = (message) => {
+            // Создаем модал предупреждения
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Внимание!
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-0">${message}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Понятно</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Показываем модал
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Удаляем модал после скрытия
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        };
+
+        // Функция проверки безопасности изменения количества
+        const checkSafeChange = (newValue, oldValue) => {
+            if (newValue >= oldValue) return true; // Увеличение - безопасно
+            
+            // Проверяем, есть ли заполненные данные в формах, которые будут скрыты
+            if (newValue === '0' && (hasFormData(0) || hasFormData(1))) {
+                showWarning('У вас есть заполненные данные в коллегиальных органах. Если хотите уменьшить количество органов, используйте кнопку "Удалить орган" для каждого органа отдельно.');
+                return false;
             }
+            
+            if (newValue === '1' && oldValue === '2' && hasFormData(1)) {
+                showWarning('Во втором коллегиальном органе есть заполненные данные. Если хотите убрать его, используйте кнопку "Удалить орган".');
+                return false;
+            }
+            
+            return true;
+        };
+
+        // Инициализация с учетом пометок DELETE (живые = имеющие id и не помеченные на удаление)
+        const del0 = document.querySelector('input[name="collegial-0-DELETE"]')?.checked;
+        const del1 = document.querySelector('input[name="collegial-1-DELETE"]')?.checked;
+        
+        // Считаем только органы с id (существующие в БД) и не помеченные на удаление
+        const alive = (document.querySelector('input[name="collegial-0-id"]')?.value && !del0 ? 1 : 0)
+                    + (document.querySelector('input[name="collegial-1-id"]')?.value && !del1 ? 1 : 0);
+
+        if (alive >= 2) {
+            document.getElementById('collegial_count_2').checked = true;
+        } else if (alive === 1) {
+            document.getElementById('collegial_count_1').checked = true;
         } else {
             document.getElementById('collegial_count_0').checked = true;
-            clearForm(0);
-            clearForm(1);
         }
 
         updateForms();
 
-        // Обработчики для радиокнопок
+        // Обработчики для радиокнопок с защитой от потери данных
+        let previousValue = document.querySelector('input[name="collegial_count"]:checked')?.value || '0';
+        
         document.querySelectorAll('input[name="collegial_count"]').forEach(radio => {
-            radio.addEventListener('change', updateForms);
+            radio.addEventListener('change', function() {
+                const newValue = this.value;
+                
+                if (checkSafeChange(newValue, previousValue)) {
+                    updateForms();
+                    previousValue = newValue;
+                } else {
+                    // Возвращаем предыдущее значение
+                    document.querySelector(`input[name="collegial_count"][value="${previousValue}"]`).checked = true;
+                }
+            });
         });
+
+        // Функция синхронизации радио с количеством активных органов
+        const syncRadioWithActiveCount = () => {
+            const del0 = document.querySelector('input[name="collegial-0-DELETE"]')?.checked;
+            const del1 = document.querySelector('input[name="collegial-1-DELETE"]')?.checked;
+            
+            // Считаем только органы с id (существующие в БД) и не помеченные на удаление
+            const alive = (document.querySelector('input[name="collegial-0-id"]')?.value && !del0 ? 1 : 0)
+                        + (document.querySelector('input[name="collegial-1-id"]')?.value && !del1 ? 1 : 0);
+            
+            if (alive >= 2) {
+                document.getElementById('collegial_count_2').checked = true;
+                previousValue = '2';
+            } else if (alive === 1) {
+                document.getElementById('collegial_count_1').checked = true;
+                previousValue = '1';
+            } else {
+                document.getElementById('collegial_count_0').checked = true;
+                previousValue = '0';
+            }
+        };
+
+        // Делаем функцию доступной глобально для вызова из шаблона
+        window.syncRadioWithActiveCount = syncRadioWithActiveCount;
     }
 
     // функция отвечает за блок 67,1

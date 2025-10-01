@@ -1,24 +1,21 @@
- <div id="news-container">
+ <div id="risks-container">
     {% for rsk in risks %}
-    <div class="card mb-3 shadow-sm position-relative news-item" 
+    <div class="card mb-3 shadow-sm position-relative risk-item" 
          data-direct="{{ rsk.direction.id }}" 
-         data-subject="{{ rsk.subject.id }}" 
-         data-kind="{{ rsk.kind.id }}">
+         data-subject="{{ rsk.subject.id }}"
+         data-risk-id="{{ rsk.id }}"
+         data-risk-name="{{ rsk.risk|lower }}"
+         data-negative-consequences="{{ rsk.negative_consequences|striptags|lower }}">
         <div class="card-body">
-            <div class="other">
-                <div class="status-line mb-2">
-                    <h5>Направление деятельности Банка, свойственное риску:</h5>
-                    <p>{{ rsk.direction }}</p>
-                    <h5>Вид правовой экспертизы:</h5>
-                    <p>{{ rsk.kind }}</p>
-                    <h5>Предмет правового анализа:</h5>
-                    <p>{{ rsk.subject }}</p>
+            <div class="risk-card-content">
+                <div class="risk-id mb-2">
+                    <span class="badge bg-secondary">ID: {{ rsk.id }}</span>
                 </div>
-                <h5>Риск:</h5>
-                <p>{{ rsk.risk }}</p>
-                <h5>Риск-факторы:</h5>
-                <p>{{ risk.get_absolute_url }}</p>
-                <p class="card-text">{{ rsk.risk_factor|safe }}</p>
+                <h5 class="risk-name">{{ rsk.risk }}</h5>
+                <div class="risk-negative-consequences">
+                    <h6>Негативные последствия:</h6>
+                    <p class="risk-negative-text">{{ rsk.negative_consequences|striptags|truncatechars:100 }}</p>
+                </div>
                 <a href="{{ rsk.get_absolute_url }}" class="stretched-link"> </a>
             </div>
         </div>
@@ -31,71 +28,185 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Элементы DOM
-    const newsContainer = document.getElementById('news-container');
-    const newsItems = document.querySelectorAll('.news-item');
-    const directCheckboxes = document.querySelectorAll('.direct-checkbox');
-    const subjectCheckboxes = document.querySelectorAll('.subject-checkbox');
-    const kindRadios = document.querySelectorAll('.kind-radio');
+    const risksContainer = document.getElementById('risks-container');
+    const riskItems = document.querySelectorAll('.risk-item');
+    const directionFilter = document.getElementById('direction-filter');
+    const subjectFilter = document.getElementById('subject-filter');
+    const searchInput = document.getElementById('risk-search');
     const resetButton = document.getElementById('reset-filters');
-    
-    // Функция фильтрации новостей
-    function filterNews() {
-        // Получаем выбранные рубрики
 
-        
-        // Получаем выбранную категорию
-        const selectedKind = document.querySelector('input[name="kind"]:checked').value;
-        console.log('Получаем выбранную категорию', selectedKind)
+    /**
+     * Функция для подсветки найденного текста
+     */
+    function highlightText(element, query, className = 'highlight') {
+        if (!query || query.length < 2) {
+            removeHighlight(element);
+            return;
+        }
 
-        
-        newsItems.forEach(item => {
-            const itemDirect = item.getAttribute('data-direct');
-            const itemSubject = item.getAttribute('data-subject');
-            
-            const itemKind = item.getAttribute('data-kind');
-            console.log('Получаем выбранную категорию новости', itemKind)
-            
-            // Проверка соответствия фильтрам
-            const categoryDirect = !selectedDirect || itemDirect == selectedDirect;
-            
-            const categorySubject = !selectedSubject || itemSubject == selectedSubject;
-            
-            const categoryKind = !selectedKind || itemKind == selectedKind;
-            console.log('Проверка соответствия фильтрам', categoryKind)
-            
-            // Показываем/скрываем элемент
-            item.style.display = (categoryDirect && categorySubject && categoryKind) ? 'block' : 'none';
+        const walker = document.createTreeWalker(
+            element,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+
+        const textNodes = [];
+        let node;
+        while (node = walker.nextNode()) {
+            textNodes.push(node);
+        }
+
+        textNodes.forEach(textNode => {
+            const text = textNode.textContent;
+            const regex = new RegExp(`(${query})`, 'gi');
+
+            if (regex.test(text)) {
+                const highlightedText = text.replace(regex, `<mark class="${className}">$1</mark>`);
+                const wrapper = document.createElement('span');
+                wrapper.innerHTML = highlightedText;
+                textNode.parentNode.replaceChild(wrapper, textNode);
+            }
         });
     }
-    
-    // Обработчики изменений фильтров   
-    directRadios.forEach(radio => {
-        radio.addEventListener('change', filterNews);
-    });
-	
-	subjectRadios.forEach(radio => {
-        radio.addEventListener('change', filterNews);
-    });
-	
-	kindRadios.forEach(radio => {
-        radio.addEventListener('change', filterNews);
-    });
-    
-    // Обработчик сброса фильтров
-    resetButton.addEventListener('click', function() {
-        // Сбрасываем чекбоксы рубрик
-        
-        // Сбрасываем радио кнопки категорий (выбираем "Все категории")
-        document.getElementById('direct-all').checked = true;
 
-        // Сбрасываем радио кнопки категорий (выбираем "Все категории")
-        document.getElementById('subject-all').checked = true;
+    /**
+     * Функция для удаления подсветки
+     */
+    function removeHighlight(element) {
+        const highlights = element.querySelectorAll('mark.highlight');
+        highlights.forEach(mark => {
+            const parent = mark.parentNode;
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parent.normalize();
+        });
+    }
 
-        // Сбрасываем радио кнопки категорий (выбираем "Все категории")
-        document.getElementById('kind-all').checked = true;		
+    /**
+     * Поиск делаем частью общей фильтрации. Этот хелпер просто триггерит её.
+     */
+    function searchRisks() {
+        filterRisks();
+    }
+    
+    /**
+     * Функция фильтрации рисков
+     */
+    function filterRisks() {
+        const directionCheckboxes = document.querySelectorAll('.direction-checkbox');
+        const subjectCheckboxes = document.querySelectorAll('.subject-checkbox');
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
         
-        // Применяем фильтрацию
-        filterNews();
-    });
+        const selectedDirections = Array.from(directionCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        const selectedSubjects = Array.from(subjectCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+
+        let visibleCount = 0;
+        
+        riskItems.forEach(item => {
+            const itemDirect = item.getAttribute('data-direct');
+            const itemSubject = item.getAttribute('data-subject');
+            const riskId = item.dataset.riskId || '';
+            const riskName = item.dataset.riskName || '';
+            const negativeConsequences = item.dataset.negativeConsequences || '';
+            
+            // Проверка соответствия фильтрам
+            const directMatch = selectedDirections.length === 0 || selectedDirections.includes(itemDirect);
+            const subjectMatch = selectedSubjects.length === 0 || selectedSubjects.includes(itemSubject);
+            const searchMatch = !query || riskId.includes(query) || riskName.includes(query) || negativeConsequences.includes(query);
+
+            const shouldShow = directMatch && subjectMatch && searchMatch;
+            
+            // Показываем/скрываем элемент
+            item.style.display = shouldShow ? 'block' : 'none';
+            // Подсветка текста
+            removeHighlight(item);
+            if (shouldShow && query.length >= 2) {
+                const riskNameElement = item.querySelector('.risk-name');
+                const riskNegativeElement = item.querySelector('.risk-negative-text');
+                if (riskNameElement && riskName.includes(query)) {
+                    highlightText(riskNameElement, query);
+                }
+                if (riskNegativeElement && negativeConsequences.includes(query)) {
+                    highlightText(riskNegativeElement, query);
+                }
+            }
+            
+            if (shouldShow) {
+                visibleCount++;
+            }
+        });
+        
+        // Показываем сообщение если нет результатов
+        updateEmptyState();
+    }
+
+    /**
+     * Глобальная функция для применения всех фильтров
+     */
+    window.applyAllFilters = function() {
+        filterRisks();
+    };
+
+    /**
+     * Глобальная функция для сброса всех фильтров
+     */
+    window.resetAllFilters = function() {
+        const directionCheckboxes = document.querySelectorAll('.direction-checkbox');
+        const subjectCheckboxes = document.querySelectorAll('.subject-checkbox');
+        
+        // Сбрасываем направления
+        directionCheckboxes.forEach(cb => cb.checked = false);
+        
+        // Сбрасываем предметы
+        subjectCheckboxes.forEach(cb => cb.checked = false);
+        
+        if (searchInput) searchInput.value = '';
+        
+        // Убираем всю подсветку
+        riskItems.forEach(item => {
+            removeHighlight(item);
+        });
+        
+        filterRisks();
+    };
+
+    /**
+     * Показывает/скрывает сообщение об отсутствии результатов
+     */
+    function updateEmptyState() {
+        const visibleItems = Array.from(riskItems).filter(item => item.style.display !== 'none');
+        let emptyMessage = risksContainer.querySelector('.empty-state-message');
+
+        if (visibleItems.length === 0) {
+            if (!emptyMessage) {
+                emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-state-message text-center py-5';
+                emptyMessage.innerHTML = `
+                    <div class="text-muted">
+                        <i class="bi bi-search" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <h5 class="mt-3">Риски не найдены</h5>
+                        <p>Попробуйте изменить параметры поиска или фильтры</p>
+                    </div>
+                `;
+                risksContainer.appendChild(emptyMessage);
+            }
+            emptyMessage.style.display = 'block';
+        } else if (emptyMessage) {
+            emptyMessage.style.display = 'none';
+        }
+    }
+    
+    // Обработчик поиска
+    if (searchInput) {
+        searchInput.addEventListener('input', searchRisks);
+    }
+
+    // Первичная фильтрация при загрузке страницы
+    filterRisks();
 });
 </script>

@@ -1,16 +1,12 @@
 from django.contrib import admin
-from .models import LegalEntity, ExecutiveBody, Participant, Collegial_governing_bodies, DealParticipant, Collateral, Deal, Credit_product, Role_in_deal
+from .models import (LegalEntity, ExecutiveBody, Risk_DealParticipant, Participant, Collegial_governing_bodies,
+                     DealParticipant, Deal, Credit_product, Role_in_deal, Type_Collateral, Collateral, Risk_help)
 
 
 # Используем TabularInline для удобного редактирования связанных объектов
 class DealParticipantInline(admin.TabularInline):
     model = DealParticipant
     extra = 1  # Количество пустых форм для добавления
-
-
-class CollateralInline(admin.TabularInline):
-    model = Collateral
-    extra = 1
 
 
 @admin.register(LegalEntity)
@@ -39,66 +35,61 @@ class ParticipantAdmin(admin.ModelAdmin):
 
 
 @admin.register(Collegial_governing_bodies)
-# модель участники
+# модель коллегиальные органы
 class CollegialAdmin(admin.ModelAdmin):
     list_display = ['governing_bodies', 'legal_entity', ]
     list_filter = ['legal_entity']
 
 
 @admin.register(Role_in_deal)
-# модель участники
+# модель участник сделки (список ролей)
 class Role_in_dealAdmin(admin.ModelAdmin):
     list_display = ['name', ]
     list_filter = ['name']
 
 
 @admin.register(Deal)
+# модель сделка
 class DealAdmin(admin.ModelAdmin):
-    list_display = ('number', 'date', 'credit_product', 'amount',)
+    list_display = ('bid_number', 'bid_date', 'credit_product', 'amount',)
     list_filter = ('credit_product', 'created_at')
-    inlines = [DealParticipantInline, CollateralInline]  # Добавляем инлайны на страницу сделки
     readonly_fields = ('created_at',)
 
 
 @admin.register(Credit_product)
-# модель участники
+# модель тип кредитного продукта
 class Credit_productAdmin(admin.ModelAdmin):
     list_display = ['name', ]
     list_filter = ['name']
 
 
 @admin.register(DealParticipant)
+# модель участники сделки
 class DealParticipantAdmin(admin.ModelAdmin):
-    list_display = ('deal', 'legal_entity', 'role', 'is_major_deal')
-    list_filter = ('role', 'is_major_deal')
+    list_display = ('deal', 'legal_entity', 'role')
+    list_filter = ('deal','role')
+
+
+@admin.register(Type_Collateral)
+# модель тип обеспечения
+class Type_CollateralAdmin(admin.ModelAdmin):
+    list_display = ['name', ]
+    list_filter = ['name']
 
 
 @admin.register(Collateral)
 class CollateralAdmin(admin.ModelAdmin):
-    list_display = ('id', 'deal', 'owner', 'get_collateral_type_display', 'name', 'cadastral_number')
-    list_filter = ('collateral_type', 'deal', 'owner')
-    search_fields = ('name', 'cadastral_number', 'address', 'deal__id')
-    fieldsets = (
-        ('Основная информация', {
-            'fields': ('deal', 'owner', 'collateral_type')
-        }),
-        ('Недвижимость', {
-            'fields': ('name', 'cadastral_number', 'address', 'related_objects_info', 'registered_rights_info', 'notes'),
-            'classes': ('collapse',),
-        }),
-        ('Ценные бумаги', {
-            'fields': ('general_info_securities', 'registrar'),
-            'classes': ('collapse',),
-        }),
-        ('Доли в УК', {
-            'fields': ('share_size', 'info_shares'),
-            'classes': ('collapse',),
-        }),
-        ('Общее', {
-            'fields': ('encumbrances',),
-        }),
-    )
+    list_display = ('deal', 'owner', 'type')
+    list_filter = ('deal', 'owner')
 
-    def get_collateral_type_display(self, obj):
-        return obj.get_collateral_type_display()
-    get_collateral_type_display.short_description = 'Тип обеспечения'
+
+@admin.register(Risk_DealParticipant)
+class Risk_DealParticipantlAdmin(admin.ModelAdmin):
+    list_display = ('risk', 'owner', 'deal')
+    list_filter = ('deal', 'owner')
+
+
+@admin.register(Risk_help)
+class Risk_helpAdmin(admin.ModelAdmin):
+    list_display = ('field_ul',)
+    list_filter = ('identefik', 'value_field_ul')

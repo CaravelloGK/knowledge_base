@@ -1,0 +1,12 @@
+{#{% load keycloak_tags %}#}
+{% load static %}
+
+{#    {% if request.user|in_group:'moderator' %}#}
+        <div class="ms-2 flex-shrink-0">
+          <div class="d-flex align-items-center gap-2 mt-1" style="align-items: unset !important">
+            <a href="{% url 'docs:document_create' %}" class="action-link" title="Добавить информацию">
+              <img src="{% static 'images/create.svg' %}" alt="Добавить информацию" class="action-icon" style="width:24px; height:24px;">
+            </a>
+          </div>
+        </div>
+{#    {% endif %}#}

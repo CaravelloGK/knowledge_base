@@ -1,0 +1,122 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <style>
+        .empty-form {
+            display: none;
+        }
+        /* Добавляем разделитель между формами для наглядности */
+        .risk-form-container {
+            border-top: 1px solid #dee2e6;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .risk-form-container:first-child {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+        }
+    </style>
+
+<div class="container my-4">
+    <h1>Риски по сделке: {{ deal.name|default:"Без названия" }}</h1>
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" class="form">
+        {% csrf_token %}
+
+        <div class="accordion" id="participantsAccordion">
+        {% for participant, formset in participant_formsets.items %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{ participant.id }}">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ participant.id }}" aria-expanded="true" aria-controls="collapse-{{ participant.id }}">
+                        Участник: {{ participant.legal_entity.name|default:"Не указано" }} (роль: {{ participant.role.name }})
+                        <span class="badge bg-primary rounded-pill ms-3">{{ formset|length }} {% if formset|length == 1 %}риск{% elif formset|length > 1 and formset|length < 5 %}риска{% else %}рисков{% endif %}</span>
+                    </button>
+                </h2>
+                <div id="collapse-{{ participant.id }}" class="accordion-collapse collapse show" aria-labelledby="heading-{{ participant.id }}">
+                    <div class="accordion-body">
+                        
+                        {{ formset.management_form|crispy }}
+
+                        <div id="formset-container-{{ participant.id }}">
+                            {% for form in formset %}
+                                <div class="risk-form-container">
+                                    {{ form.id }} {# Скрытое поле с id экземпляра #}
+                                    
+                                    {% crispy form %} {# <-- Вот магия Crispy! Рендерит все поля согласно FormHelper #}
+                                    
+                                    {% if formset.can_delete %}
+                                    <div class="form-check mt-2">
+                                        {{ form.DELETE }}
+                                        <label class="form-check-label text-danger" for="{{ form.DELETE.id_for_label }}">Отметить для удаления</label>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Шаблон для новой формы (будет клонироваться через JS) -->
+                        <div id="empty-form-{{ participant.id }}" class="empty-form">
+                            <div class="risk-form-container">
+                                {% crispy formset.empty_form %}
+                                {% if formset.can_delete %}
+                                <div class="form-check mt-2">
+                                    {{ formset.empty_form.DELETE }}
+                                    <label class="form-check-label text-danger" for="{{ formset.empty_form.DELETE.id_for_label }}">Отметить для удаления</label>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-outline-secondary mt-3 add-form-btn" data-prefix="{{ formset.prefix }}" data-participant-id="{{ participant.id }}">
+                            Добавить новый риск
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+        
+        <hr class="my-4">
+        <button type="submit" class="btn btn-primary btn-lg">Сохранить все риски</button>
+    </form>
+</div>
+
+<!-- Подключаем JS для Bootstrap и для добавления форм -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-form-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const prefix = this.dataset.prefix;
+            const participantId = this.dataset.participantId;
+            
+            const totalFormsInput = document.querySelector(`#id_${prefix}-TOTAL_FORMS`);
+            let currentFormCount = parseInt(totalFormsInput.value);
+            
+            // Клонируем HTML-содержимое шаблона пустой формы
+            const emptyFormTemplate = document.querySelector(`#empty-form-${participantId}`);
+            const newFormHtml = emptyFormTemplate.innerHTML.replace(/__prefix__/g, currentFormCount);
+
+            // Вставляем новую форму в DOM
+            const formContainer = document.querySelector(`#formset-container-${participantId}`);
+            formContainer.insertAdjacentHTML('beforeend', newFormHtml);
+
+            // Увеличиваем счетчик форм
+            totalFormsInput.value = currentFormCount + 1;
+        });
+    });
+});
+</script>
+{% endblock %}

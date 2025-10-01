@@ -1,34 +1,35 @@
-    <div class="filters">
-            <h4>Направление деятельности Банка, свойственное риску</h4>
-            <div class="direct-filters">
-                {% for elem_1 in Direction %}
-                <div class="form-check">
-                    <input class="form-check-input direct-radio" type="radio" 
-                           name="direct" 
-                           id="direct-{{ elem_1.id }}" 
-                           value="{{ elem_1.id }}">
-                    <label class="form-check-label" for="direct-{{ elem_1.id }}">
-                        {{ elem_1.name }}
-                    </label>
-                </div>
-                {% endfor %}
-                <div class="form-check">
-                    <input class="form-check-input direct-radio" type="radio" 
-                           name="direct" 
-                           id="direct-all" 
-                           value="" checked>
-                    <label class="form-check-label" for="direct-all">
-                        Все направление деятельности Банка
-                    </label>
-                </div>
-            </div>
-			
-            <h4>Предмет правового анализа</h4>
-            <div class="subject-filters">
+<div class="filters">
+    <h6 class="fw-bold" style="margin-top: 1rem;">Направление деятельности Банка</h6>
+    <div class="direct-filters">
+        {% for elem_1 in Direction %}
+        <div class="form-check">
+            <input class="form-check-input direction-checkbox" type="checkbox" 
+                   id="direction-{{ elem_1.id }}" 
+                   value="{{ elem_1.id }}">
+            <label class="form-check-label" for="direction-{{ elem_1.id }}">
+                {{ elem_1.name }}
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <h6 class="fw-bold" style="margin-top: 1rem;">Предмет правового анализа</h6>
+    <div class="dropdown-filter">
+        <div class="subject-input-container" id="subjectInputContainer">
+            <div class="subject-tags" id="subjectTags"></div>
+            <button class="btn btn-outline-secondary subject-dropdown-btn" type="button" 
+                    id="subjectDropdownButton">
+                <span id="subject-button-text">Выберите предметы</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+        </div>
+        <div class="custom-dropdown-menu" id="subjectDropdownMenu">
+            <input type="text" class="form-control form-control-sm mb-2" 
+                   id="subject-search" placeholder="Поиск...">
+            <div class="dropdown-content" id="subject-options">
                 {% for elem_3 in Subject %}
-                <div class="form-check">
-                    <input class="form-check-input subject-radio" type="radio" 
-                           name="subject" 
+                <div class="form-check subject-option" data-name="{{ elem_3.name|lower }}">
+                    <input class="form-check-input subject-checkbox" type="checkbox" 
                            id="subject-{{ elem_3.id }}" 
                            value="{{ elem_3.id }}">
                     <label class="form-check-label" for="subject-{{ elem_3.id }}">
@@ -36,84 +37,234 @@
                     </label>
                 </div>
                 {% endfor %}
-                <div class="form-check">
-                    <input class="form-check-input subject-radio" type="radio" 
-                           name="subject" 
-                           id="subject-all" 
-                           value="" checked>
-                    <label class="form-check-label" for="subject-all">
-                        Все предметы правового анализа
-                    </label>
-                </div>
-            </div>		
-
-            <h4>Вид правовой экспертизы</h4>
-            <div class="kind-filters">
-                {% for elem_2 in Kind %}
-                <div class="form-check">
-                    <input class="form-check-input kind-radio" type="radio" 
-                           name="kind" 
-                           id="kind-{{ elem_2.id }}" 
-                           value="{{ elem_2.id }}">
-                    <label class="form-check-label" for="kind-{{ elem_2.id }}">
-                        {{ elem_2.name }}
-                    </label>
-                </div>
-                {% endfor %}
-                <div class="form-check">
-                    <input class="form-check-input kind-radio" type="radio" 
-                           name="kind" 
-                           id="kind-all" 
-                           value="" checked>
-                    <label class="form-check-label" for="kind-all">
-                        Все категории
-                    </label>
-                </div>
             </div>
-            <button id="reset-filters" class="btn btn-secondary mt-3">Сбросить фильтры</button>
         </div>
+    </div>
+    
+    <button id="reset-filters" class="btn btn-secondary mt-3">Сбросить фильтры</button>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const newsItems = document.querySelectorAll('.news-item');
-    
-    const directRadios = document.querySelectorAll('input[name="direct"]');
-    const subjectRadios = document.querySelectorAll('input[name="subject"]');
-    const kindRadios = document.querySelectorAll('input[name="kind"]');
-    const resetButton = document.getElementById('reset-filters');
+const riskItems = document.querySelectorAll('.risk-item');
+const directionCheckboxes = document.querySelectorAll('.direction-checkbox');
+const subjectCheckboxes = document.querySelectorAll('.subject-checkbox');
+const subjectSearch = document.getElementById('subject-search');
+const subjectOptions = document.getElementById('subject-options');
+const subjectButtonText = document.getElementById('subject-button-text');
+const subjectDropdownButton = document.getElementById('subjectDropdownButton');
+const subjectDropdownMenu = document.getElementById('subjectDropdownMenu');
+const resetButton = document.getElementById('reset-filters');
 
-    function filterNews() {
-        const selectedDirect = document.querySelector('input[name="direct"]:checked')?.value;
-        const selectedSubject = document.querySelector('input[name="subject"]:checked')?.value;
-        const selectedKind = document.querySelector('input[name="kind"]:checked')?.value;
+// Управление открытием/закрытием dropdown
+let isDropdownOpen = false;
 
-        newsItems.forEach(item => {
-            const itemDirect = item.dataset.direct;
-            const itemSubject = item.dataset.subject;
-            const itemKind = item.dataset.kind;
-            
-            {#const itemRubrics = item.dataset.rubrics ? item.dataset.rubrics.split(',') : [];#}
-            {#const itemDate = new Date(item.dataset.publishDate);#}
+function toggleDropdown() {
+isDropdownOpen = !isDropdownOpen;
+const arrow = subjectDropdownButton.querySelector('.dropdown-arrow');
 
-            const directMatch = !selectedDirect || itemDirect === selectedDirect;
-            const subjectMatch = !selectedSubject || itemSubject === selectedSubject;
-            const kindMatch = !selectedKind || itemKind === selectedKind;
+if (isDropdownOpen) {
+    subjectDropdownMenu.style.display = 'block';
+    arrow.textContent = '▲';
+    subjectDropdownButton.setAttribute('aria-expanded', 'true');
+} else {
+    subjectDropdownMenu.style.display = 'none';
+    arrow.textContent = '▼';
+    subjectDropdownButton.setAttribute('aria-expanded', 'false');
+}
+}
 
-            item.style.display = directMatch && subjectMatch && kindMatch ? 'block' : 'none';
-        });
-    }
+function closeDropdown() {
+if (isDropdownOpen) {
+    isDropdownOpen = false;
+    subjectDropdownMenu.style.display = 'none';
+    const arrow = subjectDropdownButton.querySelector('.dropdown-arrow');
+    arrow.textContent = '▼';
+    subjectDropdownButton.setAttribute('aria-expanded', 'false');
+}
+}
 
-    directRadios.forEach(radio => radio.addEventListener('change', filterNews));
-    subjectRadios.forEach(radio => radio.addEventListener('change', filterNews));
-    kindRadios.forEach(radio => radio.addEventListener('change', filterNews));
+// Функция для обновления тегов выбранных предметов
+function updateSubjectTags() {
+const checkedSubjects = Array.from(subjectCheckboxes).filter(cb => cb.checked);
+const tagsContainer = document.getElementById('subjectTags');
+const inputContainer = document.getElementById('subjectInputContainer');
+const dropdownButton = document.getElementById('subjectDropdownButton');
 
-    resetButton.addEventListener('click', function() {
-        directRadios.forEach(radio => radio.checked = false);
-        subjectRadios.forEach(radio => radio.checked = false);
-        kindRadios.forEach(radio => radio.checked = false);
-        filterNews();
+// Очищаем контейнер тегов
+tagsContainer.innerHTML = '';
+
+if (checkedSubjects.length === 0) {
+    subjectButtonText.textContent = 'Выберите предметы';
+    inputContainer.classList.remove('has-tags');
+    dropdownButton.style.display = 'block';
+} else {
+    // Создаем теги для каждого выбранного предмета
+    checkedSubjects.forEach(checkbox => {
+        const label = document.querySelector(`label[for="${checkbox.id}"]`);
+        const tag = document.createElement('span');
+        tag.className = 'subject-tag';
+        tag.innerHTML = `
+            ${label.textContent}
+            <button type="button" class="tag-remove" data-value="${checkbox.value}" aria-label="Удалить">
+                ×
+            </button>
+        `;
+        tagsContainer.appendChild(tag);
     });
+    
+    subjectButtonText.textContent = 'Добавить еще...';
+    inputContainer.classList.add('has-tags');
+    
+    // Добавляем обработчики для кнопок удаления тегов
+    tagsContainer.querySelectorAll('.tag-remove').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Клик по крестику тега');
+            
+            const value = this.getAttribute('data-value');
+            console.log('Удаляем тег с value:', value);
+            
+            const checkbox = document.querySelector(`input.subject-checkbox[value="${value}"]`);
+            console.log('Найден checkbox:', checkbox);
+            
+            if (checkbox) {
+                checkbox.checked = false;
+                updateSubjectTags();
+                sortSubjectOptions();
+                triggerGlobalFilter();
+            }
+        });
+    });
+}
+}
 
-    filterNews();
+// Функция для сортировки опций (выбранные наверх)
+function sortSubjectOptions() {
+const options = Array.from(subjectOptions.querySelectorAll('.subject-option'));
+const selected = options.filter(option => option.querySelector('input').checked);
+const unselected = options.filter(option => !option.querySelector('input').checked);
+
+// Очищаем контейнер
+subjectOptions.innerHTML = '';
+
+// Добавляем выбранные сверху
+selected.forEach(option => subjectOptions.appendChild(option));
+// Затем невыбранные
+unselected.forEach(option => subjectOptions.appendChild(option));
+}
+
+// Функция поиска по предметам
+function filterSubjectOptions() {
+const query = subjectSearch.value.toLowerCase().trim();
+const options = subjectOptions.querySelectorAll('.subject-option');
+
+options.forEach(option => {
+    const name = option.dataset.name;
+    const isVisible = !query || name.includes(query);
+    option.style.display = isVisible ? 'block' : 'none';
+});
+}
+
+// Функция фильтрации рисков - вызываем глобальную функцию из list_block.html
+function triggerGlobalFilter() {
+if (window.applyAllFilters) {
+    window.applyAllFilters();
+}
+}
+
+// Обработчики событий для dropdown
+subjectDropdownButton.addEventListener('click', function(e) {
+e.stopPropagation();
+toggleDropdown();
+});
+
+// Закрытие dropdown при клике вне его
+document.addEventListener('click', function(e) {
+if (!subjectDropdownButton.contains(e.target) && !subjectDropdownMenu.contains(e.target)) {
+    closeDropdown();
+}
+});
+
+// Обработчики событий для фильтров
+directionCheckboxes.forEach(checkbox => {
+checkbox.addEventListener('change', triggerGlobalFilter);
+});
+
+subjectCheckboxes.forEach(checkbox => {
+checkbox.addEventListener('change', function() {
+    updateSubjectTags();
+    sortSubjectOptions();
+    triggerGlobalFilter();
+});
+});
+
+if (subjectSearch) {
+subjectSearch.addEventListener('input', filterSubjectOptions);
+}
+
+if (resetButton) {
+resetButton.addEventListener('click', function() {
+    // Сбрасываем направления
+    directionCheckboxes.forEach(cb => cb.checked = false);
+    
+    // Сбрасываем предметы
+    subjectCheckboxes.forEach(cb => cb.checked = false);
+    
+    // Очищаем поиск
+    if (subjectSearch) subjectSearch.value = '';
+    
+    // Обновляем интерфейс
+    updateSubjectTags();
+    filterSubjectOptions();
+    sortSubjectOptions();
+    
+    // Вызываем глобальный сброс фильтров
+    if (window.resetAllFilters) {
+        window.resetAllFilters();
+    }
+});
+}
+
+// Предотвращаем закрытие dropdown при клике внутри меню
+subjectDropdownMenu.addEventListener('click', function(e) {
+e.stopPropagation();
+});
+
+// Предотвращаем закрытие dropdown при клике на поле поиска
+if (subjectSearch) {
+subjectSearch.addEventListener('click', function(e) {
+    e.stopPropagation();
+});
+}
+
+// Обработчик удаления тегов через делегирование событий
+const tagsContainer = document.getElementById('subjectTags');
+if (tagsContainer) {
+tagsContainer.addEventListener('click', function(e) {
+    if (e.target.classList.contains('tag-remove')) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Делегированный клик по крестику тега');
+        
+        const value = e.target.getAttribute('data-value');
+        console.log('Удаляем тег с value через делегирование:', value);
+        
+        const checkbox = document.querySelector(`input.subject-checkbox[value="${value}"]`);
+        console.log('Найден checkbox через делегирование:', checkbox);
+        
+        if (checkbox) {
+            checkbox.checked = false;
+            updateSubjectTags();
+            sortSubjectOptions();
+            triggerGlobalFilter();
+        }
+    }
+});
+}
+
+// Инициализация
+updateSubjectTags();
 });
 </script>

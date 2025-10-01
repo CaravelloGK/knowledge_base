@@ -1,24 +1,651 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% load widget_tweaks %}   {# Чтобы использовать add_class ниже, нужен django-widget-tweaks #}
 
 {% block content %}
-<div class="container mt-4">
-    <h3>{% if is_create %}Добавление{% else %}Редактирование{% endif %} участника в сделку №{{ deal.id }}</h3>
+    <style>
+        .form-switch .form-check-input {
+            background-color: #c5c5c5;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.1rem #b6d4fe;
+        }
 
-    
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5 class="card-title">Юридическое лицо</h5>
-            <p class="card-text">{{ legal_entity.name }} (ИНН: {{ legal_entity.inn }})</p>
+        .form-switch .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.1rem #b6d4fe;
+        }
+
+        .form-switch .form-check-input:focus {
+            box-shadow: 0 0 0 0.2rem #badcff80;
+        }
+    </style>
+    <div class="container my-4">
+        <h3 class="fw-semibold mb-3">
+            {% if is_create %}Добавление{% else %}Редактирование{% endif %}
+            участника в сделку №{{ deal.id }}
+        </h3>
+
+        <!-- Инфо о контрагенте -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-1">
+                    <svg width="1em" height="1em" class="me-2" viewBox="0 0 16 16">
+                        <circle cx="8" cy="8" r="7" stroke="#198754" stroke-width="1.2"/>
+                        <path d="M8 10c-3 0-4 1.5-4 2.5V14h8v-1.5c0-1-1-2.5-4-2.5z" fill="#d1e7dd"/>
+                    </svg>
+                    Юридическое лицо
+                </h5>
+                <div>
+                    <span class="fw-semibold">{{ legal_entity.name }}</span>
+                    <span class="text-muted small ms-2">ИНН: {{ legal_entity.inn }}</span>
+                </div>
+            </div>
         </div>
+
+        <form method="post" class="card shadow-sm p-4">
+            {% csrf_token %}
+
+            <!-- 1: Основной блок -->
+            <section class="mb-4">
+                <h6 class="text-primary text-uppercase fw-semibold small mb-3 border-start border-primary ps-2">
+                    <svg width="1em" height="1em" fill="none" class="me-1" viewBox="0 0 16 16">
+                        <rect x="2.5" y="2.5" width="11" height="11" rx="2.5" stroke="#0d6efd" stroke-width="1.2"/>
+                    </svg>
+                    Признаки и роль участника
+                </h6>
+                <div class="row g-3 align-items-end mb-2">
+                    <div class="col-md-12">
+                        {{ form.role.label_tag }}{{ form.role|add_class:"form-select" }}
+                        {% if form.role.errors %}
+                            <div class="invalid-feedback d-block">{{ form.role.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2: Блок "Крупная сделка" -->
+            <section class="mb-4 p-3 bg-light rounded">
+                <h6 class="mb-2 text-success fw-semibold small">
+                    <svg width="1em" height="1em" class="me-1" viewBox="0 0 16 16">
+                        <rect x="3" y="5" width="10" height="6" rx="2" stroke="#198754"/>
+                    </svg>
+                    Крупная сделка
+                </h6>
+                <div class="row g-3">
+                    <div class="col-12 col-md-12">
+                        <div class="form-check form-switch">
+                            {{ form.is_major_deal|add_class:"form-check-input" }}
+                            <label class="form-check-label fw-semibold ms-2"
+                                   for="{{ form.is_major_deal.id_for_label }}">
+                                Сделка является крупной
+                            </label>
+                            {% if form.is_major_deal.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.is_major_deal.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div id="major-deal-block">
+                        <div class="col-md-6 my-2">
+                            {{ form.kripnost.label_tag }}{{ form.kripnost|add_class:"form-control" }}
+                            {% if form.kripnost.errors %}
+                                <div class="invalid-feedback d-block">{{ form.kripnost.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6 my-2">
+                            {{ form.governing_bodies.label_tag }}{{ form.governing_bodies|add_class:"form-select" }}
+                            {% if form.governing_bodies.errors %}
+                                <div class="invalid-feedback d-block">{{ form.governing_bodies.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-12 my-2">
+                            <div class="form-check form-switch">
+                                {{ form.major_transaction_submitted|add_class:"form-check-input" }}
+                                <label class="form-check-label fw-semibold ms-2"
+                                       for="{{ form.major_transaction_submitted.id_for_label }}">
+                                    Представлено решение об одобрении крупной сделки
+                                </label>
+                                {% if form.major_transaction_submitted.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.major_transaction_submitted.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div id="major-correct-get">
+                            <div class="col-12 col-md-12 my-2">
+                                <div class="form-check form-switch">
+                                    {{ form.major_transaction_appropriate|add_class:"form-check-input" }}
+                                    <label class="form-check-label fw-semibold ms-2"
+                                           for="{{ form.major_transaction_appropriate.id_for_label }}">
+                                        Решение об одобрении крупной сделки является надлежащим
+                                    </label>
+                                    {% if form.major_transaction_appropriate.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.major_transaction_appropriate.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div id="major-correct">
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.does_not_comply|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.does_not_comply.id_for_label }}">
+                                            Решение об одобрении крупной сделки не соответствует уставу
+                                        </label>
+                                        {% if form.does_not_comply.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.does_not_comply.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.does_not_comply_corporate_agreement|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.does_not_comply_corporate_agreement.id_for_label }}">
+                                            Решение об одобрении крупной сделки не соответствует корпоративному договору
+                                        </label>
+                                        {% if form.does_not_comply_corporate_agreement.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.does_not_comply_corporate_agreement.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.does_not_comply_law|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.does_not_comply_law.id_for_label }}">
+                                            Решение об одобрении крупной сделки не соответствует закону
+                                        </label>
+                                        {% if form.does_not_comply_law.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.does_not_comply_law.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3: Заинтересованность -->
+            <section class="mb-4 p-3 bg-light rounded">
+                <h6 class="mb-2 text-warning fw-semibold small">
+                    <svg width="1em" height="1em" class="me-1" viewBox="0 0 16 16">
+                        <circle cx="8" cy="8" r="7" stroke="#fd7e14"/>
+                    </svg>
+                    Сделка с заинтересованностью
+                </h6>
+                <div class="row g-3">
+                    <div class="col-12 col-md-12">
+                        <div class="form-check form-switch">
+                            {{ form.is_zainteres_deal|add_class:"form-check-input" }}
+                            <label class="form-check-label fw-semibold ms-2"
+                                   for="{{ form.is_zainteres_deal.id_for_label }}">
+                                Сделка является сделкой с заинтересованностью
+                            </label>
+                            {% if form.is_zainteres_deal.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.is_major_deal.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div id="zainteres-deal-block">
+                        <div class="col-md-6 my-2">
+                            {{ form.zainteres_person.label_tag }}{{ form.zainteres_person|add_class:"form-control" }}
+                            {% if form.zainteres_person.errors %}
+                                <div class="invalid-feedback d-block">{{ form.zainteres_person.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6 my-2">
+                            {{ form.governing_bodies_zainteres.label_tag }}{{ form.governing_bodies_zainteres|add_class:"form-select" }}
+                            {% if form.governing_bodies_zainteres.errors %}
+                                <div class="invalid-feedback d-block">{{ form.governing_bodies_zainteres.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-12 my-2">
+                            <div class="form-check form-switch">
+                                {{ form.zainteres_transaction_submitted|add_class:"form-check-input" }}
+                                <label class="form-check-label fw-semibold ms-2"
+                                       for="{{ form.zainteres_transaction_submitted.id_for_label }}">
+                                    Представлено решение об одобрении сделки с заинтересованностью
+                                </label>
+                                {% if form.zainteres_transaction_submitted.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.zainteres_transaction_submitted.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    <div id="zainteres-get">
+                            <div class="col-12 col-md-12 my-2">
+                                <div class="form-check form-switch">
+                                    {{ form.zainteres_transaction_appropriate|add_class:"form-check-input" }}
+                                    <label class="form-check-label fw-semibold ms-2"
+                                           for="{{ form.zainteres_transaction_appropriate.id_for_label }}">
+                                        Решение об одобрении сделки с заинтересованностью является надлежащим
+                                    </label>
+                                    {% if form.zainteres_transaction_appropriate.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.zainteres_transaction_appropriate.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div id="zainteres-correct">
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.zainteres_not_comply|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.zainteres_not_comply.id_for_label }}">
+                                            Решение об одобрении сделки с заинтересованностью не соответствует уставу
+                                        </label>
+                                        {% if form.zainteres_not_comply.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.zainteres_not_comply.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.zainteres_not_comply_corporate_agreement|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.zainteres_not_comply_corporate_agreement.id_for_label }}">
+                                            Решение об одобрении сделки с заинтересованностью не соответствует корпоративному
+                                            договору
+                                        </label>
+                                        {% if form.zainteres_not_comply_corporate_agreement.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.zainteres_not_comply_corporate_agreement.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.zainteres_not_comply_law|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.zainteres_not_comply_law.id_for_label }}">
+                                            Решение об одобрении сделки с заинтересованностью не соответствует закону
+                                        </label>
+                                        {% if form.zainteres_not_comply_law.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.zainteres_not_comply_law.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>                            
+                            </div>
+                    </div>
+                    </div>
+                </div>
+            </section>
+        
+
+            <!-- 4: Одобрение в силу устава и прочее -->
+            <section class="mb-4 p-3 bg-light rounded">
+                <h6 class="mb-2 text-danger fw-semibold small">
+                    <svg width="1em" height="1em" class="me-1" viewBox="0 0 16 16">
+                        <rect x="3" y="3" width="10" height="10" rx="2" stroke="#dc3545"/>
+                    </svg>
+                    Одобрение в силу устава
+                </h6>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-12">
+                        <div class="form-check form-switch">
+                            {{ form.requires_approval|add_class:"form-check-input" }}
+                            <label class="form-check-label fw-semibold ms-2"
+                                   for="{{ form.requires_approval.id_for_label }}">
+                                Сделка требует одобрения в силу устава
+                            </label>
+                            {% if form.requires_approval.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.requires_approval.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div id="ustav-deal-block">
+                        <div class="col-md-6 my-2">
+                            {{ form.the_condition_of_charter.label_tag }}{{ form.the_condition_of_charter|add_class:"form-control" }}
+                            {% if form.the_condition_of_charter.errors %}
+                                <div class="invalid-feedback d-block">{{ form.the_condition_of_charter.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6 my-2">
+                            {{ form.governing_bodies_other.label_tag }}{{ form.governing_bodies_other|add_class:"form-select" }}
+                            {% if form.governing_bodies_other.errors %}
+                                <div class="invalid-feedback d-block">{{ form.governing_bodies_other.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-12 my-2">
+                            <div class="form-check form-switch">
+                                {{ form.other_transaction_submitted|add_class:"form-check-input" }}
+                                <label class="form-check-label fw-semibold ms-2"
+                                       for="{{ form.other_transaction_submitted.id_for_label }}">
+                                    Представлено решение об одобрении сделки в силу устава
+                                </label>
+                                {% if form.other_transaction_submitted.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.other_transaction_submitted.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div id="ustav_get">
+                            <div class="col-12 col-md-12 my-2">
+                                <div class="form-check form-switch">
+                                    {{ form.other_transaction_appropriate|add_class:"form-check-input" }}
+                                    <label class="form-check-label fw-semibold ms-2"
+                                           for="{{ form.other_transaction_appropriate.id_for_label }}">
+                                        Решение об одобрении сделки в силу устава является надлежащим
+                                    </label>
+                                    {% if form.other_transaction_appropriate.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.other_transaction_appropriate.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div id="ustav_correct">
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.other_not_comply|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.other_not_comply.id_for_label }}">
+                                            Решение об одобрении сделки в силу устава не соответствует уставу
+                                        </label>
+                                        {% if form.other_not_comply.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.other_not_comply.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.other_not_comply_corporate_agreement|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.other_not_comply_corporate_agreement.id_for_label }}">
+                                            Решение об одобрении сделки в силу устава не соответствует корпоративному договору
+                                        </label>
+                                        {% if form.other_not_comply_corporate_agreement.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.other_not_comply_corporate_agreement.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-12 my-2">
+                                    <div class="form-check form-switch">
+                                        {{ form.other_not_comply_law|add_class:"form-check-input" }}
+                                        <label class="form-check-label fw-semibold ms-2"
+                                               for="{{ form.other_not_comply_law.id_for_label }}">
+                                            Решение об одобрении сделки в силу устава не соответствует закону
+                                        </label>
+                                        {% if form.other_not_comply_law.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.other_not_comply_law.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>                            
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4: Закупки -->
+            <section class="mb-4 p-3 bg-light rounded">
+                <h6 class="mb-2 text-danger fw-semibold small">
+                    <svg width="1em" height="1em" class="me-1" viewBox="0 0 16 16">
+                        <rect x="3" y="3" width="10" height="10" rx="2" stroke="#dc3545"/>
+                    </svg>
+                    Закупочные процедуры
+                </h6>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-12">
+                        <div class="form-check form-switch">
+                            {{ form.zakup_1|add_class:"form-check-input" }}
+                            <label class="form-check-label fw-semibold ms-2"
+                                   for="{{ form.zakup_1.id_for_label }}">
+                                Требуются ли закупочные процедуры
+                            </label>
+                            {% if form.zakup_1.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.zakup_1.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div id="ustav-deal-block">
+                        <div class="col-12 col-md-12 my-2">
+                            <div class="form-check form-switch">
+                                {{ form.zakup_2|add_class:"form-check-input" }}
+                                <label class="form-check-label fw-semibold ms-2"
+                                       for="{{ form.zakup_2.id_for_label }}">
+                                    Закупочные процедуры соблюдены
+                                </label>
+                                {% if form.zakup_2.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.zakup_2.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </section>
+
+            <div class="mt-4 d-md-flex flex-row-reverse gap-2">
+                <button type="submit" class="btn btn-success px-4">Сохранить</button>
+                <a href="{% url 'legal_opin:deal_detail' pk=deal.pk %}"
+                   class="btn btn-outline-secondary px-4">Отмена</a>
+            </div>
+        </form>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var ta = document.getElementById('id_kripnost');
+            if (ta) {
+                ta.setAttribute('rows', 1);
+                ta.style.overflow = 'hidden';
+                ta.addEventListener('input', function () {
+                    this.style.height = '';
+                    this.style.height = (this.scrollHeight + 2) + 'px';
+                });
+                // Если текст автозаполнен (редактирвание) — мэтч стартовую высоту:
+                ta.style.height = '';
+                ta.style.height = (ta.scrollHeight + 2) + 'px';
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var ta = document.getElementById('id_zainteres_person');
+            if (ta) {
+                ta.setAttribute('rows', 1);
+                ta.style.overflow = 'hidden';
+                ta.addEventListener('input', function () {
+                    this.style.height = '';
+                    this.style.height = (this.scrollHeight + 2) + 'px';
+                });
+                // Если текст автозаполнен (редактирвание) — мэтч стартовую высоту:
+                ta.style.height = '';
+                ta.style.height = (ta.scrollHeight + 2) + 'px';
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_is_major_deal');
+                var block = document.getElementById('major-deal-block');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? '' : 'none';
+                }
+            }
+
+            var checkbox = document.getElementById('id_is_major_deal');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_major_transaction_submitted');
+                var block = document.getElementById('major-correct-get');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? '' : 'none';
+                }
+            }
+
+            var checkbox = document.getElementById('id_major_transaction_submitted');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_zainteres_transaction_submitted');
+                var block = document.getElementById('zainteres-get');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? '' : 'none';
+                }
+            }
+
+            var checkbox = document.getElementById('id_zainteres_transaction_submitted');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>       
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_other_transaction_submitted');
+                var block = document.getElementById('ustav_get');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? '' : 'none';
+                }
+            }
+
+            var checkbox = document.getElementById('id_other_transaction_submitted');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>         
     
-    <form method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <button type="submit" class="btn btn-success mt-3">Добавить участника</button>
-        <a href="{% url 'legal_opin:deal_detail' pk=deal.pk %}" class="btn btn-secondary mt-3">Отмена</a>
-    </form>
-</div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_is_zainteres_deal');
+                var block = document.getElementById('zainteres-deal-block');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? '' : 'none';
+                }
+            }
+
+            var checkbox = document.getElementById('id_is_zainteres_deal');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_requires_approval');
+                var block = document.getElementById('ustav-deal-block');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? '' : 'none';
+                }
+            }
+
+            var checkbox = document.getElementById('id_requires_approval');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>
+    
+{#крупная сделка ненадлежащее решение    #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_major_transaction_appropriate');
+                var block = document.getElementById('major-correct');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? 'none' : '';
+                }
+            }
+
+            var checkbox = document.getElementById('id_major_transaction_appropriate');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>
+{#заинтересованная сделка ненадлежащее решение    #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_zainteres_transaction_appropriate');
+                var block = document.getElementById('zainteres-correct');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? 'none' : '';
+                }
+            }
+
+            var checkbox = document.getElementById('id_zainteres_transaction_appropriate');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>   
+{#сделка по уставу ненадлежащее решение    #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function toggleMajorDealBlock() {
+                var checkbox = document.getElementById('id_other_transaction_appropriate');
+                var block = document.getElementById('major-ustav_correctect');
+                if (checkbox && block) {
+                    block.style.display = checkbox.checked ? 'none' : '';
+                }
+            }
+
+            var checkbox = document.getElementById('id_other_transaction_appropriate');
+            if (checkbox) {
+                checkbox.addEventListener('change', toggleMajorDealBlock);
+                toggleMajorDealBlock(); // показать/скрыть на загрузке (важно при редактировании)
+            }
+        });
+    </script>       
 {% endblock %}

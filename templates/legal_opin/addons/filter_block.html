@@ -2,9 +2,9 @@
 {% load static %}
 
 <div class="filter-section" style="margin-top: 2.5rem;">
-    <h6 class="fw-bold" style="margin-top: 0rem; place-self: anchor-center;">
+    <h5 class="fw-bold" style="margin-top: 0rem;">
         <i class="bi bi-plus-circle"></i> Добавить новое юр. лицо
-    </h6>
+    </h5>
 {#    {% if request.user|in_group:'moderator' %}#}
         <div class="flex-shrink-0">
           <div class="d-flex align-items-center gap-2 mt-1" style="align-items: unset !important">
@@ -20,7 +20,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="searchInnModalLabel">Добавить новое юр. лицо</h5>
+                <h5 class="modal-title" id="searchInnModalLabel">Добавить новое ЮЛ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -69,9 +69,9 @@ $(document).ready(function() {
                 'csrfmiddlewaretoken': '{{ csrf_token }}'
             },
             success: function(response) {
-                resultDiv.removeClass('d-none alert-danger').addClass('alert-success')
-                        .text(response.message);
                 if (response.status === 'success') {
+                    resultDiv.removeClass('d-none alert-danger').addClass('alert-success')
+                            .text(response.message);
                     // Показываем успех в кнопке
                     $button.html('<i class="bi bi-check-circle me-2"></i>Успешно!');
                     // Перенаправляем на форму создания
@@ -79,14 +79,22 @@ $(document).ready(function() {
                         window.location.href = '{% url "legal_opin:legal_entity_create" %}';
                     }, 1000);
                 } else if (response.status === 'success_DB') {
+                    resultDiv.removeClass('d-none alert-danger').addClass('alert-success')
+                            .text(response.message);
                     $button.html('<i class="bi bi-check-circle me-2"></i>Найдено!');
                     setTimeout(function() {
                         window.location.href = response.entity_url;
                     }, 1000);
+                } else if (response.status === 'error_opf') {
+                    // Обработка ошибки ОПФ
+                    resultDiv.removeClass('d-none alert-success').addClass('alert-danger')
+                            .text(response.error);
+                    // Восстанавливаем кнопку
+                    $button.prop('disabled', false).html(originalText);
                 }
             },
             error: function(xhr) {
-                var message = 'Произошла ошибка при поиске';
+                var message = 'Произошла ошибка при поиске. Проверьте корректность данных и ОПФ';
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     message = xhr.responseJSON.error;
                 }
@@ -149,7 +157,7 @@ $(document).ready(function() {
     </div>
 
 <!-- Фильтр по периоду создания -->
-<h6 class="fw-bold" style="margin-top: 2rem;">Период создания</h6>
+<h6 class="fw-bold" style="margin-top: 2rem;">Период создания карточки ЮЛ</h6>
     <div class="input-group mb-2">
         <input type="date" id="created-date-from" class="form-control period-field" placeholder="От" style="font-size: 0.9rem;">
         <span class="input-group-text period-divider"></span>
@@ -157,7 +165,7 @@ $(document).ready(function() {
     </div>
 
 <!-- Фильтр по периоду обновления -->
-<h6 class="fw-bold" style="margin-top: 2rem;">Период обновления</h6>
+<h6 class="fw-bold" style="margin-top: 2rem;">Период обновления карточки ЮЛ</h6>
     <div class="input-group mb-2">
         <input type="date" id="updated-date-from" class="form-control period-field" placeholder="От" style="font-size: 0.9rem;">
         <span class="input-group-text period-divider"></span>

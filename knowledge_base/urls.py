@@ -20,6 +20,7 @@ urlpatterns = [
     path('docs/', include('docs.urls')),
     path('legal_opin/', include('legal_opin.urls')),
     path('staff/', include('staff.urls')),
+    path('reporting/', include('reporting.urls')),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

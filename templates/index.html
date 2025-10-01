@@ -113,13 +113,13 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="{% url 'legal_opin:legal_entity_list' %}">Реестр юридических лиц</a></li>
               <li><a class="dropdown-item" href="{% url 'legal_opin:deal_list' %}">Реестр сделок</a></li>
-              <li><a class="dropdown-item" href="#">Реестр залогового имущества</a></li>
             </ul>
           </div>
 
           <!-- Обычные ссылки -->
           <a class="nav-link" href="{% url 'reviews:reviews_main' %}">Правовые обзоры</a>
           <a class="nav-link" href="{% url 'risk:risk_main' %}">Правовые риски</a>
+          <a class="nav-link" href="{% url 'reporting:demo_dashboard' %}">Отчетность</a>            
           <a class="nav-link" href="{% url 'staff:structure' %}">О нас</a>
         </nav>
       </div>
@@ -175,6 +175,9 @@
 
 <!-- Основной блок контента -->
 {% block content %}
+{% endblock %}
+
+{% block extra_js %}
 {% endblock %}
 
 <!-- Блок для подгрузки локальных JS -->

@@ -1,420 +1,877 @@
 {% extends 'index.html' %}
 {% load static %}
 
-<head>
-    {% block extra_head %}
-            <link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">
-    {% endblock %}
-</head>
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{% url 'legal_opin:deal_list' %}">Сделки</a></li>
-                        <li class="breadcrumb-item active">Сделка №{{ deal.id }}</li>
-                    </ol>
-                </nav>
-            </div>
+    <link rel="stylesheet" href="{% static 'reviews/css/main.css' %}">
 
-            <!-- Навигация по вкладкам -->
-            <ul class="nav nav-tabs" id="dealTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="conditions-tab" data-bs-toggle="tab" data-bs-target="#conditions" type="button" role="tab" aria-controls="conditions" aria-selected="true">Условия сделки</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants" type="button" role="tab" aria-controls="participants" aria-selected="false">Участники</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="collateral-tab" data-bs-toggle="tab" data-bs-target="#collateral" type="button" role="tab" aria-controls="collateral" aria-selected="false">Обеспечение</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="risks-tab" data-bs-toggle="tab" data-bs-target="#risks" type="button" role="tab" aria-controls="risks" aria-selected="false">Риски</button>
-                </li>
-            </ul>
+    <style>
+        .card-header {
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
 
-            <!-- Содержимое вкладок -->
-            <div class="tab-content" id="dealTabsContent">
-                <div class="tab-pane fade show active" id="conditions" role="tabpanel">
-                   <a href="{% url 'legal_opin:deal_edit' deal.pk %}" class="btn btn-primary mb-3">
-                        <i class="fas fa-edit"></i> Редактировать
-                   </a>
-                    <p><strong>Вид кредитного продукта:</strong> {{ deal.credit_product.name|default:"Не указан" }}</p>
-                    <p><strong>Сумма:</strong> {{ deal.amount|floatformat:2 }} ₽</p>
-                    <p><strong>Срок:</strong> {{ deal.term }} мес.</p>
+        .custom-tabs .nav-link {
+            font-weight: 500;
+            font-size: 1.07rem;
+            color: #495057;
+            border-radius: 0.5rem 0.5rem 0 0;
+            transition: background 0.18s, color 0.18s;
+            padding-top: 0.9rem;
+            padding-bottom: 0.8rem;
+        }
+
+        .custom-tabs .nav-link.active, .custom-tabs .nav-link:focus {
+            background: #f8f9fa;
+            border-bottom: 2.5px solid #0d6efd;
+            color: #0d6efd !important;
+        }
+
+        .custom-tabs .nav-link svg {
+            vertical-align: -0.15em;
+            margin-right: 0.4em;
+            opacity: 0.9;
+        }
+
+        .custom-tabs {
+            border-bottom: 2px solid #dee2e6;
+            gap: 0.1em;
+        }
+
+        .tab-content {
+            border-radius: 0 0 1rem 1rem;
+            background: #fff;
+            margin-bottom: 2rem;
+        }
+    </style>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Шапка и хлебные крошки -->
+                <div class="d-flex justify-content-between align-items-baseline mb-3">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb small mb-0">
+                            <li class="breadcrumb-item"><a href="{% url 'legal_opin:deal_list' %}">Сделки</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Сделка №{{ deal.id }}</li>
+                        </ol>
+                    </nav>
+                    <a href="{% url 'legal_opin:deal_edit' deal.pk %}" class="btn btn-outline-primary btn-sm">
+                        <!-- svg-карандаш -->
+                        <svg width="1em" height="1em" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-9.5 9.5a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l9.5-9.5zM11.207 2L2 11.207V13h1.793L14 4.793 11.207 2zm1.586-1.586a1.5 1.5 0 0 0-2.121 0l-9.5 9.5A1.5 1.5 0 0 0 1 12.293V15.5A.5.5 0 0 0 1.5 16h3.207a1.5 1.5 0 0 0 1.061-.44l9.5-9.5a1.5 1.5 0 0 0 0-2.121l-3-3z"/>
+                        </svg>
+                        <span class="ms-1">Редактировать условия сделки</span>
+                    </a>
                 </div>
 
-                <div class="tab-pane fade" id="participants" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Участники сделки</h5>
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addParticipantModal">
-                            <i class="fas fa-plus"></i> Добавить участника
-                        </button>
+                <!-- Карточка условий -->
+                <div class="row">
+                    <!-- Левая колонка: основные условия -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white">
+                                <!-- svg-документ -->
+                                <svg class="me-2" width="1.2em" height="1.2em" viewBox="0 0 16 16" fill="none">
+                                    <path d="M4 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.414a2 2 0 0 0-.586-1.414l-2.414-2.414A2 2 0 0 0 11.414 2H4z"
+                                          stroke="#fff" stroke-width="1.3"/>
+                                    <path d="M10 2v2a2 2 0 0 0 2 2h2" stroke="#fff" stroke-width="1.3"/>
+                                </svg>
+                                Основные условия сделки
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <!-- svg-# -->
+                                        <svg class="me-2" width="1em" height="1em" viewBox="0 0 16 16" fill="none">
+                                            <text x="0" y="12" font-size="14" font-family="monospace" fill="#6c757d">#
+                                            </text>
+                                        </svg>
+                                        <span class="fw-semibold w-50">Номер:</span>
+                                        <span class="ms-auto">{{ deal.bid_number }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <!-- svg-календарь -->
+                                        <svg class="me-2" width="1.2em" height="1.2em" viewBox="0 0 16 16" fill="none">
+                                            <rect x="2" y="4" width="12" height="10" rx="2" stroke="#0d6efd"
+                                                  stroke-width="1.2"/>
+                                            <path d="M2 7h12" stroke="#0d6efd" stroke-width="1.2"/>
+                                            <rect x="4" y="2" width="1.2" height="2" rx=".6" fill="#0d6efd"/>
+                                            <rect x="10.8" y="2" width="1.2" height="2" rx=".6" fill="#0d6efd"/>
+                                        </svg>
+                                        <span class="fw-semibold w-50">Дата:</span>
+                                        <span class="ms-auto">{{ deal.bid_date|date:"d.m.Y" }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <!-- svg-человечек/корп -->
+                                        <svg class="me-2" width="1.1em" height="1.1em" viewBox="0 0 16 16" fill="none">
+                                            <circle cx="8" cy="5" r="3" stroke="#6c757d" stroke-width="1.2"/>
+                                            <path d="M2 14c0-2.2 2.7-4 6-4s6 1.8 6 4" stroke="#6c757d"
+                                                  stroke-width="1.2"/>
+                                        </svg>
+                                        <span class="fw-semibold w-50">Инициатор:</span>
+                                        <span class="ms-auto">{{ deal.bid_initiator }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <!-- svg-папка -->
+                                        <svg class="me-2" width="1em" height="1em" viewBox="0 0 16 16" fill="none">
+                                            <path d="M1.5 5A1.5 1.5 0 0 1 3 3.5h3l1 2h7a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 14.5 14h-13A1.5 1.5 0 0 1 0 12.5v-7A1.5 1.5 0 0 1 1.5 4H5l1 2H14v1H3v7h11.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3v-7H1.5z"
+                                                  fill="#6c757d"/>
+                                        </svg>
+                                        <span class="fw-semibold w-50">Тема:</span>
+                                        <span class="ms-auto">{{ deal.bid_theme }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <!-- svg-бонус/ручка -->
+                                        <svg class="me-2" width="1.1em" height="1.1em" viewBox="0 0 16 16" fill="none">
+                                            <rect x="2" y="4" width="12" height="8" rx="2" stroke="#20c997"
+                                                  stroke-width="1.2"/>
+                                            <path d="M4 6h8v4H4z" fill="#20c997" fill-opacity=".2"/>
+                                        </svg>
+                                        <span class="fw-semibold w-50">Кредитный продукт:</span>
+                                        <span class="ms-auto">{{ deal.credit_product }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <!-- svg-рубль -->
+                                        <svg class="me-2" width="1em" height="1em" viewBox="0 0 14 14" fill="none">
+                                            <text x="-2" y="11" font-size="13" font-family="monospace" fill="#198754">
+                                                ₽
+                                            </text>
+                                        </svg>
+                                        <span class="fw-semibold w-50">Сумма:</span>
+                                        <span class="ms-auto">{{ deal.amount|floatformat:2 }} ₽</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <!-- svg-часы -->
+                                        <svg class="me-2" width="1em" height="1em" viewBox="0 0 20 20" fill="none">
+                                            <circle cx="10" cy="10" r="9" stroke="#fd7e14" stroke-width="1.2"/>
+                                            <path d="M10 10V5" stroke="#fd7e14" stroke-width="1.2"
+                                                  stroke-linecap="round"/>
+                                            <path d="M10 10L13 12" stroke="#fd7e14" stroke-width="1.2"
+                                                  stroke-linecap="round"/>
+                                        </svg>
+                                        <span class="fw-semibold w-50">Срок:</span>
+                                        <span class="ms-auto">{{ deal.term }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                        <thead>
+                    <!-- Правая колонка: Аккордеон -->
+                    <div class="col-md-6">
+                        <div class="card shadow">
+                            <div class="card-header bg-secondary text-white">
+                                <!-- svg-инфо -->
+                                <svg class="me-2" width="1.2em" height="1.2em" fill="none" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="1.5"/>
+                                    <path d="M12 8v2m0 2v4" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                                    <circle cx="12" cy="17" r="1" fill="white"/>
+                                </svg>
+                                Дополнительная информация
+                            </div>
+                            <div class="card-body">
+                                <div class="accordion" id="dealExtraAccordion">
+                                    {% if deal.secured_obligation %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingSecuredObligation">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseSecuredObligation"
+                                                        aria-expanded="false"
+                                                        aria-controls="collapseSecuredObligation">
+                                                    <!-- svg-щит -->
+                                                    <svg class="me-2" width="1em" height="1em" fill="none"
+                                                         viewBox="0 0 24 24">
+                                                        <path d="M12 3l8 4v5c0 5.177-5.293 9-8 9s-8-3.823-8-9V7l8-4z"
+                                                              stroke="#0d6efd" stroke-width="1.1" fill="none"/>
+                                                    </svg>
+                                                    Обеспечиваемое обязательство
+                                                </button>
+                                            </h2>
+                                            <div id="collapseSecuredObligation" class="accordion-collapse collapse"
+                                                 aria-labelledby="headingSecuredObligation"
+                                                 data-bs-parent="#dealExtraAccordion">
+                                                <div class="accordion-body">{{ deal.secured_obligation }}</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if deal.object_of_financing %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingObjectOfFinancing">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseObjectOfFinancing"
+                                                        aria-expanded="false"
+                                                        aria-controls="collapseObjectOfFinancing">
+                                                    <!-- svg-стройка -->
+                                                    <svg class="me-2" width="1.1em" height="1.1em" fill="none"
+                                                         viewBox="0 0 24 24">
+                                                        <rect x="4" y="11" width="16" height="8" rx="2" stroke="#198754"
+                                                              stroke-width="1.1"/>
+                                                        <path d="M8.5 11V7a3.5 3.5 0 1 1 7 0v4" stroke="#198754"
+                                                              stroke-width="1.1"/>
+                                                    </svg>
+                                                    Объект финансирования
+                                                </button>
+                                            </h2>
+                                            <div id="collapseObjectOfFinancing" class="accordion-collapse collapse"
+                                                 aria-labelledby="headingObjectOfFinancing"
+                                                 data-bs-parent="#dealExtraAccordion">
+                                                <div class="accordion-body">{{ deal.object_of_financing }}</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if deal.financing_structure %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingFinancingStructure">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseFinancingStructure"
+                                                        aria-expanded="false"
+                                                        aria-controls="collapseFinancingStructure">
+                                                    <!-- svg-сеть -->
+                                                    <svg class="me-2" width="1em" height="1em" fill="none"
+                                                         viewBox="0 0 24 24">
+                                                        <circle cx="12" cy="12" r="4" stroke="#20c997"
+                                                                stroke-width="1.1"/>
+                                                        <path d="M2 12h6m8 0h6m-9.1-7.77l-2.43 6.58M16.1 19.77l-2.43-6.58"
+                                                              stroke="#20c997" stroke-width="1.1"/>
+                                                    </svg>
+                                                    Структура финансирования
+                                                </button>
+                                            </h2>
+                                            <div id="collapseFinancingStructure" class="accordion-collapse collapse"
+                                                 aria-labelledby="headingFinancingStructure"
+                                                 data-bs-parent="#dealExtraAccordion">
+                                                <div class="accordion-body">{{ deal.financing_structure }}</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if deal.postponement %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingPostponement">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapsePostponement" aria-expanded="false"
+                                                        aria-controls="collapsePostponement">
+                                                    <!-- svg-песочные часы -->
+                                                    <svg class="me-2" width="1em" height="1em" fill="none"
+                                                         viewBox="0 0 24 24">
+                                                        <path d="M6 2h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1c-1.38 0-5 1.433-5 5v2c0 3.567 3.62 5 5 5a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1c1.38 0 5-1.433 5-5V9c0-3.567-3.62-5-5-5A1 1 0 0 1 5 5V3a1 1 0 0 1 1-1z"
+                                                              stroke="#fd7e14" stroke-width="1.1"/>
+                                                    </svg>
+                                                    Отсрочка
+                                                </button>
+                                            </h2>
+                                            <div id="collapsePostponement" class="accordion-collapse collapse"
+                                                 aria-labelledby="headingPostponement"
+                                                 data-bs-parent="#dealExtraAccordion">
+                                                <div class="accordion-body">{{ deal.postponement }}</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if deal.waiting_period %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingWaitingPeriod">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseWaitingPeriod" aria-expanded="false"
+                                                        aria-controls="collapseWaitingPeriod">
+                                                    <!-- svg-часы -->
+                                                    <svg class="me-2" width="1em" height="1em" fill="none"
+                                                         viewBox="0 0 20 20">
+                                                        <circle cx="10" cy="10" r="9" stroke="#6c757d"
+                                                                stroke-width="1.1"/>
+                                                        <path d="M10 10V5" stroke="#6c757d" stroke-width="1.1"/>
+                                                        <path d="M10 10l3 2" stroke="#6c757d" stroke-width="1.1"/>
+                                                    </svg>
+                                                    Период ожидания
+                                                </button>
+                                            </h2>
+                                            <div id="collapseWaitingPeriod" class="accordion-collapse collapse"
+                                                 aria-labelledby="headingWaitingPeriod"
+                                                 data-bs-parent="#dealExtraAccordion">
+                                                <div class="accordion-body">{{ deal.waiting_period }}</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if deal.commission %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingCommission">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseCommission" aria-expanded="false"
+                                                        aria-controls="collapseCommission">
+                                                    <!-- svg-процент -->
+                                                    <svg class="me-2" width="1.1em" height="1.1em" fill="none"
+                                                         viewBox="0 0 24 24">
+                                                        <circle cx="6" cy="18" r="2" stroke="#dc3545"
+                                                                stroke-width="1.1"/>
+                                                        <circle cx="18" cy="6" r="2" stroke="#dc3545"
+                                                                stroke-width="1.1"/>
+                                                        <path d="M6 18l12-12" stroke="#dc3545" stroke-width="1.1"/>
+                                                    </svg>
+                                                    Комиссия
+                                                </button>
+                                            </h2>
+                                            <div id="collapseCommission" class="accordion-collapse collapse"
+                                                 aria-labelledby="headingCommission"
+                                                 data-bs-parent="#dealExtraAccordion">
+                                                <div class="accordion-body">
+                          <span class="badge {% if deal.commission_is_law %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                            {% if deal.commission_is_law %}
+                                Комиссия соответствует закону
+                            {% else %}
+                                Комиссия не соответствует закону
+                            {% endif %}
+                          </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if deal.dop_info %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingDopInfo">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseDopInfo" aria-expanded="false"
+                                                        aria-controls="collapseDopInfo">
+                                                    <!-- svg-коммент -->
+                                                    <svg class="me-2" width="1em" height="1em" fill="none"
+                                                         viewBox="0 0 16 16">
+                                                        <rect x="2" y="2" width="12" height="8" rx="2" stroke="#6c757d"
+                                                              stroke-width="1.1"/>
+                                                        <path d="M2 10l2 2h8l2-2" stroke="#6c757d" stroke-width="1.1"/>
+                                                    </svg>
+                                                    Дополнительная информация
+                                                </button>
+                                            </h2>
+                                            <div id="collapseDopInfo" class="accordion-collapse collapse"
+                                                 aria-labelledby="headingDopInfo"
+                                                 data-bs-parent="#dealExtraAccordion">
+                                                <div class="accordion-body">{{ deal.dop_info }}</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if not deal.secured_obligation and not deal.object_of_financing and not deal.financing_structure and not deal.postponement and not deal.waiting_period and not deal.commission and not deal.dop_info %}
+                                        <div class="text-muted small p-2">Нет дополнительной информации.</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Вкладки -->
+                <ul class="nav nav-tabs custom-tabs mb-3" id="dealTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="participants-tab" data-bs-toggle="tab"
+                                data-bs-target="#participants" type="button" role="tab" aria-controls="participants"
+                                aria-selected="true">
+                            <!-- SVG -->
+                            <svg width="1.15em" height="1.1em" viewBox="0 0 16 16" fill="none">
+                                <circle cx="4" cy="8" r="2.5" stroke="#198754" stroke-width="1.2"/>
+                                <circle cx="12" cy="8" r="2.5" stroke="#198754" stroke-width="1.2"/>
+                            </svg>
+                            Участники
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="collateral-tab" data-bs-toggle="tab" data-bs-target="#collateral"
+                                type="button" role="tab" aria-controls="collateral" aria-selected="false">
+                            <svg width="1.25em" height="1.1em" fill="none" viewBox="0 0 16 16">
+                                <path d="M11 5a4 4 0 1 1-2-3.464" stroke="#20c997" stroke-width="1.18"/>
+                                <rect x="12" y="12" width="2" height="2" rx="1" fill="#20c997"/>
+                            </svg>
+                            Обеспечение
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="risks-tab" data-bs-toggle="tab" data-bs-target="#risks"
+                                type="button" role="tab" aria-controls="risks" aria-selected="false">
+                            <svg width="1.15em" height="1.1em" viewBox="0 0 16 16" fill="none">
+                                <polygon points="8,2 15,14 1,14" stroke="#fd7e14" stroke-width="1.2" fill="none"/>
+                                <circle cx="8" cy="10" r="1" fill="#fd7e14"/>
+                                <rect x="7.4" y="5" width="1.2" height="3" rx="0.6" fill="#fd7e14"/>
+                            </svg>
+                            Риски
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="risks-tab" data-bs-toggle="tab" data-bs-target="#docs"
+                                type="button" role="tab" aria-controls="docs" aria-selected="false">
+                            <svg width="1.15em" height="1.1em" viewBox="0 0 16 16" fill="none">
+                                <polygon points="8,2 15,14 1,14" stroke="#fd7e14" stroke-width="1.2" fill="none"/>
+                                <circle cx="8" cy="10" r="1" fill="#fd7e14"/>
+                                <rect x="7.4" y="5" width="1.2" height="3" rx="0.6" fill="#fd7e14"/>
+                            </svg>
+                            Непредставленные документы
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Содержимое вкладок -->
+                <div class="tab-content border-top-0 p-4 shadow-sm bg-white rounded-bottom" id="dealTabsContent">
+
+                    <!-- Участники -->
+                    <div class="tab-pane fade show active" id="participants" role="tabpanel"
+                         aria-labelledby="participants-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 fw-semibold">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="me-1">
+                                    <circle cx="4" cy="8" r="2.5" stroke="#198754" stroke-width="1.2"/>
+                                    <circle cx="12" cy="8" r="2.5" stroke="#198754" stroke-width="1.2"/>
+                                </svg>
+                                Участники сделки
+                            </h5>
+                            <form id="add-participant-form" method="post"
+                                  action="{% url 'legal_opin:add_participant_by_inn' deal_pk=deal.pk %}"
+                                  class="d-inline-block">
+                                {% csrf_token %}
+                                <div class="input-group input-group-sm" style="width: 240px;">
+                                    <input type="text" name="inn" id="participant-inn-input" class="form-control"
+                                           placeholder="ИНН юр. лица" required>
+                                    <button type="submit" class="btn btn-success">Добавить</button>
+                                </div>
+                            </form>
+                        </div>
+                        <table class="table table-striped align-middle table-hover table-sm mb-2 shadow-sm rounded">
+                            <thead class="table-light">
                             <tr>
                                 <th>Наименование</th>
                                 <th>ИНН</th>
                                 <th>Роль</th>
-                                    <th>Актуальность данных</th>
+                                <th>Актуальность</th>
+                                <th></th>
                                 <th></th>
                             </tr>
-                        </thead>
-                        <tbody>
-                        {% for participant in deal.participants.all %}
-                            <tr>
-                                <td>
-                                        <a href="{% url 'legal_opin:legal_entity_detail' participant.legal_entity.pk %}" class="text-decoration-none">
-                                        {{ participant.legal_entity.name }}
-                                    </a>
-                                </td>
-                                <td>{{ participant.legal_entity.inn }}</td>
-                                <td><span class="badge bg-secondary">{{ participant.role.name }}</span></td>
-                                <td>
-                                    {% if participant.legal_entity.updated_at.date|date:"Y-m-d" == now|date:"Y-m-d" %}
-                                            <span class="badge bg-success">Данные актуальные</span>
-                                        {% elif participant.legal_entity.updated_at.date|date:"Y-m-d" < now|date:"Y-m-d" %}
-                                            <a href="{% url 'legal_opin:start_update_from_egrul' participant.legal_entity.pk %}" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-file-alt"></i> Актуализировать
+                            </thead>
+                            <tbody>
+                            {% for participant in deal.participants.all %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'legal_opin:legal_entity_detail' participant.legal_entity.pk %}"
+                                           class="text-decoration-underline fw-semibold">
+                                            {{ participant.legal_entity.name }}
                                         </a>
-                                    {% else %}
-                                            <span class="text-muted">Будущая дата</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                        <a href="{% url 'legal_opin:deal_participant_form_edit' participant.pk %}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit"></i> Редактировать
-                                    </a>
-                                </td>
-                            </tr>
-                        {% empty %}
-                                <tr><td colspan="5" class="text-center text-muted">Участников пока нет.</td></tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                        </div>
-                </div>
-                
-                <!-- Tab 3: Обеспечение -->
-                <div class="tab-pane fade" id="collateral" role="tabpanel" aria-labelledby="collateral-tab">
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4>Обеспечение по сделке</h4>
-                            <a href="{% url 'legal_opin:add_collateral' deal.pk %}" class="btn btn-primary">Добавить обеспечение</a>
-                        </div>
-                
-                        {% if grouped_collaterals %}
-                            <ul class="list-group">
-                                {% for owner, types in grouped_collaterals.items %}
-                                    {% for type, data in types.items %}
-                                    <li class="list-group-item">
-                                        {{ owner }} - {{ type }}
-                                        {% if data.is_countable %}
-                                            ({{ data.count }} объект/ов)
+                                    </td>
+                                    <td><span class="text-monospace small">{{ participant.legal_entity.inn }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ participant.role }}</span>
+                                    </td>
+                                    <td>
+                                        {% if participant.legal_entity.updated_at.date|date:"Y-m-d" == now|date:"Y-m-d" %}
+                                            <span class="text-success small"><svg width="1em" height="1em" class="me-1"
+                                                                                  viewBox="0 0 16 16" fill="none"><circle
+                                                    cx="8" cy="8" r="7" stroke="#198754" stroke-width="1.2"/><path
+                                                    d="M5 9l2.2 2L11 6" stroke="#198754" stroke-width="1.2"
+                                                    stroke-linecap="round"/></svg>Актуально</span>
+                                        {% else %}
+                                            <a href="{% url 'legal_opin:start_update_from_egrul' participant.legal_entity.pk %}"
+                                               class="btn btn-outline-danger btn-sm px-2">
+                                                <svg width="1em" height="1em" class="me-1" viewBox="0 0 16 16"
+                                                     fill="none">
+                                                    <rect x="2.5" y="2.5" width="11" height="11" rx="5.5"
+                                                          stroke="#dc3545" stroke-width="1.2"/>
+                                                    <path d="M8 5v3" stroke="#dc3545" stroke-width="1"
+                                                          stroke-linecap="round"/>
+                                                    <circle cx="8" cy="11" r="1" fill="#dc3545"/>
+                                                </svg>
+                                                Актуализировать данные по ЮЛ
+                                            </a>
                                         {% endif %}
-                                    </li>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'legal_opin:deal_participant_form_edit' participant.pk %}"
+                                           class="btn btn-outline-primary btn-sm">Редактировать</a>
+                                    </td>
+                                    <td>
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteParticipantModal"
+                                                data-participant-id="{{ participant.pk }}"
+                                                data-delete-url="{% url 'legal_opin:deal_participant_delete' participant.pk %}">
+                                            Удалить
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted small">Участников пока нет.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <div id="inn-error" class="text-danger mt-2 small"></div>
+                    </div>
+                    <!-- Обеспечение -->
+                    <div class="tab-pane fade" id="collateral" role="tabpanel" aria-labelledby="collateral-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0 fw-semibold">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="me-1">
+                                    <path d="M11 5a4 4 0 1 1-2-3.464" stroke="#20c997" stroke-width="1.18"/>
+                                    <rect x="12" y="12" width="2" height="2" rx="1" fill="#20c997"/>
+                                </svg>
+                                Обеспечение по сделке
+                            </h5>
+                            <div>
+                                <a href="{% url 'legal_opin:collateral_create' deal.pk %}"
+                                   class="btn btn-success btn-sm me-2">
+                                    + Добавить
+                                </a>
+                                <a href="{% url 'legal_opin:collateral_edit' deal.pk %}"
+                                   class="btn btn-outline-primary btn-sm">
+                                    Редактировать
+                                </a>
+                            </div>
+                        </div>
+                        <ul class="list-group my-2">
+                            {% for collateral in collaterals %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    {{ collateral.owner }}  
+                                    </span>
+                                    <span class="badge bg-primary ms-auto">{{ collateral.type }}</span>
+                                    <button type="button"
+                                            class="btn btn-outline-danger btn-sm ms-2"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deletecollateralModal"
+                                            data-participant-id="{{ collateral.pk }}"
+                                            data-delete-url="{% url 'legal_opin:collateral_del' deal_id=deal.id pk=collateral.id %}">
+                                        Удалить
+                                    </button>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item text-muted">Нет данных.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <!-- Риски -->
+                    <div class="tab-pane fade" id="risks" role="tabpanel" aria-labelledby="risks-tab">
+                        <div class="mb-2">
+                            <h5 class="fw-semibold">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="me-1">
+                                    <polygon points="8,2 15,14 1,14" stroke="#fd7e14" stroke-width="1.2" fill="none"/>
+                                    <circle cx="8" cy="10" r="1" fill="#fd7e14"/>
+                                    <rect x="7.4" y="5" width="1.2" height="3" rx="0.6" fill="#fd7e14"/>
+                                </svg>
+                                Риски
+                            </h5>
+                            <div>
+                                <a href="{% url 'legal_opin:risk_create' deal.pk %}"
+                                   class="btn btn-success btn-sm me-2">
+                                    Анализировать риски
+                                </a>
+                                <a href="{% url 'legal_opin:risk_edit' deal.pk %}"
+                                   class="btn btn-outline-primary btn-sm">
+                                    Редактировать риски
+                                </a>
+                            </div>
+                        </div>
+                        {% if has_risks %}
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Выявленные риски
+                                        <span class="badge bg-danger">{{ total_risks_count }}</span>
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    {% for participant_data in participants_with_risks %}
+                                        {% if participant_data.risk_count > 0 %}
+                                            <div class="participant-risks mb-4">
+                                                <h6 class="text-primary">
+                                                    <i class="fas fa-building"></i>
+                                                    {{ participant_data.participant.legal_entity.name }}
+                                                    <small class="text-muted">({{ participant_data.participant.role.name }})</small>
+                                                    <span class="badge bg-secondary ms-2">{{ participant_data.risk_count }}</span>
+                                                </h6>
+
+                                                <div class="risks-list">
+                                                    {% for risk in participant_data.all_risks %}
+                                                        <div class="card risk-item mb-2">
+                                                            <div class="card-body py-2">
+                                                                <div class="d-flex justify-content-between align-items-start">
+                                                                    <div class="risk-info">
+                                                                        <strong class="risk-title">{{ risk.risk }}</strong>
+                                                                        <br>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <hr>
+                                        {% endif %}
                                     {% endfor %}
-                                {% endfor %}
-                            </ul>
+                                </div>
+                            </div>
+
                         {% else %}
-                            <div class="alert alert-info" role="alert">
-                                Обеспечение по данной сделке еще не добавлено.
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                Для этой сделки еще не проанализированы риски.
                             </div>
                         {% endif %}
                     </div>
+                    <div class="tab-pane fade" id="docs" role="tabpanel" aria-labelledby="docs-tab">
+                        <div class="mb-2">
+                            <h5 class="fw-semibold">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="me-1">
+                                    <polygon points="8,2 15,14 1,14" stroke="#fd7e14" stroke-width="1.2" fill="none"/>
+                                    <circle cx="8" cy="10" r="1" fill="#fd7e14"/>
+                                    <rect x="7.4" y="5" width="1.2" height="3" rx="0.6" fill="#fd7e14"/>
+                                </svg>
+                                Непредставленные документы
+                            </h5>
+                            <div>
+                                <a href="{% url 'legal_opin:collateral_create' deal.pk %}"
+                                   class="btn btn-success btn-sm me-2">
+                                    Анализировать документы
+                                </a>
+                                <a href="{% url 'legal_opin:collateral_edit' deal.pk %}"
+                                   class="btn btn-outline-primary btn-sm">
+                                    Редактировать документы
+                                </a>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mb-0">Информация будет добавлена позже.</div>
+                    </div>
                 </div>
 
-                <div class="tab-pane fade" id="risks" role="tabpanel">
-                    <p>Информация о рисках будет добавлена позже.</p>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно "Юр. лицо не найдено" -->
+    <div class="modal fade" id="notFoundModal" tabindex="-1" aria-labelledby="notFoundModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="notFoundModalLabel">Юридическое лицо не найдено</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Юридическое лицо с указанным ИНН в базе данных не обнаружено. Перейти к созданию нового юридического
+                    лица?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                    <button type="button" class="btn btn-primary" id="searchInnButton">Да</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Модальное окно добавления участников -->
-<div class="modal fade" id="addParticipantModal" tabindex="-1" aria-labelledby="addParticipantModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addParticipantModalLabel">Добавить участников</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="add-participants-form" method="post" action="{% url 'legal_opin:add_multiple_participants' deal_pk=deal.pk %}">
-          {% csrf_token %}
-          
-          <!-- Поиск -->
-          <div class="mb-3">
-            <label for="participant-search" class="form-label">Поиск по названию или ИНН</label>
-            <input type="text" id="participant-search" class="form-control" placeholder="Введите название или ИНН для поиска...">
-          </div>
-          
-          <!-- Список юридических лиц -->
-          <div class="mb-3">
-            <label class="form-label">Выберите участников:</label>
-            <div id="entities-list" class="border rounded p-3" style="max-height: 450px; overflow-y: auto;">
-              {% for entity in available_entities %}
-              <div class="form-check entity-item" data-name="{{ entity.name|lower|default:'' }}" data-inn="{{ entity.inn|default:'' }}">
-                <input class="form-check-input" type="checkbox" name="entity_ids" value="{{ entity.id }}" id="entity-{{ entity.id }}">
-                <label class="form-check-label" for="entity-{{ entity.id }}">
-                  <!-- Название (левый верхний) -->
-                  <div class="entity-name">{{ entity.name }}</div>
-                  
-                  <!-- ИНН (левый нижний) -->
-                  <div class="entity-inn">
-                    {% if entity.inn %}ИНН: {{ entity.inn }}{% else %}ИНН не указан{% endif %}
-                  </div>
-                  
-                  <!-- Селектор роли (правый верхний) -->
-                  <div class="role-selector" style="display: none;">
-                    <select class="form-select form-select-sm" name="role_{{ entity.id }}">
-                      <option value="">Роль...</option>
-                      {% for role in all_roles %}
-                        <option value="{{ role.name }}">{{ role.name }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                  
-                  <!-- Место для ошибки валидации (правый нижний) - добавляется через JS -->
-                </label>
-              </div>
-              {% empty %}
-              <p class="text-muted">Все юридические лица уже добавлены как участники.</p>
-              {% endfor %}
+    <!-- Модальное окно Удаление -->
+    <!-- Modal для подтверждения удаления участника-->
+    <div class="modal fade" id="deleteParticipantModal" tabindex="-1" aria-labelledby="deleteParticipantModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteParticipantModalLabel">Подтверждение удаления</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Вы уверены, что хотите удалить этого участника сделки?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <form id="deleteParticipantForm" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Удалить</button>
+                    </form>
+                </div>
             </div>
-          </div>
-          
-          <div id="form-error" class="text-danger"></div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-        <button type="button" class="btn btn-primary" id="save-participants" disabled>Добавить участников</button>
-      </div>
+        </div>
     </div>
-  </div>
-</div>
+
+    <!-- Модальное окно Удаление -->
+    <!-- Modal для подтверждения удаления обеспечения-->
+    <div class="modal fade" id="deletecollateralModal" tabindex="-1" aria-labelledby="deleteСollateralModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteСollateralModalLabel">Подтверждение удаления</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Вы уверены, что хотите удалить это обеспечение?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <form id="deleteСollateralForm" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Удалить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function() {
-    // Поиск участников в модальном окне
-    $('#participant-search').on('input', function() {
-        const searchTerm = $(this).val().toLowerCase().trim();
-        const entityItems = $('#entities-list .entity-item');
-        
-        console.log('Search term:', searchTerm); // Отладка
-        
-        entityItems.each(function() {
-            const $item = $(this);
-            const name = ($item.data('name') || '').toString().toLowerCase();
-            const inn = ($item.data('inn') || '').toString().toLowerCase();
-            
-            console.log('Checking item:', name, inn); // Отладка
-            
-            if (searchTerm === '' || name.includes(searchTerm) || inn.includes(searchTerm)) {
-                $item.removeClass('hidden').show();
-            } else {
-                $item.addClass('hidden').hide();
-            }
-        });
-    });
-    
-    // Показать/скрыть dropdown роли при выборе участника
-    $('#entities-list').on('change', 'input[type="checkbox"]', function() {
-        const $checkbox = $(this);
-        const $entityItem = $checkbox.closest('.entity-item');
-        const $formCheck = $checkbox.closest('.form-check');
-        const $roleSelector = $entityItem.find('.role-selector');
-        
-        if ($checkbox.is(':checked')) {
-            $roleSelector.show();
-            $entityItem.addClass('selected');
-            $formCheck.addClass('checked-card'); // Добавляем класс для стилизации карточки
-        } else {
-            $roleSelector.hide();
-            $roleSelector.find('select').val(''); // Сбрасываем выбор роли
-            $entityItem.removeClass('selected has-error');
-            $formCheck.removeClass('checked-card'); // Убираем класс стилизации
-            // Убираем ошибки при снятии выбора
-            clearValidationError($entityItem);
-        }
-        
-        // Проверяем, можно ли активировать кнопку сохранения
-        updateSaveButtonState();
-    });
-    
-    // Отслеживаем изменения в выборе ролей
-    $('#entities-list').on('change', 'select[name^="role_"]', function() {
-        updateSaveButtonState();
-    });
-    
-    // Функция для обновления состояния кнопки сохранения
-    function updateSaveButtonState() {
-        const $checkedBoxes = $('#entities-list input[type="checkbox"]:checked');
-        const $saveButton = $('#save-participants');
-        let allRolesSelected = true;
-        
-        if ($checkedBoxes.length === 0) {
-            $saveButton.prop('disabled', true);
-            return;
-        }
-        
-        // Проверяем, что для каждого выбранного участника выбрана роль
-        $checkedBoxes.each(function() {
-            const entityId = $(this).val();
-            const roleValue = $(`select[name="role_${entityId}"]`).val();
-            if (!roleValue) {
-                allRolesSelected = false;
-                return false; // break из each
-            }
-        });
-        
-        $saveButton.prop('disabled', !allRolesSelected);
-    }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#add-participant-form').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                var inn = $('#participant-inn-input').val();
+                $('#inn-error').text('');
 
-
-    
-    // Функция для показа ошибки валидации
-    function showValidationError($entityItem, errorMessage) {
-        // Убираем старые ошибки
-        clearValidationError($entityItem);
-        
-        // Добавляем класс ошибки к карточке
-        $entityItem.closest('.form-check').addClass('has-error');
-        
-        // Добавляем текст ошибки в правый нижний угол сетки
-        const $errorDiv = $('<div class="validation-error"></div>').text(errorMessage);
-        $entityItem.find('.form-check-label').append($errorDiv);
-    }
-    
-    // Функция для очистки ошибки валидации
-    function clearValidationError($entityItem) {
-        $entityItem.closest('.form-check').removeClass('has-error');
-        $entityItem.find('.validation-error').remove();
-    }
-    
-    // Функция для очистки всех ошибок
-    function clearAllValidationErrors() {
-        $('#entities-list .entity-item').each(function() {
-            clearValidationError($(this));
-        });
-    }
-    
-    // Сохранение участников
-    $('#save-participants').on('click', function() {
-        const $button = $(this);
-        const $checkedBoxes = $('#entities-list input[type="checkbox"]:checked');
-        
-        if ($checkedBoxes.length === 0) {
-            $('#form-error').text('Пожалуйста, выберите хотя бы одного участника.');
-            return;
-        }
-        
-        // Проверяем, что все роли выбраны
-        let missingRoles = false;
-        $checkedBoxes.each(function() {
-            const entityId = $(this).val();
-            const roleValue = $(`select[name="role_${entityId}"]`).val();
-            if (!roleValue) {
-                missingRoles = true;
-                return false;
-            }
-        });
-        
-        if (missingRoles) {
-            $('#form-error').text('Пожалуйста, выберите роль для всех участников.');
-            return;
-        }
-        
-        // Очищаем предыдущие ошибки
-        clearAllValidationErrors();
-        
-        // Показываем индикатор загрузки
-        const originalText = $button.html();
-        $button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Добавление...');
-        $('#form-error').text('');
-        
-        // Собираем данные для отправки
-        const participants = [];
-        $checkedBoxes.each(function() {
-            const entityId = $(this).val();
-            const role = $(`select[name="role_${entityId}"]`).val();
-            participants.push({
-                entity_id: entityId,
-                role: role
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: {
+                        'inn': inn,
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function (response) {
+                        if (response.status === 'found') {
+                            window.location.href = response.redirect_url;
+                        } else if (response.status === 'not_found') {
+                            // Формируем URL для создания ЮЛ и передаем ИНН
+                            var createUrl = "{% url 'legal_opin:legal_entity_create' %}?inn=" + response.inn;
+                            $('#create-le-link').attr('href', createUrl);
+                            var modal = new bootstrap.Modal(document.getElementById('notFoundModal'));
+                            modal.show();
+                        }
+                    },
+                    error: function (xhr) {
+                        var errorMsg = xhr.responseJSON ? xhr.responseJSON.message : 'Произошла ошибка.';
+                        $('#inn-error').text(errorMsg);
+                    }
+                });
             });
         });
-        
-        // Отправляем данные
-        $.ajax({
-            url: $('#add-participants-form').attr('action'),
-            type: 'POST',
-            data: {
-                'participants': JSON.stringify(participants),
-                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
-            },
-            success: function(response) {
-                if (response.status === 'success') {
-                    // Перезагружаем страницу для обновления списка участников
-                    window.location.reload();
-                } else if (response.status === 'validation_error') {
-                    // Обрабатываем ошибки валидации - строгий режим "все или ничего"
-                    const validationErrors = response.validation_errors;
-                    
-                    // Показываем ошибки для каждого проблемного участника
-                    $checkedBoxes.each(function() {
-                        const entityId = $(this).val();
-                        const $entityItem = $(this).closest('.entity-item');
-                        
-                        if (validationErrors[entityId]) {
-                            // Есть ошибка - показываем её
-                            showValidationError($entityItem, validationErrors[entityId]);
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#add-participant-form').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                var inn = $('#participant-inn-input').val();
+                $('#inn-error').text('');
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: {
+                        'inn': inn,
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function (response) {
+                        if (response.status === 'found') {
+                            window.location.href = response.redirect_url;
+                        } else if (response.status === 'not_found') {
+                            // Формируем URL для создания ЮЛ и передаем ИНН
+                            var createUrl = "{% url 'legal_opin:legal_entity_create' %}?inn=" + response.inn;
+                            $('#create-le-link').attr('href', createUrl);
+                            var modal = new bootstrap.Modal(document.getElementById('notFoundModal'));
+                            modal.show();
                         }
-                    });
-                    
-                    // Восстанавливаем кнопку
-                    $button.prop('disabled', false).html(originalText);
-                    
-                    // Показываем сообщение об ошибке
-                    const errorCount = Object.keys(validationErrors).length;
-                    $('#form-error').html(`<div class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Исправьте ошибки валидации (${errorCount} участников). Никто не будет добавлен до устранения всех ошибок.</div>`);
-                } else {
-                    $('#form-error').text(response.message || 'Произошла ошибка при добавлении участников.');
-                    $button.prop('disabled', false).html(originalText);
-                } 
-            },
-            error: function(xhr) {
-                const message = xhr.responseJSON && xhr.responseJSON.message 
-                    ? xhr.responseJSON.message 
-                    : 'Произошла ошибка при добавлении участников.';
-                $('#form-error').text(message);
-                $button.prop('disabled', false).html(originalText);
-            }
+                    },
+                    error: function (xhr) {
+                        var errorMsg = xhr.responseJSON ? xhr.responseJSON.message : 'Произошла ошибка.';
+                        $('#inn-error').text(errorMsg);
+                    }
+                });
+            });
         });
-    });
-    
-    // Сброс модального окна при закрытии
-    $('#addParticipantModal').on('hidden.bs.modal', function() {
-        $('#participant-search').val('');
-        $('#entities-list input[type="checkbox"]').prop('checked', false);
-        $('#entities-list .entity-item').removeClass('hidden selected has-error').show();
-        $('#entities-list .form-check').removeClass('checked-card has-error'); // Убираем классы карточек
-        $('#entities-list .role-selector').hide();
-        $('#entities-list select[name^="role_"]').val('');
-        $('#save-participants').prop('disabled', true);
-        $('#form-error').text('');
-        clearAllValidationErrors();
-    });
-});
-</script>    
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#searchInnButton').click(function () {
+                var inn = $('#participant-inn-input').val();
+                var resultDiv = $('#searchResult');
+                var button = $(this);
+
+                // Показываем индикатор загрузки
+                button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Поиск...');
+
+                // Проверяем формат ИНН
+                if (!/^\d{10}$/.test(inn)) {
+                    resultDiv.removeClass('d-none alert-success alert-danger').addClass('alert-danger')
+                        .text('ИНН должен содержать 10 цифр');
+                    button.prop('disabled', false).html('Искать');
+                    return;
+                }
+
+                // Отправляем AJAX запрос
+                $.ajax({
+                    url: '{% url "legal_opin:check_inn" %}',
+                    type: 'POST',
+                    data: {
+                        'inn': inn,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        resultDiv.removeClass('d-none alert-danger').addClass('alert-success')
+                            .text(response.message);
+                        if (response.status === 'success') {
+                            // Перенаправляем на форму создания
+                            window.location.href = '{% url "legal_opin:legal_entity_create" %}';
+                        }
+                        button.prop('disabled', false).html('Искать');
+                    },
+                    error: function (xhr) {
+                        var message = 'Произошла ошибка при поиске';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            message = xhr.responseJSON.error;
+                        }
+                        resultDiv.removeClass('d-none alert-success').addClass('alert-danger')
+                            .text(message);
+                        button.prop('disabled', false).html('Искать');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteModal = document.getElementById('deleteParticipantModal');
+            const deleteForm = document.getElementById('deleteParticipantForm');
+
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const participantId = button.getAttribute('data-participant-id');
+                const deleteUrl = button.getAttribute('data-delete-url');
+
+                // Устанавливаем action формы
+                deleteForm.action = deleteUrl;
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteModal = document.getElementById('deletecollateralModal');
+            const deleteForm = document.getElementById('deleteСollateralForm');
+
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const participantId = button.getAttribute('data-participant-id');
+                const deleteUrl = button.getAttribute('data-delete-url');
+
+                // Устанавливаем action формы
+                deleteForm.action = deleteUrl;
+            });
+        });
+    </script>
 {% endblock %}

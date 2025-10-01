@@ -7,6 +7,8 @@
 
 {% block content %}
 
+    
+    
 <div class="container py-4 detail-wrapper">
   <div class="row">
     <!-- TOC -->
@@ -16,8 +18,8 @@
           <a class="list-group-item list-group-item-action active" href="#section-overview">Общая информация</a>
           <a class="list-group-item list-group-item-action" href="#section-eio">ЕИО</a>
           <a class="list-group-item list-group-item-action" href="#section-participants">Участники</a>
-          <a class="list-group-item list-group-item-action" href="#section-deals">Сделки</a>
           <a class="list-group-item list-group-item-action" href="#section-risks">Риски</a>
+          <a class="list-group-item list-group-item-action" href="#section-deals">Сделки</a>
         </div>
       </div>
     </aside>
@@ -37,8 +39,8 @@
 
       <!-- Entity Name Header -->
       <div class="mb-4">
-        <h2 class="entity-name">{{ entity.name }}</h2>
-        <p class="text-muted entity-subtitle">Добавлено: {{ entity.created_at|date:"d.m.Y H:i" }} Обновлено: {{ entity.updated_at|date:"d.m.Y H:i" }}</p>
+        <h3 class="entity-name">{{ entity.name }}</h3>
+        <p class="text-muted entity-subtitle">Добавлено: {{ entity.created_at|date:"d.m.Y" }} Обновлено: {{ entity.updated_at|date:"d.m.Y" }}</p>
       </div>
 
       <section id="section-overview" class="app-section mb-3">
@@ -58,7 +60,7 @@
                 <div class="info-grid">
                   <div class="info-label">Уставной капитал:</div>
                   <div>
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" id="capital-badge">
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 status-badge" id="capital-badge">
                       {{ entity.authorized_capital|floatformat:0 }} ₽
                     </span>
                   </div>
@@ -66,7 +68,7 @@
                   <div class="info-label">Группа компаний:</div>
                   <div>
                     {% if entity.company_group %}
-                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ entity.company_group }}</span>
+                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 status-badge">{{ entity.company_group }}</span>
                     {% else %}
                       <span class="text-muted">—</span>
                     {% endif %}
@@ -74,7 +76,10 @@
 
                   <div class="info-label">Статус ЕГРЮЛ:</div>
                   <div>
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 status-badge">{{ entity.status }}</span>
+                    <span class="badge"
+                          style="white-space: revert; text-align: start; background-color: {% if entity.status == 'ЮЛ действующие' %}#198754{% else %}#FCA034{% endif %};">
+                      {{ entity.status }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -134,7 +139,11 @@
       <section id="section-participants" class="app-section mb-3">
         <div class="card card-elevated">
           <div class="card-header bg-white">
-            <h4 class="mb-0 section-title"><span class="dot"></span> Участники</h4>
+            {% if entity.legal_form == 'ООО' %}  
+                <h4 class="mb-0 section-title"><span class="dot"></span> Участники</h4>
+            {% else %}  
+                <h4 class="mb-0 section-title"><span class="dot"></span> Акционеры</h4>  
+            {% endif %}  
           </div>
           <div class="card-body">
             {% if participants %}
@@ -164,8 +173,6 @@
                             <div class="fw-medium">
                               {% if participant.name %}
                                 {{ participant.name }}
-                              {% else %}
-                                <span class="text-muted fst-italic">Доступ к сведениям об участниках ограничен</span>
                               {% endif %}
                             </div>
                           </div>
@@ -186,10 +193,13 @@
                         {% endif %}
                       </td>
                     </tr>
+                        
                     {% endfor %}
                   </tbody>
                 </table>
+              {{ participant.dop_info }}
               </div>
+            <div>Дополнительная информация: {{ participant.dop_info }}</div>
             </div>
             {% else %}
             <div class="scrollable" style="max-height: calc(4 * 112px); overflow-y: auto; height: unset !important;">
@@ -203,12 +213,70 @@
         </div>
       </section>
 
+          <section id="section-risks" class="app-section mb-3">
+        <div class="card">
+          <div class="card-header"><h5 class="mb-0">Риск-факторы</h5></div>
+          <div class="card-body">
+                                <table class="table">
+                                <thead >
+                                      <tr class="table-primary">
+                                        <td>Факторы</td>
+                                        <td>Значения</td>
+                                      </tr>
+                                  </thead>
+                                  <tbody>      
+                                  <tr>
+                                    <td>Банкротство</td>
+                                    <td>
+                                        {% if bankrot == True %}
+                    <input class="form-check-input" type="checkbox" value="" checked>
+                                        {% else %}
+                    <input class="form-check-input" type="checkbox" value="">
+                                        {% endif %}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>Заказчик по закупкам</td>
+                                    <td>
+                                        {% if zakup == True %}
+                    <input class="form-check-input" type="checkbox" value="" checked>
+                                        {% else %}
+                    <input class="form-check-input" type="checkbox" value="">
+                                        {% endif %}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>СЭМ</td>
+                                    <td>
+                                        {% if SEM == True %}
+                    <input class="form-check-input" type="checkbox" value="" checked>
+                                        {% else %}
+                    <input class="form-check-input" type="checkbox" value="">
+                                        {% endif %}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>Реорганизация / ликвидация</td>
+                                    <td>
+                                        {% if reorganization == True %}
+                    <input class="form-check-input" type="checkbox" value="" checked>
+                                        {% else %}
+                    <input class="form-check-input" type="checkbox" value="">
+                                        {% endif %}
+                                    </td>
+                                  </tr>
+                                </tbody>
+                                </table>
+                        </div>
+                    </div>
+      </section>
+    
       <section id="section-deals" class="app-section mb-3">
         <div class="card">
           <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
               <h4 class="mb-0">Сделки</h4>
-                              <!-- Фильтры для сделок -->
+                <!-- Фильтры для сделок -->
                 <div class="d-flex gap-2 align-items-center">
                   <div class="d-flex align-items-center gap-1">
                     <i class="bi bi-funnel text-muted" style="font-size: 0.9rem;"></i>
@@ -219,15 +287,15 @@
                   <option value="">Все роли</option>
                   {% for role in all_roles %}
                     <option value="{{ role.name }}">{{ role.name }}</option>
-                  {% endfor %}
+                  {% endfor %}  
                 </select>
-                <a href="{% url 'legal_opin:deal_create' %}" class="btn btn-new-deal">Новая сделка</a>
+                <a href="{% url 'legal_opin:deal_create' %}" class="btn btn-edit">Новая сделка</a>
               </div>
             </div>
           </div>
           <div class="card-body">
             {% if deals %}
-            <div id="deals-container" class="scrollable" style="max-height: calc(4 * 120px); overflow-y: auto; height: unset !important;">
+            <div id="deals-container" class="scrollable" style="max-height: calc(6 * 120px); overflow-y: auto; height: unset !important;">
               {% for deal in deals %}
               <div class="card mb-3 shadow-sm position-relative entity-card deal-card" style="overflow-x: hidden"
                    data-deal-number="{{ deal.number|lower }}"
@@ -240,10 +308,10 @@
                       <span class="badge bg-primary">{{ deal.credit_product_type|default:"Сделка" }}</span>
                     </div>
                     <div class="text-end">
-                      <small class="text-muted ms-1">| Создано</small>
-                      <small class="text-muted fw-bold"> {% if deal.created_at %}{{ deal.created_at|date:"d.m.Y H:i" }}{% endif %} </small>
                       <small class="text-muted ms-1">| Номер</small>
                       <small class="text-muted fw-bold"> {{ deal.number }} </small>
+                      <small class="text-muted ms-1">| Создано</small>
+                      <small class="text-muted fw-bold"> {% if deal.created_at %}{{ deal.created_at|date:"d.m.Y H:i" }}{% endif %} </small>
                     </div>
                   </div>
                   
@@ -289,276 +357,15 @@
           </div>
         </div>
       </section>
-
-      <section id="section-risks" class="app-section mb-3">
-        <div class="card">
-          <div class="card-header"><h5 class="mb-0">Риск-факторы</h5></div>
-          <div class="card-body">
-                                <table class="table">
-                                  <tr>
-                                    <td>Факторы</td>
-                                    <td>Значения</td>
-                                  </tr>
-                                  <tr>
-                                    <td>Банкротство</td>
-                                    <td>
-                                        {% if bankrot == True %}
-                    <input class="form-check-input" type="checkbox" value="" checked>
-                                        {% else %}
-                    <input class="form-check-input" type="checkbox" value="">
-                                        {% endif %}
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>Заказчик по закупкам</td>
-                                    <td>
-                                        {% if zakup == True %}
-                    <input class="form-check-input" type="checkbox" value="" checked>
-                                        {% else %}
-                    <input class="form-check-input" type="checkbox" value="">
-                                        {% endif %}
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>СЭМ</td>
-                                    <td>
-                                        {% if SEM == True %}
-                    <input class="form-check-input" type="checkbox" value="" checked>
-                                        {% else %}
-                    <input class="form-check-input" type="checkbox" value="">
-                                        {% endif %}
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>Реорганизация / ликвидация</td>
-                                    <td>
-                                        {% if reorganization == True %}
-                    <input class="form-check-input" type="checkbox" value="" checked>
-                                        {% else %}
-                    <input class="form-check-input" type="checkbox" value="">
-                                        {% endif %}
-                                    </td>
-                                  </tr>
-                                </table>
-                        </div>
-                    </div>
-      </section>
       <div class="scroll-spacer"></div>
     </main>
     </div>
 </div>
-
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script>
-  // click row navigate
-  $(function(){
-    $('*[data-href]').on('click', function(){ window.location = $(this).data('href'); });
-  });
-
-  // Smooth scroll for TOC clicks
-  document.querySelectorAll('#detail-toc a').forEach(function(link){
-    link.addEventListener('click', function(e){
-      e.preventDefault();
-      const target = document.querySelector(this.getAttribute('href'));
-      if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
-
-  // Enhanced TOC highlighting with better logic
-  const tocLinks = document.querySelectorAll('#detail-toc a');
-  const sections = document.querySelectorAll('section[id^="section-"]');
-  
-  // Modern scroll-based approach (more reliable than IntersectionObserver for TOC)
-  function updateActiveSection() {
-    const scrollPosition = window.scrollY + 20; // minimal offset
-    
-    let activeSection = null;
-    sections.forEach(section => {
-      const sectionTop = section.offsetTop;
-      const sectionBottom = sectionTop + section.offsetHeight;
-      
-      if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
-        activeSection = section;
-      }
-    });
-    
-    // Fallback: if no section is active, use the last visible one
-    if (!activeSection) {
-      for (let i = sections.length - 1; i >= 0; i--) {
-        if (scrollPosition >= sections[i].offsetTop) {
-          activeSection = sections[i];
-          break;
-        }
-      }
-    }
-    
-    // Update TOC highlighting
-    tocLinks.forEach(link => link.classList.remove('active'));
-    if (activeSection) {
-      const activeLink = document.querySelector(`#detail-toc a[href="#${activeSection.id}"]`);
-      if (activeLink) activeLink.classList.add('active');
-    }
-  }
-  
-  // Throttled scroll listener for better performance  
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        updateActiveSection();
-        ticking = false;
-      });
-      ticking = true;
-    }
-  });
-  
-  // Initial call
-  updateActiveSection();
-
-  // Format authorized capital with thousand separators
-  document.addEventListener('DOMContentLoaded', function() {
-    const cap = document.getElementById('capital-badge');
-    if (cap) {
-      const text = cap.textContent;
-      const match = text.match(/(\d+)\s*₽/);
-      if (match) {
-        const number = match[1];
-        const formatted = number.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-        cap.innerHTML = text.replace(number, formatted);
-      }
-    }
-
-    // format deal amounts
-    document.querySelectorAll('.deal-amount').forEach(el => {
-      const text = el.textContent;
-      const m = text.match(/(\d+)\s*₽/);
-      if (m){
-        const n = m[1].replace(/\D/g,'');
-        const fmt = n.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-        el.innerHTML = text.replace(m[1], fmt);
-      }
-    });
-
-    // Функция для подсветки найденного текста в сделках
-    function highlightDealText(element, query, className = 'highlight') {
-      if (!query || query.length < 2) {
-        removeDealHighlight(element);
-        return;
-      }
-      
-      const walker = document.createTreeWalker(
-        element,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-      );
-      
-      const textNodes = [];
-      let node;
-      while (node = walker.nextNode()) {
-        textNodes.push(node);
-      }
-      
-      textNodes.forEach(textNode => {
-        const text = textNode.textContent;
-        const regex = new RegExp(`(${query})`, 'gi');
-        
-        if (regex.test(text)) {
-          const highlightedText = text.replace(regex, `<mark class="${className}">$1</mark>`);
-          const wrapper = document.createElement('span');
-          wrapper.innerHTML = highlightedText;
-          textNode.parentNode.replaceChild(wrapper, textNode);
-        }
-      });
-    }
-    
-    // Функция для удаления подсветки в сделках
-    function removeDealHighlight(element) {
-      const highlights = element.querySelectorAll('mark.highlight');
-      highlights.forEach(mark => {
-        const parent = mark.parentNode;
-        parent.replaceChild(document.createTextNode(mark.textContent), mark);
-        parent.normalize();
-      });
-    }
-
-    // Фильтрация сделок
-    function filterDeals() {
-      const numberQuery = document.getElementById('deal-number-filter')?.value.toLowerCase().trim() || '';
-      const borrowerQuery = document.getElementById('deal-borrower-filter')?.value.toLowerCase().trim() || '';
-      const roleQuery = document.getElementById('deal-role-filter')?.value.toLowerCase().trim() || '';
-      
-      const dealsContainer = document.getElementById('deals-container');
-      if (!dealsContainer) return;
-      
-      const dealCards = dealsContainer.querySelectorAll('.deal-card');
-      let visibleCount = 0;
-      
-      dealCards.forEach(card => {
-        const dealNumber = card.getAttribute('data-deal-number') || '';
-        const dealBorrowers = card.getAttribute('data-deal-borrowers') || '';
-        const dealRoles = card.getAttribute('data-deal-roles') || '';
-        
-        const matchesNumber = !numberQuery || dealNumber.includes(numberQuery);
-        const matchesBorrower = !borrowerQuery || dealBorrowers.includes(borrowerQuery);
-        const matchesRole = !roleQuery || dealRoles.includes(roleQuery);
-        
-        if (matchesNumber && matchesBorrower && matchesRole) {
-          card.style.display = '';
-          visibleCount++;
-          
-          // Убираем предыдущую подсветку
-          removeDealHighlight(card);
-          
-          // Добавляем подсветку для номера сделки
-          if (numberQuery && numberQuery.length >= 2) {
-            // Подсвечиваем в заголовке карточки "№ XXX"
-            const titleElement = card.querySelector('h5.card-title');
-            if (titleElement && titleElement.textContent.toLowerCase().includes(numberQuery)) {
-              highlightDealText(titleElement, numberQuery);
-            }
-            
-            // Подсвечиваем в правой части где "Номер XXX"
-            const rightText = card.querySelector('.text-end small');
-            if (rightText && rightText.textContent.toLowerCase().includes(numberQuery)) {
-              highlightDealText(rightText, numberQuery);
-            }
-          }
-          
-          // Добавляем подсветку для заемщиков/должников
-          if (borrowerQuery && borrowerQuery.length >= 2) {
-            const borrowerBadges = card.querySelectorAll('.badge.bg-light');
-            borrowerBadges.forEach(badge => {
-              // Проверяем, что это именно бейдж должника (находится в блоке с "Должник:")
-              const parentDiv = badge.closest('div');
-              if (parentDiv && parentDiv.innerHTML.includes('Должник:')) {
-                if (badge.textContent.toLowerCase().includes(borrowerQuery)) {
-                  highlightDealText(badge, borrowerQuery);
-                }
-              }
-            });
-          }
-          
-        } else {
-          card.style.display = 'none';
-          // Убираем подсветку для скрытых карточек
-          removeDealHighlight(card);
-        }
-      });
-    }
-    
-    // Добавляем обработчики событий для фильтров сделок
-    const dealNumberFilter = document.getElementById('deal-number-filter');
-    const dealBorrowerFilter = document.getElementById('deal-borrower-filter');
-    const dealRoleFilter = document.getElementById('deal-role-filter');
-    
-    if (dealNumberFilter) dealNumberFilter.addEventListener('input', filterDeals);
-    if (dealBorrowerFilter) dealBorrowerFilter.addEventListener('input', filterDeals);
-    if (dealRoleFilter) dealRoleFilter.addEventListener('change', filterDeals);
-  });
-</script>
 {% endblock %}
+
     <!-- Блок cкриптов -->
 {% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="{% static 'legal_opin/js/main.js' %}"></script>
+    <script src="{% static 'legal_opin/js/entity_detail.js' %}"></script>
 {% endblock %}

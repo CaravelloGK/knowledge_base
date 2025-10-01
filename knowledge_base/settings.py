@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'staff',
     'crispy_forms',
     'crispy_bootstrap5',
+    'reporting'
 ]
 
 MIDDLEWARE = [

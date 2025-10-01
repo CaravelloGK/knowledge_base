@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import (CollateralCreateView, CollateralUpdateView, DealCollateralDeleteView,
+                    RiskAnalysisView)
 
 app_name = 'legal_opin'
 
@@ -19,11 +21,20 @@ urlpatterns = [
     path('deals/<int:pk>/', views.DealDetailView.as_view(), name='deal_detail'),
     path('deals/<int:pk>/edit', views.DealUpdateView.as_view(), name='deal_edit'),
     path('deals/<int:deal_pk>/add_participant/', views.add_participant_by_inn, name='add_participant_by_inn'),
-    path('deals/<int:deal_pk>/add_multiple_participants/', views.add_multiple_participants, name='add_multiple_participants'),
     path('deals/<int:deal_pk>/participant/<int:le_pk>/', views.DealParticipantCreateView.as_view(), name='deal_participant_form'),
     path('deals/participant/<int:pk>/edit/', views.DealParticipantUpdateView.as_view(),
          name='deal_participant_form_edit'),
-    path('deals/<int:deal_pk>/add_collateral/', views.add_collateral, name='add_collateral'),
+    path('deals/participant/<int:pk>/del/', views.DealParticipantDeleteView.as_view(),
+         name='deal_participant_delete'),
+    path('deal/<int:deal_id>/collaterals/create/', CollateralCreateView.as_view(), name='collateral_create'),
+    path('deal/<int:deal_id>/collaterals/edit/', CollateralUpdateView.as_view(), name='collateral_edit'),
+    path('deal/<int:deal_id>/collaterals/del/<int:pk>', DealCollateralDeleteView.as_view(), name='collateral_del'),
+
+    # риски
+    path('deal/<int:deal_id>/risk/create/', RiskAnalysisView.as_view(), name='risk_create'),
+    # path('add-custom-risk/', add_custom_risk, name='add_custom_risk'),
+    path('deal/<int:deal_id>/risk/edit/', RiskAnalysisView.as_view(), kwargs={'is_edit': True}, name='risk_edit'),
+
     path('check-inn/', views.check_inn_file, name='check_inn'),
 
 ]

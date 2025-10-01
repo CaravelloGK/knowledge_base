@@ -1,117 +1,274 @@
 {% extends 'index.html' %}
-{% load static %}
-{% load crispy_forms_tags %}
-
+{% load widget_tweaks %}
 {% block content %}
-<div class="container mt-4">
-    <h2>Добавить обеспечение для сделки №{{ deal.number|default:deal.id }}</h2>
-    <p>от {{ deal.created_at|date:"d.m.Y" }}</p>
 
-    <form method="post" id="collateral-formset">
-        {% csrf_token %}
-        {% for field in formset.management_form %}
-            {{ field }}
-        {% endfor %}
-    
-        <div id="form-container">
-            {% for form in formset %}
-                <div class="collateral-form-instance mb-4 p-4 border rounded shadow-sm">
-                    <h5 class="mb-3">Объект обеспечения №{{ forloop.counter }}</h5>
-                    {% crispy form %}
-                </div>
-            {% endfor %}
-        </div>
+    <style>
+        .guarantee-block, .collateral-block {
+            display: none;
+        }
+    </style>
 
-        <div id="empty-form" style="display:none;">
-            <div class="collateral-form-instance mb-4 p-4 border rounded shadow-sm">
-                 <h5 class="mb-3">Объект обеспечения №__prefix__</h5>
-                {% crispy formset.empty_form %}
+    <div class="container my-4">
+        <h2 class="mb-4 text-center fw-semibold">
+            {% if deal %}{{ title }} для сделки: {{ deal }}{% else %}{{ title }}{% endif %}
+        </h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ formset.management_form }}
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger mb-3">{{ formset.non_form_errors }}</div>
+            {% endif %}
+            <div id="formset-container" class="row g-3 justify-content-center">
+                {% for form in formset %}
+                    <div class="col-12 col-md-10 col-lg-8 formset-item">
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-primary text-white d-flex align-items-center small">
+                                <svg width="1.1em" height="1.1em" fill="none" class="me-2" viewBox="0 0 24 24">
+                                    <rect x="4" y="6" width="16" height="12" rx="2" stroke="#fff" stroke-width="1.5"/>
+                                </svg>
+                                Обеспечение ({{ forloop.counter }})
+                            </div>
+                            <div class="card-body pb-1">
+
+                                <div class="row g-3">
+
+                                    <!-- блок контрагент -->
+                                    <div class="col-md-12">
+                                        <label for="{{ form.owner.id_for_label }}" class="form-label fw-semibold">Контрагент</label>
+                                        {{ form.owner|add_class:"form-select" }}
+                                        {% if form.owner.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.owner.errors.0 }}</div>{% endif %}
+                                    </div>
+
+                                    <!-- Вид обеспечения -->
+                                    <div class="col-md-6">
+                                        <label for="{{ form.type.id_for_label }}" class="form-label fw-semibold">
+                                            Вид обеспечения
+                                        </label>
+                                        {{ form.type|add_class:"form-select collateral-type-selector" }}
+                                        {% if form.type.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.type.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Блок "Поручительство" -->
+                                <div class="row g-3 mt-2 guarantee-block"
+                                     id="{{ form.prefix }}-type-of-responsibility-block">
+                                    <div class="col-12">
+                                        <label for="{{ form.type_of_responsibility.id_for_label }}"
+                                               class="form-label fw-semibold">
+                                            Вид ответственности
+                                        </label>
+                                        {{ form.type_of_responsibility|add_class:"form-control" }}
+                                        {% if form.type_of_responsibility.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.type_of_responsibility.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Блок "Залог" -->
+                                <div class="row g-3 mt-2 collateral-block"
+                                     id="{{ form.prefix }}-subject-of-collateral-block">
+
+                                    <div class="col-md-6">
+                                        <label for="{{ form.subject_of_collateral.id_for_label }}"
+                                               class="form-label fw-semibold">
+                                            Предмет залога
+                                        </label>
+                                        {{ form.subject_of_collateral|add_class:"form-select" }}
+                                        {% if form.subject_of_collateral.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.subject_of_collateral.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.procedure_for_foreclosure.id_for_label }}"
+                                               class="form-label fw-semibold">
+                                            Порядок обращения взыскания
+                                        </label>
+                                        {{ form.procedure_for_foreclosure|add_class:"form-select" }}
+                                        {% if form.procedure_for_foreclosure.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.procedure_for_foreclosure.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Остальные поля (всегда показывать) -->
+                                <div class="row g-3 mt-2">
+                                    <div class="col-12">
+                                        <label for="{{ form.dop_info.id_for_label }}" class="form-label fw-semibold">
+                                            Дополнительная информация / комментарии
+                                        </label>
+                                        {{ form.dop_info|add_class:"form-control" }}
+                                        {% if form.dop_info.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.dop_info.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="row g-3 my-2">
+                                    <div class="col-12">
+                                        {% if formset.can_delete %}
+                                            <div class="delete-wrapper">
+                                                <label style="font-weight: bold;">
+                                                    {{ form.DELETE }} УДАЛИТЬ ЭТУ ЗАПИСЬ
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
-        </div>
 
-        <button type="button" id="add-form-btn" class="btn btn-secondary">Добавить еще объект</button>
-        <button type="submit" class="btn btn-primary">Закончить и сохранить</button>
-        <a href="{% url 'legal_opin:deal_detail' deal.pk %}" class="btn btn-outline-secondary">Отмена</a>
-    </form>
-</div>
-<script src="{% static 'js/deal_collateral.js' %}"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+            <div class="row mt-3 mb-5">
+                <div class="col-12 d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button" id="add-form" class="btn btn-outline-primary">
+                        <svg width="1em" height="1em" viewBox="0 0 16 16" class="me-1">
+                            <circle cx="8" cy="8" r="7" stroke="#0d6efd"/>
+                            <path d="M8 4v8M4 8h8" stroke="#0d6efd" stroke-width="1.2"/>
+                        </svg>
+                        Добавить еще обеспечение
+                    </button>
+                    <a href="{% url 'legal_opin:deal_detail' pk=deal.pk %}" class="btn btn-outline-secondary">
+                        Отмена
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        Сохранить
+                    </button>
+                </div>
+            </div>
 
-    function updateFormVisibility(formInstance) {
-        const typeSelector = formInstance.querySelector('select[name$="-collateral_type"]');
-        if (!typeSelector) return;
+            <template id="empty-form-template">
+                <div class="col-12 col-md-10 col-lg-8 formset-item">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-primary text-white d-flex align-items-center small">
+                            <svg width="1.1em" height="1.1em" fill="none" class="me-2" viewBox="0 0 24 24">
+                                <rect x="4" y="6" width="16" height="12" rx="2" stroke="#fff" stroke-width="1.5"/>
+                            </svg>
+                            Обеспечение
+                        </div>
+                        <div class="card-body pb-1">
+                            {% with form=formset.empty_form %}
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label for="{{ form.owner.id_for_label }}" class="form-label fw-semibold">Контрагент</label>
+                                        {{ form.owner|add_class:"form-select" }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.type.id_for_label }}" class="form-label fw-semibold">Вид
+                                            обеспечения</label>
+                                        {{ form.type|add_class:"form-select collateral-type-selector" }}
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2 guarantee-block"
+                                     id="{{ form.prefix }}-type-of-responsibility-block">
+                                    <div class="col-12">
+                                        <label for="{{ form.type_of_responsibility.id_for_label }}"
+                                               class="form-label fw-semibold">
+                                            Вид ответственности
+                                        </label>
+                                        {{ form.type_of_responsibility|add_class:"form-control" }}
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2 collateral-block"
+                                     id="{{ form.prefix }}-subject-of-collateral-block">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.subject_of_collateral.id_for_label }}"
+                                               class="form-label fw-semibold">
+                                            Предмет залога
+                                        </label>
+                                        {{ form.subject_of_collateral|add_class:"form-select" }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.procedure_for_foreclosure.id_for_label }}"
+                                               class="form-label fw-semibold">
+                                            Порядок обращения взыскания
+                                        </label>
+                                        {{ form.procedure_for_foreclosure|add_class:"form-select" }}
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-12">
+                                        <label for="{{ form.dop_info.id_for_label }}" class="form-label fw-semibold">
+                                            Дополнительная информация / комментарии
+                                        </label>
+                                        {{ form.dop_info|add_class:"form-control" }}
+                                    </div>
+                                </div>
+                                <div class="row g-3 my-2">
+                                    <div class="col-12">
+                                        {% if formset.can_delete %}
+                                            <div class="delete-wrapper">
+                                                <label style="font-weight: bold;">
+                                                    {{ form.DELETE }} УДАЛИТЬ ЭТУ ЗАПИСЬ
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </form>
+    </div>
 
-        const realEstateFields = formInstance.querySelector('.real-estate-fields');
-        const securitiesFields = formInstance.querySelector('.securities-fields');
-        const sharesFields = formInstance.querySelector('.shares-fields');
+    <script>
+        const TYPE_GUARANTEE = "Поручительство";
+        const TYPE_COLLATERAL = "Залог";
 
-        // Hide all conditional sections
-        if (realEstateFields) realEstateFields.style.display = 'none';
-        if (securitiesFields) securitiesFields.style.display = 'none';
-        if (sharesFields) sharesFields.style.display = 'none';
-
-        // Show the relevant section based on selection
-        const selectedValue = typeSelector.value;
-        if (selectedValue === 'RE') {
-            if (realEstateFields) realEstateFields.style.display = 'block';
-        } else if (selectedValue === 'SE') {
-            if (securitiesFields) securitiesFields.style.display = 'block';
-        } else if (selectedValue === 'SH') {
-            if (sharesFields) sharesFields.style.display = 'block';
+        function updateBlocksVanilla(typeSelect) {
+            let formCard = typeSelect.closest('.card-body');
+            let val = typeSelect.value;
+            let guaranteeBlock = formCard.querySelector('.guarantee-block');
+            let collateralBlock = formCard.querySelector('.collateral-block');
+            if (guaranteeBlock) guaranteeBlock.style.display = 'none';
+            if (collateralBlock) collateralBlock.style.display = 'none';
+            if (val === TYPE_GUARANTEE && guaranteeBlock) guaranteeBlock.style.display = 'block';
+            if (val === TYPE_COLLATERAL && collateralBlock) collateralBlock.style.display = 'block';
         }
-    }
 
-    // Main container for all forms
-    const formContainer = document.querySelector('#collateral-formset');
-
-    // Add event listener to the container using event delegation
-    formContainer.addEventListener('change', function(e) {
-        if (e.target && e.target.matches('select[name$="-collateral_type"]')) {
-            const formInstance = e.target.closest('.collateral-form-instance');
-            updateFormVisibility(formInstance);
+        function bindTypeScripts() {
+            document.querySelectorAll('.collateral-type-selector').forEach(function (select) {
+                updateBlocksVanilla(select);
+                if (!select.dataset.listenerAttached) {
+                    select.addEventListener('change', function () {
+                        updateBlocksVanilla(select);
+                    });
+                    select.dataset.listenerAttached = "1";
+                }
+            });
         }
-    });
 
-    // Trigger for all existing forms on page load
-    document.querySelectorAll('.collateral-form-instance').forEach(formInstance => {
-        updateFormVisibility(formInstance);
-    });
+        document.addEventListener("DOMContentLoaded", bindTypeScripts);
 
-    // --- Logic for adding new forms ---
-    const addFormBtn = document.getElementById('add-form-btn');
-    const formsContainer = document.getElementById('form-container');
-    const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
-    const emptyFormTemplate = document.getElementById('empty-form').innerHTML;
+        // Ваш код для добавления форм
+        (function () {
+            const container = document.getElementById('formset-container');
+            const addBtn = document.getElementById('add-form');
+            const emptyTemplate = document.getElementById('empty-form-template').innerHTML;
+            const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
 
-    addFormBtn.addEventListener('click', function() {
-        const formIndex = parseInt(totalFormsInput.value);
-        
-        // Create new form HTML
-        const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formIndex).replace(/№__prefix__/g, `№${formIndex + 1}`);
-        
-        // Create a temporary div to hold the new form
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = newFormHtml;
-        const newFormInstance = tempDiv.firstElementChild;
+            function getFormCount() {
+                return parseInt(totalFormsInput.value, 10);
+            }
 
-        // Append the new form to the container
-        formsContainer.append(newFormInstance);
-        
-        // Increment the total forms count
-        totalFormsInput.value = formIndex + 1;
+            function setFormCount(n) {
+                totalFormsInput.value = String(n);
+            }
 
-        // Update visibility for the newly added form
-        updateFormVisibility(newFormInstance);
-    });
-});
-</script>
-<style>
-    /* Initially hide all conditional fieldsets */
-    .real-estate-fields,
-    .securities-fields,
-    .shares-fields {
-        display: none;
-    }
-</style>
+            if (addBtn) {
+                addBtn.addEventListener('click', function () {
+                    const formIndex = getFormCount();
+                    const newFormHtml = emptyTemplate.replace(/__prefix__/g, formIndex);
+                    container.insertAdjacentHTML('beforeend', newFormHtml);
+                    setFormCount(formIndex + 1);
+                    setTimeout(() => {
+                        bindTypeScripts();
+                    }, 50);
+                });
+            }
+        })();
+    </script>
 {% endblock %}

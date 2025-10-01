@@ -1,0 +1,286 @@
+<!-- reports/templates/reports/demo_task_list.html -->
+{% extends 'reporting/report_base.html' %}
+
+{% block title %}Список задач - Демо система отчетности{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>
+                <i class="fas fa-tasks"></i>
+                {% if user_profile.role == 'employee' %}Мои задачи
+                {% elif user_profile.role == 'manager' %}Задачи подразделения
+                {% else %}Все задачи{% endif %}
+            </h2>
+            <div>
+                <a href="{% url 'reporting:demo_create_task' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Новая задача
+                </a>
+                <a href="{% url 'reporting:demo_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-chart-line"></i> Дашборд
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">
+            {% if user_profile.role == 'employee' %}Все задачи, назначенные на вас
+            {% elif user_profile.role == 'manager' %}Задачи сотрудников вашего подразделения
+            {% else %}Все задачи в системе{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Простые фильтры -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h6 class="card-title">Фильтры</h6>
+        <div class="row">
+            <div class="col-md-3">
+                <select class="form-select" onchange="window.location.href = this.value">
+                    <option value="?">Все статусы</option>
+                    <option value="?status=new" {% if request.GET.status == 'new' %}selected{% endif %}>Новые</option>
+                    <option value="?status=in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>В работе</option>
+                    <option value="?status=completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Завершённые</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <a href="?" class="btn btn-outline-secondary">Сбросить фильтры</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица задач -->
+<div class="card">
+    <div class="card-body">
+        {% if tasks %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Дата поступления</th>
+                        <th>Плановый срок</th>
+                        <th>Фактический срок</th>
+                        <th>Категория</th>
+                        <th>Тип</th>
+                        <th>Заказчик</th>
+                        <th>Описание</th>
+                        <th>Исполнитель</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr class="{% if task.status == 'completed' %}task-completed{% elif task.is_overdue %}task-overdue{% endif %}">
+                        <td>{{ task.received_date|date:"d.m.Y" }}</td>
+                        <td>
+                            {{ task.planned_deadline|date:"d.m.Y" }}
+                            {% if task.is_overdue %}
+                            <span class="badge bg-danger ms-1" title="Просрочена">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.actual_deadline|date:"d.m.Y"|default:"-" }}</td>
+                        <td>
+                            <span class="badge bg-info">
+                                {{ task.get_category_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                {{ task.get_task_type_display }}
+                            </span>
+                        </td>
+                        <td>{{ task.customer }}</td>
+                        <td>
+                            <span title="{{ task.description }}">
+                                {{ task.description|truncatewords:8 }}
+                            </span>
+                        </td>
+                        <td>
+                            <small>
+                                {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if task.status == 'completed' %}success
+                                {% elif task.status == 'in_progress' %}warning
+                                {% else %}secondary{% endif %}">
+                                {{ task.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'reporting:demo_update_task' task.id %}" 
+                                   class="btn btn-outline-primary" title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if user_profile.is_manager or user_profile.is_director or task.assigned_to == user %}
+                                <button type="button" class="btn btn-outline-danger" 
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ task.id }}"
+                                        title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+
+                            <!-- Модальное окно подтверждения удаления -->
+                            <div class="modal fade" id="deleteModal{{ task.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Подтверждение удаления</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Вы уверены, что хотите удалить задачу?</p>
+                                            <p><strong>{{ task.description|truncatewords:10 }}</strong></p>
+                                            <small class="text-muted">Исполнитель: {{ task.assigned_to.get_full_name }}</small>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                            <form method="post" action="{% url 'reporting:demo_delete_task' task.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">Удалить</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Простая пагинация -->
+        {% if tasks|length > 10 %}
+        <nav aria-label="Навигация по страницам">
+            <ul class="pagination justify-content-center mt-4">
+                <li class="page-item disabled">
+                    <span class="page-link">Показано {{ tasks|length }} задач</span>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Задачи не найдены</h5>
+            <p class="text-muted">
+                {% if request.GET.status %}
+                Нет задач с выбранным статусом. 
+                <a href="?">Показать все задачи</a>
+                {% else %}
+                {% if user_profile.role == 'employee' %}
+                У вас пока нет задач. <a href="{% url 'demo_create_task' %}">Создайте первую задачу</a>
+                {% elif user_profile.role == 'manager' %}
+                В вашем подразделении пока нет задач.
+                {% else %}
+                В системе пока нет задач.
+                {% endif %}
+                {% endif %}
+            </p>
+            {% if user_profile.role == 'employee' %}
+            <a href="{% url 'reporting:demo_create_task' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-plus"></i> Создать первую задачу
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Быстрое создание задачи -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="card-title mb-0">Быстрое создание задачи</h6>
+    </div>
+    <div class="card-body">
+        <form id="quickTaskForm">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-5">
+                    <input type="text" name="description" class="form-control" 
+                           placeholder="Краткое описание задачи..." required>
+                </div>
+                <div class="col-md-2">
+                    <input type="date" name="planned_deadline" class="form-control" 
+                           value="{{ tomorrow|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="category" class="form-select" required>
+                        <option value="">Выберите категорию</option>
+                        <option value="development">Разработка</option>
+                        <option value="testing">Тестирование</option>
+                        <option value="design">Дизайн</option>
+                        <option value="documentation">Документация</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="task_type" class="form-select" required>
+                        <option value="">Выберите тип</option>
+                        <option value="bug">Исправление ошибки</option>
+                        <option value="feature">Новая функция</option>
+                        <option value="improvement">Улучшение</option>
+                        <option value="urgent">Срочная задача</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Быстрое создание задачи через AJAX
+document.getElementById('quickTaskForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{% url "reporting:demo_quick_create_task" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Обновляем страницу после успешного создания
+            window.location.reload();
+        } else {
+            alert('Ошибка при создании задачи: ' + JSON.stringify(data.errors));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при создании задачи');
+    });
+});
+
+// Установка завтрашней даты по умолчанию для быстрого создания
+document.addEventListener('DOMContentLoaded', function() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowFormatted = tomorrow.toISOString().split('T')[0];
+    
+    const deadlineField = document.querySelector('input[name="planned_deadline"]');
+    if (deadlineField && !deadlineField.value) {
+        deadlineField.value = tomorrowFormatted;
+    }
+});
+</script>
+{% endblock %}

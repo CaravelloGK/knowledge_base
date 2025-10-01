@@ -1,4 +1,6 @@
 {% load static %}
+<link rel="stylesheet" href="{% static 'legal_opin/css/main.css' %}">
+<script src="{% static 'legal_opin/js/entity_main.js' %}"></script>
 
 <div class="scrollable legal-entities-container" style="height: 77vh; overflow-y: auto;">
     <!-- Индикатор загрузки -->
@@ -27,20 +29,20 @@
                             <span class="badge rounded-pill bg-primary">{{ entity.legal_form }}</span>
                         </span>
                         <span style="margin-right: 0.1rem; margin-left: 0.1rem"></span>
-                        <span class="created-date">| Создано {{ entity.created_at|date:"d.m.Y H:i" }}</span>
+                        <span class="created-date">| Создано {{ entity.created_at|date:"d.m.Y" }}</span>
                     </small>
                 </div>
-                <h5 class="card-title fw-bold entity-name">{{ entity.name|truncatechars:80 }}</h5>
+                <h5 class="card-title fw-bold entity-name">{{ entity.name }}</h5>
                 <div class="entity-details">
                     <p class="card-text mb-1">
                         <strong>ИНН:</strong> 
                         <span class="entity-inn">{{ entity.inn }}</span>
-                        <button class="btn btn-sm btn-outline-secondary copy-btn ms-1" data-copy="{{ entity.inn }}" title="Копировать ИНН">
+                        <button class="btn btn-sm btn-outline-secondary copy-btn" data-copy="{{ entity.inn }}" title="Копировать ИНН">
                             <img src="{% static 'img/copy.svg' %}" alt="copy" class="copy-icon" width="16" height="16">
                         </button>
                         <span class="ms-3"><strong>ОГРН:</strong> 
                         <span class="entity-ogrn">{{ entity.ogrn }}</span>
-                        <button class="btn btn-sm btn-outline-secondary copy-btn ms-1" data-copy="{{ entity.ogrn }}" title="Копировать ОГРН">
+                        <button class="btn btn-sm btn-outline-secondary copy-btn" data-copy="{{ entity.ogrn }}" title="Копировать ОГРН">
                             <img src="{% static 'img/copy.svg' %}" alt="copy" class="copy-icon" width="16" height="16">
                         </button>
                         </span>
@@ -57,72 +59,3 @@
         {% endfor %}
     </div>
 </div>
-
-<style>
-.copy-btn {
-    padding: 0.2rem 0.35rem !important;
-    border: 1px solid #dee2e6 !important;
-    background: transparent !important;
-    color: #6c757d !important;
-    border-radius: 0.25rem !important;
-    transition: all 0.15s ease-in-out !important;
-    position: relative;
-    z-index: 10;
-}
-
-.copy-btn .copy-icon {
-    display: inline-block;
-    vertical-align: middle;
-}
-
-.copy-btn:hover {
-    background: #f8f9fa !important;
-    border-color: #adb5bd !important;
-    color: #495057 !important;
-}
-
-.copy-btn:focus {
-    box-shadow: 0 0 0 0.1rem rgba(0,123,255,.25) !important;
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Обработчик для кнопок копирования
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.copy-btn')) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const button = e.target.closest('.copy-btn');
-            const textToCopy = button.getAttribute('data-copy');
-            const icon = button.querySelector('img.copy-icon');
-            
-            // Копируем в буфер обмена
-            navigator.clipboard.writeText(textToCopy).then(function() {
-                // Показываем успешное копирование
-                const originalFilter = icon.style.filter;
-                icon.style.filter = 'hue-rotate(90deg) saturate(2)';
-                button.classList.add('btn-outline-success');
-                button.classList.remove('btn-outline-secondary');
-                
-                // Возвращаем исходный вид через 1.5 секунды
-                setTimeout(function() {
-                    icon.style.filter = originalFilter || '';
-                    button.classList.remove('btn-outline-success');
-                    button.classList.add('btn-outline-secondary');
-                }, 1500);
-            }).catch(function(err) {
-                console.error('Ошибка при копировании: ', err);
-                // Показываем ошибку
-                const originalFilter = icon.style.filter;
-                icon.style.filter = 'hue-rotate(320deg) saturate(2)';
-                
-                setTimeout(function() {
-                    icon.style.filter = originalFilter || '';
-                }, 1500);
-            });
-        }
-    });
-});
-</script>

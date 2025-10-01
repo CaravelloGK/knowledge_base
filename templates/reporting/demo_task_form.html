@@ -1,0 +1,173 @@
+<!-- reports/templates/reports/demo_task_form.html -->
+{% extends 'reporting/report_base.html' %}
+
+{% block title %}
+    {% if task %}Редактирование задачи{% else %}Новая задача{% endif %} - Демо система отчетности
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-{% if task %}edit{% else %}plus{% endif %}"></i>
+                    {% if task %}Редактирование задачи{% else %}Создание новой задачи{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.received_date.id_for_label }}" class="form-label">
+                                    Дата поступления *
+                                </label>
+                                {{ form.received_date }}
+                                {% if form.received_date.errors %}
+                                <div class="text-danger small">{{ form.received_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.planned_deadline.id_for_label }}" class="form-label">
+                                    Плановый срок *
+                                </label>
+                                {{ form.planned_deadline }}
+                                {% if form.planned_deadline.errors %}
+                                <div class="text-danger small">{{ form.planned_deadline.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.actual_deadline.id_for_label }}" class="form-label">
+                            Фактический срок завершения
+                        </label>
+                        {{ form.actual_deadline }}
+                        <small class="text-muted">Заполняется только для завершенных задач</small>
+                        {% if form.actual_deadline.errors %}
+                        <div class="text-danger small">{{ form.actual_deadline.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">
+                                    Категория *
+                                </label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                <div class="text-danger small">{{ form.category.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.task_type.id_for_label }}" class="form-label">
+                                    Тип задачи *
+                                </label>
+                                {{ form.task_type }}
+                                {% if form.task_type.errors %}
+                                <div class="text-danger small">{{ form.task_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.customer.id_for_label }}" class="form-label">
+                            Заказчик *
+                        </label>
+                        {{ form.customer }}
+                        {% if form.customer.errors %}
+                        <div class="text-danger small">{{ form.customer.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            Описание задачи *
+                        </label>
+                        {{ form.description }}
+                        <small class="text-muted">Подробно опишите суть задачи</small>
+                        {% if form.description.errors %}
+                        <div class="text-danger small">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">
+                            Статус *
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                        <div class="text-danger small">{{ form.status.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            {% if task %}Сохранить изменения{% else %}Создать задачу{% endif %}
+                        </button>
+                        <a href="{% if task %}{% url 'reporting:demo_task_list' %}{% else %}{% url 'reporting:demo_dashboard' %}{% endif %}" 
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if task %}
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6>Информация о задаче</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Создана:</strong> {{ task.created_at|date:"d.m.Y H:i" }}</li>
+                    <li><strong>Исполнитель:</strong> {{ task.assigned_to.get_full_name }}</li>
+                    <li><strong>Просрочена:</strong> 
+                        {% if task.is_overdue %}
+                        <span class="badge bg-danger">Да</span>
+                        {% else %}
+                        <span class="badge bg-success">Нет</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- <script>
+// Автозаполнение дат
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const nextWeekFormatted = nextWeek.toISOString().split('T')[0];
+    
+    // Устанавливаем значения по умолчанию для новых задач
+    {% if not task %}
+    const receivedDateField = document.getElementById('{{ form.received_date.id_for_label }}');
+    const plannedDeadlineField = document.getElementById('{{ form.planned_deadline.id_for_label }}');
+    
+    if (receivedDateField && !receivedDateField.value) {
+        receivedDateField.value = today;
+    }
+    if (plannedDeadlineField && !plannedDeadlineField.value) {
+        plannedDeadlineField.value = nextWeekFormatted;
+    }
+    {% endif %}
+});
+</script> -->
+{% endblock %}

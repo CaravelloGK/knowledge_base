@@ -3,13 +3,15 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from pathlib import Path
 from lxml.html import fromstring
+from django.forms.models import model_to_dict
 import warnings
 from typing import Dict, List, Optional, Union
 from django.conf import settings
 from openpyxl.styles.builtins import warning
-
-from .models import Unfriendly_countries
-
+from risk.models import Risk
+from .models import Unfriendly_countries, Deal, DealParticipant, Risk_DealParticipant, Risk_help
+from django.forms import inlineformset_factory, model_to_dict, modelformset_factory
+from .forms import Risk_DealParticipantForm
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -125,6 +127,7 @@ class EgrulDownloader:
         # Полный путь до файла
         full_path = os.path.join(self.egrul_dir, out_filename)
         # Сохраняем файл
+        os.makedirs(self.egrul_dir, exist_ok=True)
         with open(full_path, "wb") as f:
             f.write(content)
 
@@ -344,6 +347,7 @@ class EgripParser:
             'Вид': 'Вид',
             'Размер.*?руб': 'Размер УК (руб)',
             'Размер доли.*?процент': 'Размер доли, принадлежащей обществу (%)',
+            'Размер доли.*?дроб': 'Размер доли (в простых дробях)',
             'Номинальная стоимость доли': 'Номинал доли, принадлежащей обществу (руб)'
         }
 
@@ -369,6 +373,10 @@ class EgripParser:
         pending_du = None
         pif_name = None
         in_pif_uk_mode = False  # флаг: идёт сбор управляющей компании для ПИФ
+        in_notary_block = False
+        encumbrance_mode = False  # будет True если вы внутри блока сведений об обременении!
+        notary_mode = False
+        notary_fio = []
 
         encumbrance_keywords = [
             'сведения о договоре залога',
@@ -388,15 +396,90 @@ class EgripParser:
             v = (row[2] or '').replace('\n', ' ').strip()
             # print(f"IDX={idx}, k={k!r}, v={v!r}, pending_du={pending_du}, person={person}")
 
+            # Если мы внутри блока обременения, перехватываем "грн и дата..." и ключи ЮЛ для залогодержателя!
+            if in_encumbrance and current_enc is not None:
+                # Новый подблок: нотариус
+                # Если зашли в нотариуса (по ключу)
+                if ('нотариус' in k and ('фамилия' in k or 'имя' in k)) or 'сведения о нотариусе' in k:
+                    notary_mode = True
+                    notary_fio_buf = []
+                    continue
+                # Фамилия/Имя/Отчество нотариуса собираем отдельно:
+                if notary_mode and k in ('фамилия', 'имя', 'отчество'):
+                    notary_fio_buf.append(v)
+                    continue
+                # Конец блока нотариуса — пустая строка: выходим из режима
+                if notary_mode and not k and not v:
+                    notary_mode = False
+                    continue
+
+                # Обработка залогодержателя (только если НЕ нотариус):
+                if not notary_mode:
+                    if k == 'огрн':
+                        current_enc['ОГРН залогодержателя'] = v
+                        current_enc['залогодержатель: тип'] = 'ЮЛ'
+                        continue
+                    elif k == 'инн':
+                        current_enc['ИНН залогодержателя'] = v
+                        continue
+                    elif k == 'полное наименование':
+                        current_enc['наименование залогодержателя'] = v
+                        current_enc['залогодержатель: тип'] = 'ЮЛ'
+                        continue
+                    elif 'фамилия' == k:
+                        # ФЛ залогодержатель (создаём буфер ФИО)
+                        if 'ФИО залогодержателя' not in current_enc:
+                            current_enc['ФИО залогодержателя'] = v
+                        else:
+                            current_enc['ФИО залогодержателя'] += ' ' + v
+                        current_enc['залогодержатель: тип'] = 'ФЛ'
+                        continue
+                    elif 'имя' == k:
+                        if 'ФИО залогодержателя' not in current_enc:
+                            current_enc['ФИО залогодержателя'] = v
+                        else:
+                            current_enc['ФИО залогодержателя'] += ' ' + v
+                        current_enc['залогодержатель: тип'] = 'ФЛ'
+                        continue
+                    elif 'отчество' == k:
+                        if 'ФИО залогодержателя' not in current_enc:
+                            current_enc['ФИО залогодержателя'] = v
+                        else:
+                            current_enc['ФИО залогодержателя'] += ' ' + v
+                        current_enc['залогодержатель: тип'] = 'ФЛ'
+                        continue
+                    elif k == "грн и дата внесения в егрюл сведений о данном лице":
+                        current_enc['грн и дата (обременение)'] = v
+                        continue
+
             # ---- КЛЮЧ: Начался блок нового участника — добавь предыдущего ----
-            if k == "грн и дата внесения в егрюл сведений о данном лице":
-                # Не добавлять пустые person (например, если person только что инициализирован/является пустым словарём)
+            if k == "грн и дата внесения в егрюл сведений о данном лице" and not in_encumbrance:
+                # ==== НОВЫЙ КОД: ДОБАВИТЬ нотариуса в обременение ====
+                if in_encumbrance and current_enc:
+                    if notary_fio_buf:
+                        current_enc['нотариус'] = " ".join(notary_fio_buf)
+                    if person:
+                        if 'обременения' not in person:
+                            person['обременения'] = []
+                        person['обременения'].append(current_enc.copy())
+                    current_enc = None
+                    notary_mode = False
+                    notary_fio_buf = []
+                    in_encumbrance = False
+
+                # Здесь конец участника или начало нового: сбрасываем блок обременения!
                 if person and ('ФИО' in person or 'наименование' in person):
                     if pending_du:
                         if 'обременения' not in person:
                             person['обременения'] = []
                         person['обременения'].append(pending_du)
                         pending_du = None
+                    if current_enc and in_encumbrance:
+                        if 'обременения' not in person:
+                            person['обременения'] = []
+                        person['обременения'].append(current_enc.copy())
+                        current_enc = None
+                        in_encumbrance = False
                     participants.append(person.copy())
                 person = {}
                 continue
@@ -419,6 +502,13 @@ class EgripParser:
                     and "управляющ" in row[1].lower()
             ):
                 if person:
+                    # --- ДОбавить -- если остался текущий незаписанный encumbrance
+                    if current_enc and in_encumbrance:
+                        if 'обременения' not in person:
+                            person['обременения'] = []
+                        person['обременения'].append(current_enc.copy())
+                        current_enc = None
+                        in_encumbrance = False
                     participants.append(person.copy())
                     person = None
                 du_data = {'тип обременения': 'доверительное управление'}
@@ -481,6 +571,13 @@ class EgripParser:
                         person['обременения'].append(pending_du)
                         pending_du = None
                     # print(f"ADD PARTICIPANT! idx={idx} person={person}")
+                    # --- ДОбавить -- если остался текущий незаписанный encumbrance
+                    if current_enc and in_encumbrance:
+                        if 'обременения' not in person:
+                            person['обременения'] = []
+                        person['обременения'].append(current_enc.copy())
+                        current_enc = None
+                        in_encumbrance = False
                     participants.append(person.copy())
                 person = {}
                 in_mo_mode = True
@@ -497,6 +594,13 @@ class EgripParser:
                             person['обременения'] = []
                         person['обременения'].append(pending_du)
                         pending_du = None
+                    # --- ДОбавить -- если остался текущий незаписанный encumbrance
+                    if current_enc and in_encumbrance:
+                        if 'обременения' not in person:
+                            person['обременения'] = []
+                        person['обременения'].append(current_enc.copy())
+                        current_enc = None
+                        in_encumbrance = False
                     participants.append(person.copy())
                 person = {}
                 current_enc = None
@@ -578,7 +682,7 @@ class EgripParser:
                 elif 'номинальная стоимость' in k:
                     person['Номинал доли (руб)'] = v
                 elif 'размер доли' in k and ('процент' in k or '%' in k):
-                    person['Размер доли (%)'] = v + "%"
+                    person['Размер доли (%)'] = v
                 elif 'размер доли' in k and 'дробях' in k:
                     person['Размер доли (в дробях)'] = v
                 elif "грн и дата" in k and "содержащей указанные" in k:
@@ -597,6 +701,17 @@ class EgripParser:
                 person['обременения'].append(pending_du)
                 pending_du = None
             # print(f"ADD PARTICIPANT! idx={idx} person={person}")
+
+            # --- Добавить -- если остался текущий незаписанный encumbrance
+            if current_enc and in_encumbrance:
+                if notary_fio_buf:
+                    current_enc['нотариус'] = " ".join(notary_fio_buf)
+                if 'обременения' not in person:
+                    person['обременения'] = []
+                person['обременения'].append(current_enc.copy())
+                current_enc = None
+                in_encumbrance = False
+                notary_fio_buf = []
             participants.append(person.copy())
         return participants
 
@@ -1086,15 +1201,17 @@ class Converter:
 
         # поллучаем информацию по ОПФ
         opf = ''
-        if "ООО" in base_info['Сокр. наименование']:
+        res_1 = base_info['Сокр. наименование']
+        if re.search(r'(\bООО\b|\(ООО\))', res_1):
+        # if res_1 == "ООО":
             opf = 'ООО'
-        elif "АО" in base_info['Сокр. наименование']:
+        elif re.search(r'(\bАО\b|\(АО\))', res_1):
             opf = "АО"
-        elif "ЗАО" in base_info['Сокр. наименование']:
+        elif re.search(r'(\bЗАО\b|\(ЗАО\))', res_1):
             opf = "ЗАО"
-        elif "ПАО" in base_info['Сокр. наименование']:
+        elif re.search(r'(\bПАО\b|\(ПАО\))', res_1):
             opf = "ПАО"
-        elif "ОАО" in base_info['Сокр. наименование']:
+        elif re.search(r'(\bОАО\b|\(ОАО\))', res_1):
             opf = "ОАО"
 
         uk = self.mass_info['capital']  # уставной капитал
@@ -1119,10 +1236,11 @@ class Converter:
             korp_dog = False
 
         # проверяем есть ли доли, принадлежащие обществу
-        if 'Размер доли, принадлежащей обществу (%)' in uk:
-            first_block = uk['Размер доли, принадлежащей обществу (%)']
-            second_block = uk['Номинал доли, принадлежащей обществу (руб)']
-            dolya = f'Размер доли, принадлежащей обществу (%) - {first_block}; Номинал доли, принадлежащей обществу (руб) - {second_block}'
+        items_list = list(uk.items())
+        if len(items_list)>2:
+            first_block = items_list[2]
+            second_block = items_list[3]
+            dolya = f'Размер доли, принадлежащей обществу - {first_block[1]} руб.; \n Номинал доли, принадлежащей обществу - {second_block[1]}'
         else:
             dolya = ''
 
@@ -1293,7 +1411,6 @@ class Converter:
             participants = participants[:num_participants]  # Берем только нужное количество записей
             for participant in participants:
                 # собираем информацию по участникам
-
                 # Если информация скрыта
                 if 'Тип' in participant:
                     name, inn, adress = '', '', ''
@@ -1339,15 +1456,13 @@ class Converter:
 
                 # информация об обременении долей
                 if 'обременения' in participant:
-                    # pass
                     inf_obr = participant['обременения']
-                    print('Обременения долей', type(inf_obr), len(inf_obr), inf_obr, sep='\n')
                     lst = list(inf_obr[0].values())
                     string = '\n'
                     for el in lst:
                         string += str(el)
                         string += ' '
-                    share_info = string
+                    share_info = string.replace('\n', '', 1)
                 else:
                     share_info = ''
                 participant_data.append({
@@ -1364,7 +1479,6 @@ class Converter:
         else:
             SEM = False
             SEM_dop_info = ''
-        # print(participant_data)
         return participant_data, SEM, SEM_dop_info
 
     def itog(self):
@@ -1391,7 +1505,6 @@ class Date_Converter():
 
     def converter_date(self):
         date_str = self.value.isoformat()
-        print(date_str, type(date_str))
         return date_str
 
 
@@ -1432,3 +1545,98 @@ def compare_formset_data(db_objects, session_data_list, fields_to_compare):
         deleted_items.append(db_map[item_id])
 
     return {'changed': changed_items, 'new': new_items, 'deleted': deleted_items}
+
+
+from .models import ExecutiveBody
+
+class Risk_analiz():
+    def __init__(self, participant):
+        self.participant = participant
+
+    def main(self):
+        """Определяем риски для участника на основе условий"""
+        risks = []
+        # Проверка условий для полномочий ЕИО
+        part_id = self.participant.legal_entity.id
+        ex_body = ExecutiveBody.objects.filter(legal_entity=part_id)
+        for ee in ex_body:
+            if not ee.authority_is_true:
+                risk = Risk.objects.filter(identevik='EIO').first()
+                if risk:
+                    risks.append({
+                        'risk_obj': risk,
+                        'participant': self.participant,
+                        'type': 'EIO'
+                    })
+
+        # Проверка на закупки
+
+        # Проверка условий для крупной сделки
+        # 1й случай - сделка крупная, но отсуствует решение
+        if (self.participant.is_major_deal and
+                not self.participant.major_transaction_submitted):
+            risk = Risk.objects.filter(identevik='KR').first()
+            if risk:
+                risks.append({
+                    'risk_obj': risk,
+                    'participant': self.participant,
+                    'type': 'KR'
+                })
+        # 2й случай - сделка крупная, решение есть, но ненадлежащие
+        if (self.participant.is_major_deal and
+                self.participant.major_transaction_submitted and
+                not self.participant.major_transaction_appropriate
+                ):
+            risk = Risk.objects.filter(identevik='KR').first()
+            if risk:
+                risks.append({
+                    'risk_obj': risk,
+                    'participant': self.participant,
+                    'type': 'KR'
+                })
+        # Проверка условий для одобрения по уставу
+        # 1й случай - сделка требует одобрение по уставу, но отсуствует решение
+        if (self.participant.requires_approval and
+                not self.participant.other_transaction_submitted):
+            risk = Risk.objects.filter(identevik='UR').first()
+            if risk:
+                risks.append({
+                    'risk_obj': risk,
+                    'participant': self.participant,
+                    'type': 'UR'
+                })
+        # 2й случай - сделка требует одобрение по уставу, решение есть, но ненадлежащие
+        if (self.participant.requires_approval and
+                self.participant.other_transaction_submitted and
+                not self.participant.other_transaction_appropriate):
+            risk = Risk.objects.filter(identevik='UR').first()
+            if risk:
+                risks.append({
+                    'risk_obj': risk,
+                    'participant': self.participant,
+                    'type': 'UR'
+                })
+
+        # Проверка условий для сделки с заинтересованностью
+        #1й случай - сделка заинтересованная, но решения нет
+        if (self.participant.is_zainteres_deal and
+                not self.participant.zainteres_transaction_submitted):
+            risk = Risk.objects.filter(identevik='ZR').first()
+            if risk:
+                risks.append({
+                    'risk_obj': risk,
+                    'participant': self.participant,
+                    'type': 'ZR'
+                })
+        #2й случай - сделка заинтересованная, решение есть, но ненадлежащее
+        if (self.participant.is_zainteres_deal and
+                self.participant.zainteres_transaction_submitted and
+                not self.participant.zainteres_transaction_appropriate):
+            risk = Risk.objects.filter(identevik='UR').first()
+            if risk:
+                risks.append({
+                    'risk_obj': risk,
+                    'participant': self.participant,
+                    'type': 'UR'
+                })
+        return risks

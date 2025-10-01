@@ -1,0 +1,48 @@
+<!-- reports/templates/reports/demo_task_confirm_delete.html -->
+{% extends 'reporting/report_base.html' %}
+
+{% block title %}Удаление задачи - Демо система отчетности{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                    Подтверждение удаления
+                </h5>
+            </div>
+            <div class="card-body">
+                <p>Вы уверены, что хотите удалить следующую задачу?</p>
+                
+                <div class="alert alert-warning">
+                    <strong>Описание:</strong> {{ task.description }}<br>
+                    <strong>Исполнитель:</strong> {{ task.assigned_to.get_full_name }}<br>
+                    <strong>Срок:</strong> {{ task.planned_deadline|date:"d.m.Y" }}<br>
+                    <strong>Статус:</strong> {{ task.get_status_display }}
+                </div>
+
+                <p class="text-muted">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        Это действие нельзя отменить. Задача будет безвозвратно удалена из системы.
+                    </small>
+                </p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Удалить задачу
+                        </button>
+                        <a href="{% url 'demo_task_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

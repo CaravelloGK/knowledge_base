@@ -1,0 +1,609 @@
+{% extends 'index.html' %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+{% load custom_filters %}
+{% load static %}
+
+{% block content %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .risk-card {
+            border-left: 4px solid #0d6efd;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #f8f9fa;
+            color: #0d6efd;
+        }
+
+        .participant-section {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+
+        #participant-nav .list-group-item.active {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .auto-resize {
+            resize: none;
+            overflow: hidden;
+        }
+
+        .sticky-top {
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
+        }
+
+        .album-risk-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .album-risk-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .album-risk-item.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+
+    <div class="container-fluid">
+        <div class="row mt-4">
+            <!-- Навигация по участникам -->
+            <div class="col-md-3">
+                <div class="card sticky-top">
+                    <div class="card-header">
+                        <h5>Участники сделки</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group" id="participant-nav">
+                            {% for p_data in participants_with_risks %}
+                                <a href="#participant-{{ p_data.participant.id }}"
+                                   class="list-group-item list-group-item-action">
+                                    {{ p_data.participant.legal_entity.name }}
+                                    {% if p_data.risks %}
+                                        <span class="badge bg-danger float-end">{{ p_data.risks|length }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Основной контент -->
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header">
+                    <h4>{% if is_edit %}Редактирование{% else %}Анализ{% endif %} рисков для сделки: {{ deal.name }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" id="risk-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="new_risk_count" id="new-risk-count" value="0">
+
+                            {% for p_data in participants_with_risks %}
+                                <div id="participant-{{ p_data.participant.id }}" class="participant-section mb-4">
+                                    <h5 class="mb-3">
+                                        Участник: {{ p_data.participant.legal_entity.name }}
+                                        <small class="text-muted">({{ p_data.participant.role.name }})</small>
+                                    </h5>
+
+                                <!-- СУЩЕСТВУЮЩИЕ РИСКИ -->
+                                    {% for form in p_data.forms %}
+                                        <div class="card mb-3 risk-card">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0">Риск № {{ forloop.counter }}</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Поля формы -->
+                                                {% if is_edit %}
+                                                    {% crispy form %}
+                                                {% else %}
+                                                    <!-- Поля для создания -->
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Риск</label>
+                                                        <textarea class="form-control auto-resize"
+                                                                  name="participant_{{ p_data.participant.id }}_risk_{{ forloop.counter0 }}_risk"
+                                                                  rows="2">{{ form.initial.risk }}</textarea>
+                                                    </div>
+
+                                                    <div class="accordion mb-3">
+                                                        <div class="accordion-item">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed" type="button"
+                                                                        data-bs-toggle="collapse"
+                                                                        data-bs-target="#collapse-{{ p_data.participant.id }}-{{ forloop.counter }}">
+                                                                    Негативные последствия
+                                                                </button>
+                                                            </h2>
+                                                            <div id="collapse-{{ p_data.participant.id }}-{{ forloop.counter }}"
+                                                                 class="accordion-collapse collapse">
+                                                                <div class="accordion-body">
+                                                        <textarea class="form-control auto-resize"
+                                                                  name="participant_{{ p_data.participant.id }}_risk_{{ forloop.counter0 }}_negative_consequences"
+                                                                  rows="3">{{ form.initial.negative_consequences }}</textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Риск-фактор</label>
+                                                        <textarea class="form-control auto-resize"
+                                                                  name="new_risk_${riskIndex}_risk_faktor"
+                                                                  rows="2"></textarea>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Меры минимизации</label>
+                                                        <textarea class="form-control auto-resize"
+                                                                  name="new_risk_${riskIndex}_minimization_measures"
+                                                                  rows="2"></textarea>
+                                                    </div>
+
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Уровень присущего риска</label>
+                                                            <select class="form-select"
+                                                                    name="new_risk_${riskIndex}_level_inherent_risk">
+                                                                <option value="">Выберите из списка</option>
+                                                                <option value="Низкий">Низкий</option>
+                                                                <option value="Средний">Средний</option>
+                                                                <option value="Высокий">Высокий</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Уровень остаточного риска</label>
+                                                            <select class="form-select"
+                                                                    name="new_risk_${riskIndex}_residual_risk_level">
+                                                                <option value="">Выберите из списка</option>
+                                                                <option value="Низкий">Низкий</option>
+                                                                <option value="Средний">Средний</option>
+                                                                <option value="Высокий">Высокий</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Дополнительная
+                                                            информация/комментарии</label>
+                                                        <textarea class="form-control auto-resize"
+                                                                  name="new_risk_${riskIndex}_dop_info"
+                                                                  rows="2"></textarea>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+
+                                    <!-- Контейнер для новых рисков -->
+                                    <div id="new-risks-{{ p_data.participant.id }}"></div>
+
+                                    <!-- Кнопки добавления рисков -->
+                                    <div class="btn-group mt-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm add-custom-risk-btn"
+                                                data-participant-id="{{ p_data.participant.id }}">
+                                            <i class="fas fa-plus"></i> Добавить нетиповой риск
+                                        </button>
+                                        <button type="button" class="btn btn-outline-info btn-sm add-album-risk-btn"
+                                                data-participant-id="{{ p_data.participant.id }}"
+                                                data-bs-toggle="modal" data-bs-target="#albumRiskModal">
+                                            <i class="fas fa-book"></i> Добавить риск из альбома
+                                        </button>
+                                    </div>
+                                </div>
+                                <hr>
+                            {% endfor %}
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Сохранить все риски
+                                </button>
+                                <a href="{% url 'legal_opin:deal_detail' pk=deal.pk %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Отмена
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора риска из альбома -->
+    <div class="modal fade" id="albumRiskModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Выбор риска из альбома</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Фильтр по предмету:</label>
+                        <select class="form-select" id="subjectFilter">
+                            <option value="">Все предметы</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="list-group" id="albumRisksList" style="max-height: 400px; overflow-y: auto;">
+                        {% for risk in album_risks %}
+                            <div class="list-group-item album-risk-item"
+                                 data-risk-id="{{ risk.id }}"
+                                 data-risk-text="{{ risk.risk }}"
+                                 data-consequences="{{ risk.negative_consequences|striptags }}"
+                                 data-subject-id="{{ risk.subject.id }}">
+                                <h6 class="mb-1">{{ risk.risk }}</h6>
+                                <small class="text-muted">Предмет: {{ risk.subject.name }}</small>
+                            </div>
+                        {% empty %}
+                            <div class="list-group-item">
+                                <p class="text-muted">Риски не найдены</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="selectAlbumRisk">Выбрать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let newRiskCounter = 0;
+    let currentParticipantId = null;
+    let selectedRisk = null;
+    let albumModal = null;
+
+    // Инициализация модального окна
+    const modalElement = document.getElementById('albumRiskModal');
+    if (modalElement) {
+        albumModal = new bootstrap.Modal(modalElement);
+        
+        // Обработчики закрытия модального окна
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            document.body.classList.remove('modal-open');
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+        });
+    }
+
+    // Функция для автовысоты textarea
+    function autoResizeTextarea() {
+        const textareas = document.querySelectorAll('.auto-resize');
+        textareas.forEach(textarea => {
+            textarea.style.height = 'auto';
+            const minHeight = textarea.classList.contains('negative-consequences-textarea') ? 100 : 40;
+            textarea.style.height = Math.max(textarea.scrollHeight, minHeight) + 'px';
+        });
+    }
+
+    // Инициализация автовысоты
+    autoResizeTextarea();
+    
+    // Обработка изменений в textarea
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('auto-resize')) {
+            e.target.style.height = 'auto';
+            const minHeight = e.target.classList.contains('negative-consequences-textarea') ? 100 : 40;
+            e.target.style.height = Math.max(e.target.scrollHeight, minHeight) + 'px';
+        }
+    });
+
+    // Плавная прокрутка к участникам
+    const participantLinks = document.querySelectorAll('#participant-nav a');
+    participantLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+            }
+        });
+    });
+
+    // Фильтрация рисков по предмету
+    const subjectFilter = document.getElementById('subjectFilter');
+    if (subjectFilter) {
+        subjectFilter.addEventListener('change', function() {
+            const subjectId = this.value;
+            const riskItems = document.querySelectorAll('.album-risk-item');
+            
+            riskItems.forEach(item => {
+                const itemSubjectId = item.dataset.subjectId;
+                if (!subjectId || itemSubjectId === subjectId) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Выбор риска из списка
+    const riskItems = document.querySelectorAll('.album-risk-item');
+    riskItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Снимаем выделение со всех элементов
+            riskItems.forEach(i => i.classList.remove('active'));
+            // Выделяем текущий элемент
+            this.classList.add('active');
+            
+            selectedRisk = {
+                id: this.dataset.riskId,
+                risk: this.dataset.riskText,
+                consequences: this.dataset.consequences
+            };
+        });
+    });
+
+    // Обработчик кнопки выбора риска из альбома
+    const albumButtons = document.querySelectorAll('.add-album-risk-btn');
+    albumButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            currentParticipantId = this.dataset.participantId;
+            selectedRisk = null;
+            
+            // Сброс выделения и фильтра
+            riskItems.forEach(item => {
+                item.classList.remove('active');
+                item.style.display = 'block';
+            });
+            
+            if (subjectFilter) {
+                subjectFilter.value = '';
+            }
+        });
+    });
+
+    // Добавление выбранного риска из альбома
+    const selectButton = document.getElementById('selectAlbumRisk');
+    if (selectButton) {
+        selectButton.addEventListener('click', function() {
+            if (!selectedRisk) {
+                alert('Пожалуйста, выберите риск из списка');
+                return;
+            }
+
+            if (!currentParticipantId) {
+                alert('Ошибка: не указан участник');
+                return;
+            }
+
+            addAlbumRisk(selectedRisk, currentParticipantId);
+        });
+    }
+
+    // Функция добавления риска из альбома
+    function addAlbumRisk(riskData, participantId) {
+        const riskIndex = newRiskCounter++;
+        document.getElementById('new-risk-count').value = newRiskCounter;
+        
+        const newRiskHtml = `
+        <div class="card mb-3 risk-card new-risk" id="new-risk-${riskIndex}">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Риск из альбома</h6>
+                <button type="button" class="btn btn-light btn-sm remove-risk-btn" data-risk-id="${riskIndex}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <input type="hidden" name="new_risk_${riskIndex}_participant_id" value="${participantId}">
+                <input type="hidden" name="new_risk_${riskIndex}_from_album" value="true">
+                
+                <div class="mb-3">
+                    <label class="form-label">Риск</label>
+                    <textarea class="form-control auto-resize" 
+                              name="new_risk_${riskIndex}_risk" 
+                              rows="2">${riskData.risk}</textarea>
+                </div>
+                
+                <div class="accordion mb-3">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse-new-risk-${riskIndex}">
+                                Негативные последствия
+                            </button>
+                        </h2>
+                        <div id="collapse-new-risk-${riskIndex}" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <textarea class="form-control auto-resize negative-consequences-textarea" 
+                                          name="new_risk_${riskIndex}_negative_consequences" 
+                                          rows="3">${riskData.consequences}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Риск-фактор</label>
+                    <textarea class="form-control auto-resize" 
+                              name="new_risk_${riskIndex}_risk_faktor" 
+                              rows="2"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Меры минимизации</label>
+                    <textarea class="form-control auto-resize" 
+                              name="new_risk_${riskIndex}_minimization_measures" 
+                              rows="2"></textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Уровень присущего риска</label>
+                        <select class="form-select" name="new_risk_${riskIndex}_level_inherent_risk">
+                            <option value="">Выберите из списка</option>
+                            <option value="Низкий">Низкий</option>
+                            <option value="Средний">Средний</option>
+                            <option value="Высокий">Высокий</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Уровень остаточного риска</label>
+                        <select class="form-select" name="new_risk_${riskIndex}_residual_risk_level">
+                            <option value="">Выберите из списка</option>
+                            <option value="Низкий">Низкий</option>
+                            <option value="Средний">Средний</option>
+                            <option value="Высокий">Высокий</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Дополнительная информация/комментарии</label>
+                    <textarea class="form-control auto-resize" 
+                              name="new_risk_${riskIndex}_dop_info" 
+                              rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        const container = document.getElementById('new-risks-' + participantId);
+        if (container) {
+            container.insertAdjacentHTML('beforeend', newRiskHtml);
+            autoResizeTextarea();
+            
+            // Закрытие модального окна
+            if (albumModal) {
+                albumModal.hide();
+            }
+        }
+    }
+
+    // Добавление нетипового риска
+    const customButtons = document.querySelectorAll('.add-custom-risk-btn');
+    customButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const participantId = this.dataset.participantId;
+            const riskIndex = newRiskCounter++;
+            document.getElementById('new-risk-count').value = newRiskCounter;
+            
+            const newRiskHtml = `
+            <div class="card mb-3 risk-card new-risk" id="new-risk-${riskIndex}">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Нетиповой риск</h6>
+                    <button type="button" class="btn btn-danger btn-sm remove-risk-btn" data-risk-id="${riskIndex}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <input type="hidden" name="new_risk_${riskIndex}_participant_id" value="${participantId}">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Риск</label>
+                        <textarea class="form-control auto-resize" 
+                                  name="new_risk_${riskIndex}_risk" 
+                                  rows="2"></textarea>
+                    </div>
+                    
+                    <div class="accordion mb-3">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse-new-custom-risk-${riskIndex}">
+                                    Негативные последствия
+                                </button>
+                            </h2>
+                            <div id="collapse-new-custom-risk-${riskIndex}" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <textarea class="form-control auto-resize negative-consequences-textarea" 
+                                              name="new_risk_${riskIndex}_negative_consequences" 
+                                              rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Риск-фактор</label>
+                        <textarea class="form-control auto-resize" 
+                                  name="new_risk_${riskIndex}_risk_faktor" 
+                                  rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Меры минимизации</label>
+                        <textarea class="form-control auto-resize" 
+                                  name="new_risk_${riskIndex}_minimization_measures" 
+                                  rows="2"></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Уровень присущего риска</label>
+                            <select class="form-select" name="new_risk_${riskIndex}_level_inherent_risk">
+                                <option value="">Выберите из списка</option>
+                                <option value="Низкий">Низкий</option>
+                                <option value="Средний">Средний</option>
+                                <option value="Высокий">Высокий</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Уровень остаточного риска</label>
+                            <select class="form-select" name="new_risk_${riskIndex}_residual_risk_level">
+                                <option value="">Выберите из списка</option>
+                                <option value="Низкий">Низкий</option>
+                                <option value="Средний">Средний</option>
+                                <option value="Высокий">Высокий</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Дополнительная информация/комментарии</label>
+                        <textarea class="form-control auto-resize" 
+                                  name="new_risk_${riskIndex}_dop_info" 
+                                  rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+            `;
+            
+            const container = document.getElementById('new-risks-' + participantId);
+            if (container) {
+                container.insertAdjacentHTML('beforeend', newRiskHtml);
+                autoResizeTextarea();
+            }
+        });
+    });
+
+    // Обработчик удаления риска
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-risk-btn')) {
+            const button = e.target.closest('.remove-risk-btn');
+            const riskId = button.dataset.riskId;
+            const riskElement = document.getElementById('new-risk-' + riskId);
+            if (riskElement) {
+                riskElement.remove();
+            }
+        }
+    });
+
+    // Дополнительная обработка для textarea с негативными последствиями
+    document.addEventListener('focus', function(e) {
+        if (e.target.classList.contains('negative-consequences-textarea')) {
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.max(e.target.scrollHeight, 100) + 'px';
+        }
+    }, true);
+});
+</script>
+{% endblock %}
